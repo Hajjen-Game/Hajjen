@@ -3,7 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {HERO_0210,HERO_BAYS_0210,planCinematicHero,installCinematicHero}
- from "../../cinematic-hero-v0210.mjs";
+ from "../../rendering/cinematic-hero-v0210.mjs";
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 class Group{
  children=[];name="";add(m){this.children.push(m)}

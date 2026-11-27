@@ -40,8 +40,10 @@ jobs:
           node-version: '22'
           cache: npm
           cache-dependency-path: skyshift/build/package-lock.json
-      - name: Fetch immutable station comparison archive
-        run: git fetch --no-tags --depth=1 origin 06754fc69e87b23e63b73e1552f99883fadc3897
+      - name: Fetch immutable station and entry comparison archives
+        run: |
+          git fetch --no-tags --depth=1 origin 06754fc69e87b23e63b73e1552f99883fadc3897
+          git fetch --no-tags --depth=1 origin 89b1ca990b72a3321303585fa48b924b3e04ed5e
       - uses: actions/configure-pages@v5
       - name: Locked build and compatibility assembly
         working-directory: skyshift/build

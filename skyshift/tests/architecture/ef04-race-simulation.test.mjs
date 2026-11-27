@@ -311,11 +311,24 @@ test('EF04 root owner entries reconciled with current graph and surviving known 
  const prior=JSON.parse(readFileSync(new URL('../../docs/architecture/ef02-final-owner-ledger.json',import.meta.url),'utf8'));
  assert.deepEqual(ledger.entries.map(e=>e.path),prior.entries.filter(e=>e.ownerStage==='EF04').map(e=>e.currentPath));
  const graph=new Set(inventory().literalBrowserGraph.paths);
- const rows=ledger.entries.map(e=>({path:e.path,live:graph.has(e.path.slice('skyshift/'.length)),exists:existsSync(new URL('../../../'+e.path,import.meta.url)),survivingKnownConsumers:e.knownConsumers.filter(p=>existsSync(new URL('../../../'+p,import.meta.url)))}));
+ const rows=ledger.entries.map(e=>{
+  const path=currentOwnerPath(e.path);
+  if(path!==e.path){
+   assert.ok(!existsSync(new URL('../../../'+e.path,import.meta.url)),e.path+' stale relocated owner');
+   assert.ok(!graph.has(e.path.slice('skyshift/'.length)),e.path+' stale graph owner');
+  }
+  return {path,previousPath:e.path,live:graph.has(path.slice('skyshift/'.length)),exists:existsSync(new URL('../../../'+path,import.meta.url)),survivingKnownConsumers:e.knownConsumers.map(currentOwnerPath).filter(p=>existsSync(new URL('../../../'+p,import.meta.url)))};
+ });
  const retired=ledger.entries.filter(e=>e.disposition.startsWith('retired:'));
+ const laterCohort=JSON.parse(readFileSync(new URL('../../docs/architecture/ef08-obsolete-cohort.json',import.meta.url),'utf8'));
+ const laterRetired=new Set([...laterCohort.roots,...(laterCohort.sourceFiles||[])].map(e=>e.path));
  assert.deepEqual(retired.map(e=>e.path),retirementEF04.files.map(e=>e.path));
- assert.ok(rows.every(r=>r.exists!==retired.some(e=>e.path===r.path)),'Unexpected retirement or restored obsolete source');
- for(const r of rows)assert.equal(r.live,ledger.entries.find(e=>e.path===r.path).verifiedLiveLiteral,r.path+' graph role changed');
+ for(const r of rows){
+  const removed=retired.some(e=>e.path===r.previousPath)||laterRetired.has(r.previousPath)||laterRetired.has(r.path);
+  assert.equal(r.exists,!removed,r.path+' unexpected retirement or restored obsolete source');
+  if(removed)assert.equal(r.live,false,r.path+' retired path is live');
+ }
+ for(const r of rows)assert.equal(r.live,ledger.entries.find(e=>e.path===r.previousPath).verifiedLiveLiteral,r.path+' graph role changed');
  for(const p of ['core/race-lifecycle.mjs','qa/race-probes.mjs','tracks/shared/track-sampler.mjs','flight/flight-physics.mjs'])assert.ok(graph.has(p),p);
  console.log('SKYSHIFT_EF04_OWNER_RECONCILIATION '+JSON.stringify(rows));
 });
@@ -374,7 +387,7 @@ import {createHash} from 'node:crypto';
 import {execFileSync,spawnSync} from 'node:child_process';
 import {resolve,basename} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {expectedRootFiles} from './root-count-contract.mjs';
+import {expectedRootFiles,currentOwnerPath} from './root-count-contract.mjs';
 import {readdirSync} from 'node:fs';
 test('EF04 retired racecraft source is recoverable, absent and has no executable consumers',()=>{
  const repo=fileURLToPath(new URL('../../../',import.meta.url));
@@ -388,7 +401,7 @@ test('EF04 retired racecraft source is recoverable, absent and has no executable
   assert.equal(createHash('sha1').update('blob '+b.length+'\0').update(b).digest('hex'),f.sha);
   const checked=spawnSync(process.execPath,['--check','--input-type=module'],{input:source,encoding:'utf8'});assert.equal(checked.status,0,checked.stderr);
   const migrated=readFileSync(resolve(repo,f.originalReader),'utf8');
-  assert.match(migrated,/from "\.\.\/\.\.\/racing-experience-v0121\.mjs"/);
+  assert.match(migrated,/from "\.\.\/\.\.\/core\/racing-experience-v0121\.mjs"/);
   assert.match(migrated,/createSectorLandmarkData\(positionAt,widthAt\)/);
   assert.match(migrated,/assert\.equal\(data\.minLateralClearance,3\.9\)/);
   for(const p of execFileSync('git',['ls-files','-z'],{cwd:repo,encoding:'utf8',maxBuffer:16*1024*1024}).split('\0').filter(Boolean)){

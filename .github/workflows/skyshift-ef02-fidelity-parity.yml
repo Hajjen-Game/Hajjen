@@ -4,12 +4,13 @@ on:
     paths:
       - 'skyshift/core/visual-fidelity*.mjs'
       - 'skyshift/tests/architecture/ef02-fidelity-parity.mjs'
-      - 'skyshift/tests/architecture/core-migration-stageI.test.mjs'
-      - 'skyshift/rendering/legacy/premium-track-v072.mjs'
-      - 'skyshift/rendering/legacy/premium-track-v081.mjs'
-      - 'skyshift/rendering/legacy/premium-track-v082.mjs'
-      - 'skyshift/rendering/legacy/shared-premium-track.mjs'
-      - 'skyshift/tests/architecture/ef02i-path-overlay.mjs'
+      - 'skyshift/rendering/road/premium-track-v0160.mjs'
+      - 'skyshift/core/zone-wave-v060.mjs'
+      - 'skyshift/tracks/shared/smooth-track-v0160.mjs'
+      - 'skyshift/tracks/trials/trial-v0160.mjs'
+      - 'skyshift/flight/boost/boost-v0160.mjs'
+      - 'skyshift/flight/boost/risk-reward-v0160.mjs'
+      - 'skyshift/tunnel/vault-spatial-wave-parity-v0285.mjs'
       - 'skyshift/tests/architecture/ef02-premium-track-parity.mjs'
       - '.github/workflows/skyshift-ef02-fidelity-parity.yml'
   workflow_dispatch:
@@ -29,7 +30,6 @@ jobs:
           set -euo pipefail
           git fetch --no-tags --depth=1 origin 4983f20f6cf867f91e1ebd57ad48b1d0c685997c
           git worktree add --detach "$RUNNER_TEMP/ef02-reference" 4983f20f6cf867f91e1ebd57ad48b1d0c685997c
-          node --test skyshift/tests/architecture/core-migration-stageI.test.mjs
           for track in skyline vault aurora; do
             node skyshift/tests/architecture/ef02-fidelity-parity.mjs "$RUNNER_TEMP/ef02-reference" "$track"
             node skyshift/tests/architecture/ef02-premium-track-parity.mjs "$RUNNER_TEMP/ef02-reference" "$track"

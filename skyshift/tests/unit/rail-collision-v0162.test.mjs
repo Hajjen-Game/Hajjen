@@ -4,10 +4,10 @@ import assert from "node:assert/strict";
 import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 globalThis.location={search:"?track=aurora"};
 const [trial,audit,oldTrial,camera]=await Promise.all([
- import("../../trial-v0162.mjs"),
- import("../../rail-contact-audit-v0162.mjs"),
+ import("../../tracks/trials/trial-v0162.mjs"),
+ import("../../qa/rail-contact-audit-v0162.mjs"),
  import("../../tracks/trials/trial-v0160.mjs"),
- import("../../cinematic-v0162.mjs")]);
+ import("../../flight/cinematic-v0162.mjs")]);
 const src=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 test("real log reproduced: old Aurora rail solver allowed backwards arc projection",()=>{
  assert.equal(oldTrial.PROJECTION_083.backwardMeters,4);
@@ -60,7 +60,7 @@ test("physical wall normal clips only outward yaw; away steering is not magnetiz
  assert.ok(Math.abs(report.finalLateral)<=report.physicalRailLimit+1e-6);
 });
 test("Aurora race still has no fake corkscrew, risk lanes or GRIP apex",async()=>{
- const risk=await import("../../risk-reward-v0160.mjs");
+ const risk=await import("../../flight/boost/risk-reward-v0160.mjs");
  assert.equal(trial.TRACK_3D.corkscrew,false);
  assert.equal(trial.TRACK_3D.wallRide,false);
  assert.equal(trial.GAPS.length,0);

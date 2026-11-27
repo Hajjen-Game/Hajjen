@@ -5,7 +5,7 @@ const l1f=JSON.parse(readFileSync(new URL('../../docs/architecture/legacy-retire
 const l1h=JSON.parse(readFileSync(new URL('../../docs/architecture/root-relocation-l1h.json',import.meta.url),'utf8'));
 const ef02e=JSON.parse(readFileSync(new URL('../../docs/architecture/ef02-retirement-early-snapshots.json',import.meta.url),'utf8'));
 export function restoreR1GGamePaths(source){
- let out=source;
+ let out=source.replace('import {readEF08Source as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";','import {readFileSync} from "node:fs";');
  // EF02E: reverse only the recorded archive reader import, preserving original test hashes.
  if(ef02e.files.some(f=>source.includes(f.path.split('/').at(-1))))out=out.replace("import {readHistorical as readFileSync} from \"../architecture/legacy-retirement-l1a.mjs\";","import {readFileSync} from \"node:fs\";");
  for(const r of l1h.readers)for(const e of r.edits)out=out.split(e.after).join(e.before);

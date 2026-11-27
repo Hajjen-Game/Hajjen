@@ -2,7 +2,6 @@
 import assert from 'node:assert/strict';
 import {resolve} from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
-import {readFileSync} from 'node:fs';
 const [ref,track]=process.argv.slice(2);
 assert.ok(ref&&['skyline','vault','aurora'].includes(track));
 globalThis.location={search:'?track='+track+'&v=0.28.9.7'};
@@ -22,10 +21,8 @@ class Material{constructor(options){Object.assign(this,options);this.disposed=fa
 class Mesh{constructor(geometry,material){this.geometry=geometry;this.material=material;this.removed=false;}removeFromParent(){this.removed=true;}}
 const THREE={BufferAttribute:Attribute,BufferGeometry:Geometry,MeshBasicMaterial:Material,Mesh,AdditiveBlending:3,DoubleSide:2,DynamicDrawUsage:1};
 const points=[0,5,120,510,573,606.6,900,1662,1740,1842,2250,3005,3180,3338,3399,3400,3410,6580];
-let oldBytes=0,newBytes=0;
-for(const v of ['01091','0161','0162','0163','0164','0165']){
- const name='rail-scrape-sparks-v'+v+'.mjs',a=await load(old,name),b=await load(root,name);
- oldBytes+=readFileSync(resolve(old,name)).length;newBytes+=readFileSync(resolve(root,name)).length;
+for(const v of ['0165']){
+ const name='rail-scrape-sparks-v'+v+'.mjs',a=await load(old,name),b=await load(root,'rendering/'+name);
  assert.deepEqual(Object.keys(a).sort(),Object.keys(b).sort());
  assert.deepEqual(a.RAIL_SPARKS,b.RAIL_SPARKS);
  for(const s of points)for(const side of [-1,0,1])assert.deepEqual(a.railContactPoint(s,side),b.railContactPoint(s,side));
@@ -52,6 +49,4 @@ for(const v of ['01091','0161','0162','0163','0164','0165']){
  }
  console.log('SKYSHIFT_EF02_SPARK_PARITY '+JSON.stringify({track,version:v,anchorSamples:points.length*3,profiles:2,framesPerProfile:360}));
 }
-newBytes+=readFileSync(resolve(root,'rendering/rail-scrape-sparks.mjs')).length;
-assert.ok(newBytes<oldBytes);
-console.log('SKYSHIFT_EF02_SPARK_BYTES '+JSON.stringify({oldBytes,newBytes,reduction:oldBytes-newBytes}));
+console.log('SKYSHIFT_EF08_CURRENT_SPARK_PARITY '+JSON.stringify({track,adapters:1}));

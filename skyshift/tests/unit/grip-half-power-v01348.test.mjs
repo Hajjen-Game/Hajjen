@@ -8,7 +8,7 @@ import {STEERING_AUTHORITY as tuned,normalYawFactorAt,
 import {STEERING_AUTHORITY as previous,
  yawAuthorityAt as oldYaw,normalYawFactorAt as oldNormal}
  from "../../flight/steering-authority-v0901.mjs";
-import {newFlightState,stepFlight,TRIAL} from "../../trial-v01348.mjs";
+import {newFlightState,stepFlight,TRIAL} from "../../tracks/trials/trial-v01348.mjs";
 const near=(a,b,eps=1e-9)=>assert.ok(Math.abs(a-b)<=eps,
   "expected "+a+" ~= "+b+" (delta="+Math.abs(a-b)+")");
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");

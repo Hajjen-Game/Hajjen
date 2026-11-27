@@ -2,11 +2,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
-import {CIRCUIT} from "../../trial-v0901.mjs";
-import {tunnelIntensityAt,SHADOW_TUNNEL} from "../../shadow-tunnel-v092.mjs";
+import {CIRCUIT} from "../../tracks/trials/trial-v0901.mjs";
+import {tunnelIntensityAt,SHADOW_TUNNEL} from "../../tunnel/shadow-tunnel-v092.mjs";
 import {TUNNEL_BLACKOUT,blackoutLevelsAt,patchBlackoutRoadFragment,
  createTunnelBlackoutController,separateBladeTipMaterial}
- from "../../tunnel-blackout-v0921.mjs";
+ from "../../tunnel/tunnel-blackout-v0921.mjs";
 const src=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const close=(a,b,eps=1e-8)=>assert.ok(Math.abs(a-b)<eps,`${a} should equal ${b}`);
 test("black room fades smoothly inside tunnel, repeated across three laps",()=>{

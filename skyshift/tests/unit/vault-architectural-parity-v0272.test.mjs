@@ -2,13 +2,13 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {buildStructuralTunnelData,sampleStructuralFacet}
- from "../../structural-tunnel-v0213.mjs";
+ from "../../tunnel/structural-tunnel-v0213.mjs";
 import {vaultCrossSection0270}
  from "../../tracks/vault/full-tunnel-circuit-v0270.mjs";
 import {buildVaultArchitectureData0272,VAULT_ARCHITECTURE_0272}
  from "../../tracks/vault/vault-architectural-parity-v0272.mjs";
 import {TUNNEL_PROFILE_0211}
- from "../../tunnel-megastructure-v0211.mjs";
+ from "../../tunnel/tunnel-megastructure-v0211.mjs";
 
 const read=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");
 const pos=(s,x,y)=>({x,y,z:s});
@@ -21,7 +21,7 @@ test("actual original Skyline 0.24.1 panel sculptor is imported, not imitated",(
  // Vault now calls the SAME public Skyline sculptor entry point that
  // Skyline uses, rather than duplicating the original 0.24.1 builder.
  assert.match(source,/import \{buildSharedTunnelSection0280\}/);
- const originalBuilder=read("./structural-tunnel-v0213.mjs");
+ const originalBuilder=read("./tunnel/structural-tunnel-v0213.mjs");
  assert.match(originalBuilder,/return buildStructuralTunnelData\(positionAt,/);
  assert.match(source,/depthStudy:true/);
  assert.match(source,/unifiedDepth:true,surfaceCraftsmanship:true/);

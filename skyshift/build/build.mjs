@@ -72,16 +72,14 @@ let gameText=await read(game);
 gameText=replaceOnce(gameText,/const SKYSHIFT_BUILD_VERSION=new URL\(\s*document\.querySelector\("script\[data-game-module\]"\)\?\.src\|\|location\.href\s*\)\.searchParams\.get\("v"\)\|\|"0\.26\.5";/g,'const SKYSHIFT_BUILD_VERSION='+JSON.stringify(version)+';','source build version');
 gameText=specializeVaultGame(gameText);
 await writeFile(game,gameText);
-const runtime=join(stage,'shared-tunnel-runtime-v0280.mjs');
+const runtime=join(stage,'tunnel/shared-tunnel-runtime-v0280.mjs');
 await writeFile(runtime,specializeVaultTunnelRuntime(await read(runtime)));
-// These two retained root loaders resolve runtime-selected glTF and its
-// relative resources against their module URL. Bundled chunks live in bundles/.
-// Keep the exact asset paths and resolve against the page instead.
-for(const name of ['ship-hero-loader-v0132.mjs','ship-hero-loader-v01342.mjs']){
+// The canonical ship loaders resolve source URLs from the SKYSHIFT root.
+// Bundled chunks live in bundles/, so preserve the same root via the page URL.
+for(const name of ['ships/ship-hero-loader-v0132.mjs','ships/ship-hero-loader-v01342.mjs']){
  const path=join(stage,name),before=await read(path);
- const matches=[...before.matchAll(/new URL\(([^,\n]+),\s*import\.meta\.url\)/g)];
- assert.ok(matches.length>=2,name+' dynamic asset references');
- let next=before.replace(/new URL\(([^,\n]+),\s*import\.meta\.url\)/g,'new URL($1,document.baseURI)');
+ const next=replaceOnce(before,/const shipAssetBase=new URL\("\.\.\/",import\.meta\.url\);/g,
+  'const shipAssetBase=document.baseURI;',name+' exact asset base');
  await writeFile(path,next);
 }
 let graph;

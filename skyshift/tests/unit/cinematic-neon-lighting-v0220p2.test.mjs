@@ -3,9 +3,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {CINEMATIC_NEON_0220_P2,buildTunnelNeonLocalData,
- patchCinematicNeonShader} from "../../cinematic-neon-lighting-v0220p2.mjs";
+ patchCinematicNeonShader} from "../../rendering/cinematic-neon-lighting-v0220p2.mjs";
 import {patchPremiumMaterialShader} from "../../rendering/premium-material-rebirth-v0220.mjs";
-import {TUNNEL_PORTALS_0211} from "../../tunnel-megastructure-v0211.mjs";
+import {TUNNEL_PORTALS_0211} from "../../tunnel/tunnel-megastructure-v0211.mjs";
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const near=(a,b,tol=.008)=>assert.ok(Math.abs(a-b)<=tol,
  "local reference mismatch "+a+" vs "+b);
@@ -120,5 +120,5 @@ test("new version uses exact Pass 1 / previous stable shaders as A/B",()=>{
  assert.match(game,/compareBeforeCinematicNeon:"\?cinematicNeon=classic"/);
  assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.26\.\d+/);
  assert.match(read("./index.html"),/0\.26\.\d+/);
- assert.match(read("./neon-interior-v0212.mjs"),/shell\.material=bindTunnelSpectrumMaterial\(new THREE\.MeshBasicMaterial/);
+ assert.match(read("./tunnel/neon-interior-v0212.mjs"),/shell\.material=bindTunnelSpectrumMaterial\(new THREE\.MeshBasicMaterial/);
 });

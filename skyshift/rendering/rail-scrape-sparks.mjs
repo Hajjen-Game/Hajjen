@@ -4,7 +4,7 @@
 // not ship-attached static ribbons. One allocated 3D draw batch, no lights,
 // no sound, no control/collision/damage edits.
 // Contact coordinates supplied by the bound track sampler.
-import {speedPresenceAt} from "../velocity-presence-v0104.mjs";
+import {speedPresenceAt} from "../ships/velocity-presence-v0104.mjs";
 
 export const RAIL_SPARKS=Object.freeze({
  version:"rail-scrape-sparks-visibility-01091",

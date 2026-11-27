@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { extractLiteralReferences, resolveLocalReference, inventory } from './dependency-inventory-v2.mjs';
+import { normalizeExplicitAssetBaseReferences, extractLiteralReferences, resolveLocalReference, inventory } from './dependency-inventory-v2.mjs';
 
 test('literal ESM and HTML references include imports and real boot entrypoint', () => {
   const js = 'import "./m.mjs";\nimport("./n.mjs?v=2");\nexport {x} from "./x.mjs";';
@@ -41,4 +41,22 @@ test('minimal file census only traces the literal browser graph; all other files
   } finally {
     rmSync(root, {recursive: true, force: true});
   }
+});
+
+test('explicit parent asset base resolves the actual asset path without hiding missing references', () => {
+  const root = resolve('/tmp/inventory-sample');
+  const owner = resolve(root, 'ships/loader.mjs');
+  const base = 'const shipAssetBase=new URL("../",import.meta.url);';
+  const expr = 'new URL("./assets/ships/",shipAssetBase);';
+  const missing = 'new URL("./assets/missing.gltf",shipAssetBase);';
+  const direct = 'new URL("./local.gltf",import.meta.url);';
+  const source = [base,expr,missing,direct].join('\n');
+  const refs = extractLiteralReferences(source,'.mjs');
+  for (const [spec,target] of [['../assets/ships/','assets/ships'],['../assets/missing.gltf','assets/missing.gltf'],['./local.gltf','ships/local.gltf']]) {
+    assert.ok(refs.includes(spec),spec);
+    assert.equal(resolveLocalReference(root,owner,spec),resolve(root,target));
+  }
+  assert.ok(!refs.includes('./assets/ships/'));
+  assert.equal(normalizeExplicitAssetBaseReferences(expr),expr);
+  assert.equal(normalizeExplicitAssetBaseReferences(base+'\n'+base+'\n'+expr),base+'\n'+base+'\n'+expr);
 });

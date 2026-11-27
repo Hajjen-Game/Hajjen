@@ -6,11 +6,11 @@
 // Only Vault >=0.28.9.2 is altered. No new meshes, lights, reflection passes,
 // road/ship/physics edits or global bloom/exposure changes.
 import {TUNNEL_PORTALS_0211,tunnelProfilePoint0211}
- from "../tunnel-megastructure-v0211.mjs";
+ from "./tunnel-megastructure-v0211.mjs";
 import {sharedPanelSeamPoint02894,sharedWaveColors02894}
  from "./unified-tunnel-light-sources-v02894.mjs";
 import {ZONE_PALETTES,ZONE_WAVE}
- from "../zone-wave-v060.mjs";
+ from "../core/zone-wave-v060.mjs";
 
 const MODEL="SKYSHIFT · Tunnel Megastructure 0.21.1";
 const COVE="SKYSHIFT 0.26.0 / stable cyan cove emitters";

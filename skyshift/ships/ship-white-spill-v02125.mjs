@@ -6,7 +6,7 @@
 // clearcoat alone does not remove the wash; simply raising roughness makes
 // the entire wing even brighter). We isolate just the bright flight hull.
 // This is shader-only: no extra lights, geometry, draw calls or camera work.
-import {whiteCoreTunnelMask} from "../white-core-containment-v02123.mjs";
+import {whiteCoreTunnelMask} from "../rendering/white-core-containment-v02123.mjs";
 
 export const SHIP_WHITE_SPILL_02125=Object.freeze({
  version:"0.21.2.5",id:"ship-white-spill-containment",

@@ -2,7 +2,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
-import {MANTA_WING_OUTLINE} from "../../manta-blade-v0484.mjs";
+import {MANTA_WING_OUTLINE} from "../../ships/manta-blade-v0484.mjs";
 import {STINGRAY_PRESENTATION_01347 as s,visualSettingsForShip}
  from "../../ships/stingray-presentation-v01347.mjs";
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
@@ -44,7 +44,7 @@ test("real wingtip scale and base-preserving engine FX remain unchanged",()=>{
  assert.deepEqual(visualSettingsForShip("stingray"),
   {scaleX:5.80/8.08,scaleY:.68,scaleZ:.68,lift:0});
  assert.match(game,/engine-trails-v01346\.mjs/);
- const fx=read("./engine-trails-v01346.mjs");
+ const fx=read("./ships/engine-trails-v01346.mjs");
  assert.match(fx,/baseScale\.x\*\(1\+landAmount/);
 });
 test("version 0.13.4.7 is wired to the production page and bootstrap",()=>{

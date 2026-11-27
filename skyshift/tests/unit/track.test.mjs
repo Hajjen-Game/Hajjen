@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createTrack, centerAt, roadIntervals, surfaceAt, zoneAt, speedAtZone, isGapTheoreticallyFair } from '../../track.mjs';
+import { createTrack, centerAt, roadIntervals, surfaceAt, zoneAt, speedAtZone, isGapTheoreticallyFair } from '../../tracks/trials/track.mjs';
 
 test('first segments give distinct flow, jump and surge experiences', () => {
   const p = createTrack(42);

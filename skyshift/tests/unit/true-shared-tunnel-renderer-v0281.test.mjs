@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {TRUE_SHARED_RENDERER_0281,planTrueSharedTunnel0281,
  adaptSourcePosition0281,installTrueSharedTunnelRenderer0281}
- from "../../true-shared-tunnel-renderer-v0281.mjs";
+ from "../../tunnel/true-shared-tunnel-renderer-v0281.mjs";
 
 test("0.28.1 uses source renderer, not an independently colored Vault skin",()=>{
  assert.equal(TRUE_SHARED_RENDERER_0281.renderer,
@@ -48,7 +48,7 @@ test("old renderer remains available, and non-Vault tracks cannot receive Vault 
 });
 
 import {planConfiguredTunnelModules0281,validateSharedTunnelPolicy,
- installConfiguredSharedTunnel} from "../../true-shared-tunnel-renderer-v0281.mjs";
+ installConfiguredSharedTunnel} from "../../tunnel/true-shared-tunnel-renderer-v0281.mjs";
 
 test("EF05 explicit full-course plan retains the exact approved Vault source module layout",()=>{
  assert.deepEqual(planConfiguredTunnelModules0281(3400,[{start:0,end:3400}]),
@@ -88,7 +88,7 @@ test("EF05 explicit renderer policy needs no track name or URL and validates bef
   positionAt:(s,x,y)=>({x,y,z:s})}),/original Three/);
 });
 
-import {omitLegacyRoadResponseEF05} from "../../true-shared-tunnel-renderer-v0281.mjs";
+import {omitLegacyRoadResponseEF05} from "../../tunnel/true-shared-tunnel-renderer-v0281.mjs";
 test("EF05 obsolete source allocation is omitted only for current clean production",()=>{
  const current="?track=vault&v=0.28.9.7";
  assert.equal(omitLegacyRoadResponseEF05(current,true),true);

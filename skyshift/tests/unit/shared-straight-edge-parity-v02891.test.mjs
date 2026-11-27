@@ -12,7 +12,7 @@ const {
  installVaultStraightRoadParity02891,STRAIGHT_EDGE_PARITY_02891
 }=await import("../../tunnel/shared-straight-edge-parity-v02891.mjs");
 const {COURSE_SEGMENTS,CIRCUIT}=await import("../../tracks/trials/trial-v0165.mjs");
-const {planTrueSharedTunnel0281}=await import("../../true-shared-tunnel-renderer-v0281.mjs");
+const {planTrueSharedTunnel0281}=await import("../../tunnel/true-shared-tunnel-renderer-v0281.mjs");
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 class Attr{
  constructor(data,size){this.array=new Float32Array(data);this.itemSize=size;this.count=data.length/size;}
@@ -171,7 +171,7 @@ test("legacy Skyline release functions and Vault 0.28.9 lighting remain enabled"
   assert.equal(f("?track=vault&v=0.28.9.1"),true,f.name+" unexpectedly downgraded");
   assert.equal(f("?track=skyline&v=0.28.9.1"),false,f.name);
  }
- const shared=read("./true-shared-tunnel-renderer-v0281.mjs");
+ const shared=read("./tunnel/true-shared-tunnel-renderer-v0281.mjs");
  const game=read("./game-v0210.mjs");
  const html=read("./index.html");
  assert.match(shared,/buildVaultStraightEmitters02891/);

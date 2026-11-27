@@ -3,7 +3,7 @@
 // into the existing MeshPhysicalMaterial GGX lighting; no global light or sky.
 // Retains Unified Tunnel Lighting 1.0 and physical-metal Pass 2 exactly.
 import {installTrueMetalMaterialsPass2} from "./true-metal-materials-v0260p2.mjs";
-import {TUNNEL_MEGA_0211,TUNNEL_PORTALS_0211} from "../tunnel-megastructure-v0211.mjs";
+import {TUNNEL_MEGA_0211,TUNNEL_PORTALS_0211} from "../tunnel/tunnel-megastructure-v0211.mjs";
 
 export const LOCAL_REFLECTIONS_0261=Object.freeze({
  version:"0.26.1",pass:1,id:"finite-local-strip-reflections-0261",

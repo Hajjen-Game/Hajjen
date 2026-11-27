@@ -14,21 +14,7 @@ const hash=s=>{const b=Buffer.from(s);return createHash('sha1').update('blob '+b
 export function restoreEF02I(source,path){
  source=restoreDeckMove(source,path);
  const k=key(path);
- // EF02J: reconstruct only the three approved material adapters from actual shared source.
- const versions=["corkscrew-spectrum-072","high-leap-spectrum-081","track-rhythm-spectrum-082"];
- const cohort=["skyshift/rendering/legacy/premium-track-v072.mjs","skyshift/rendering/legacy/premium-track-v081.mjs","skyshift/rendering/legacy/premium-track-v082.mjs"];
- const index=cohort.indexOf(k);
- if(index>=0){
-  const adapter=["import {createPremiumTrackAPI} from \"./shared-premium-track.mjs\";\nexport const {\n PREMIUM_TRACK,\n premiumTrackCoordinates,\n createPremiumDeckGeometry,\n GLSL_BOOST_PADS,\n SURFACE_FRAGMENT_GLSL,\n SURFACE_FRAGMENT_HELPERS,\n patchPremiumShaders,\n createPremiumTrackMaterial\n}=createPremiumTrackAPI({TRIAL,widthAt,ZONE_PALETTES,ZONE_WAVE,SPECTRAL_FRONT_GLSL,BOOST_PADS,createSmoothDeckData,MESH_SPEC,version:\"corkscrew-spectrum-072\"});\n","import {createPremiumTrackAPI} from \"./shared-premium-track.mjs\";\nexport const {\n PREMIUM_TRACK,\n premiumTrackCoordinates,\n createPremiumDeckGeometry,\n GLSL_BOOST_PADS,\n SURFACE_FRAGMENT_GLSL,\n SURFACE_FRAGMENT_HELPERS,\n patchPremiumShaders,\n createPremiumTrackMaterial\n}=createPremiumTrackAPI({TRIAL,widthAt,ZONE_PALETTES,ZONE_WAVE,SPECTRAL_FRONT_GLSL,BOOST_PADS,createSmoothDeckData,MESH_SPEC,version:\"high-leap-spectrum-081\"});\n","import {createPremiumTrackAPI} from \"./shared-premium-track.mjs\";\nexport const {\n PREMIUM_TRACK,\n premiumTrackCoordinates,\n createPremiumDeckGeometry,\n GLSL_BOOST_PADS,\n SURFACE_FRAGMENT_GLSL,\n SURFACE_FRAGMENT_HELPERS,\n patchPremiumShaders,\n createPremiumTrackMaterial\n}=createPremiumTrackAPI({TRIAL,widthAt,ZONE_PALETTES,ZONE_WAVE,SPECTRAL_FRONT_GLSL,BOOST_PADS,createSmoothDeckData,MESH_SPEC,version:\"track-rhythm-spectrum-082\"});\n"][index];
-  const prefix="// Shared historical integrated PBR road material. Track data and version stay explicit.\nexport function createPremiumTrackAPI({TRIAL,widthAt,ZONE_PALETTES,ZONE_WAVE,SPECTRAL_FRONT_GLSL,BOOST_PADS,createSmoothDeckData,MESH_SPEC,version}){\n",suffix="\n return {PREMIUM_TRACK,premiumTrackCoordinates,createPremiumDeckGeometry,GLSL_BOOST_PADS,SURFACE_FRAGMENT_GLSL,SURFACE_FRAGMENT_HELPERS,patchPremiumShaders,createPremiumTrackMaterial};\n}\n";
-  const shared=readFileSync(resolve(repo,'skyshift/rendering/legacy/shared-premium-track.mjs'),'utf8');
-  assert.ok(source.endsWith(adapter),k+' unexpected premium material adapter');
-  assert.ok(shared.startsWith(prefix)&&shared.endsWith(suffix),'Unexpected premium material factory shape');
-  const body=shared.slice(prefix.length,-suffix.length)
-   .replace(' version,',' version:"'+versions[index]+'",')
-   .replace(/^(const (?:PREMIUM_TRACK|GLSL_BOOST_PADS|SURFACE_FRAGMENT_GLSL|SURFACE_FRAGMENT_HELPERS)=|function (?:premiumTrackCoordinates|createPremiumDeckGeometry|patchPremiumShaders|createPremiumTrackMaterial)\()/gm,'export $1');
-  source=source.slice(0,-adapter.length)+body;
- }
+ // Retired historical premium adapters are verified by the closed-cohort Git archive, not reconstructed from live obsolete sources.
  if(k===ef02j.workflow.path){
   // Only reconstruct the two archived syntax-only commands for historical hash evidence.
   for(const x of [...ef02j.workflow.edits].reverse()){

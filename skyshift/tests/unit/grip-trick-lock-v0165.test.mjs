@@ -7,7 +7,7 @@ import {execFileSync} from "node:child_process";
 import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 const src=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const run=track=>JSON.parse(execFileSync(process.execPath,[
- new URL("../../"+"./grip-trick-audit-v0165.mjs",import.meta.url).pathname,track],
+ new URL("../../"+"./qa/grip-trick-audit-v0165.mjs",import.meta.url).pathname,track],
  {encoding:"utf8",maxBuffer:512000}));
 const aurora=run("aurora"),skyline=run("skyline");
 const near=(a,b,eps=1e-9)=>assert.ok(Math.abs(a-b)<eps,
@@ -72,7 +72,7 @@ test("only actual near-gap can suppress GRIP yaw; physics has no track forks",()
  assert.match(physics,/const desired=input\*TRIAL\.maxYawRate\*yawFactor\*/);
  assert.match(physics,/gripPreArmTicks\+\+/);
  assert.match(physics,/gripYawSuppressedTicks\+\+/);
- assert.match(src("./time-trial-v0160.mjs"),/skyshift-time-trial-ghost-aurora-0160/);
+ assert.match(src("./core/time-trial-v0160.mjs"),/skyshift-time-trial-ghost-aurora-0160/);
  assert.match(src("./tracks/shared/track-selection-v0160.mjs"),/trackRevision:"aurora-run-0160"/);
  assert.match(src("./index.html"),/boot-v0205\.js\?v=0\.20\.5/);
  assert.match(src("./legacy/boot/boot-v0165.js"),/game-v0165\.mjs\?v=0\.16\.5/);

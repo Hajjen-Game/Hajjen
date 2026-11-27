@@ -5,7 +5,7 @@ import {CHALLENGES_0140,CHALLENGE_RULES_0140,initialChallengeProgress,
  evaluateChallenge,recordChallenge,challengeSummary,captureChallengeMetrics,
  normalizeChallengeProgress} from "../../tracks/skyline/skyline-challenges-v0140.mjs";
 import {TRIAL,newFlightState,CIRCUIT,SKYLINE_LEAP,GRIP_APEX,
- MAGNETIC_WALL,CORKSCREW,poseAt} from "../../trial-v01348.mjs";
+ MAGNETIC_WALL,CORKSCREW,poseAt} from "../../tracks/trials/trial-v01348.mjs";
 import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 const src=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const sample=(c,o={})=>({reachedExit:true,elapsed:c.goldSeconds-1,

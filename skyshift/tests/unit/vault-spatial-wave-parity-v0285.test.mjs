@@ -2,9 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {planTrueSharedTunnel0281,adaptSourcePosition0281}
- from "../../true-shared-tunnel-renderer-v0281.mjs";
+ from "../../tunnel/true-shared-tunnel-renderer-v0281.mjs";
 import {ZONE_WAVE,newZoneWaveState,updateZoneWave}
- from "../../zone-wave-v060.mjs";
+ from "../../core/zone-wave-v060.mjs";
 import {VAULT_WAVE_PARITY_0285,vaultSpatialWaveEnabled0285,
  waveSignedGlobal0285,waveColorAmount0285,
  patchVaultSpatialWave0285,installVaultSpatialWaveModule0285}

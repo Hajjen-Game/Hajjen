@@ -2,7 +2,7 @@
 // surface pass without altering its recognisable hard-edge delta geometry,
 // cockpit, dual engine coordinates, GRIP response or flight physics.
 import {buildMantaBlade,MANTA_IDENTITY,ENGINE_SOCKETS}
- from "../manta-blade-v0484.mjs";
+ from "./manta-blade-v0484.mjs";
 import {buildShipPolish,SHIP_POLISH} from "./ship-polish-v0103.mjs";
 export const MANTA_POLISH=Object.freeze({
  ...MANTA_IDENTITY,version:"manta-premium-0103",

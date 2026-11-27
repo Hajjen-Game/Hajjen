@@ -3,12 +3,12 @@
 // the new optical layer. No new meshes/draw calls/lights/SSR/PMREM passes;
 // road material, geometry positions, curves, collision, GRIP all unchanged.
 import {TUNNEL_PORTALS_0211,TUNNEL_PROFILE_0211,
- tunnelProfilePoint0211} from "../tunnel-megastructure-v0211.mjs";
+ tunnelProfilePoint0211} from "./tunnel-megastructure-v0211.mjs";
 import {createUnifiedSourceRegistry02894,sharedWaveColors02894}
  from "./unified-tunnel-light-sources-v02894.mjs";
 import {createSharedSourceSampler0282}
  from "./shared-road-ship-light-v0282.mjs";
-import {ZONE_WAVE,ZONE_PALETTES} from "../zone-wave-v060.mjs";
+import {ZONE_WAVE,ZONE_PALETTES} from "../core/zone-wave-v060.mjs";
 
 export const ARCH_OPTICS_02893=Object.freeze({
  version:"0.28.9.3",name:"Arch Emitter & Chromatic Road Reflection",

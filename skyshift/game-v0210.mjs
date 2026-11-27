@@ -18,19 +18,19 @@ import {
 } from "./tracks/trials/trial-v0165.mjs";
 import { BOOST_PADS,BOOST_CONFIG } from "./flight/boost/boost-v0160.mjs";
 import {RISK_REWARD_0160,RHYTHM_GATES_0160,riskCueAt,
- VAULT_BOOST_0283_ACTIVE} from "./risk-reward-v0160.mjs";
+ VAULT_BOOST_0283_ACTIVE} from "./flight/boost/risk-reward-v0160.mjs";
 import { createPremiumDeckGeometry,PREMIUM_TRACK } from "./rendering/road/premium-track-v0160.mjs";
 import {FIDELITY_0114,createFidelityDirector,
  resetFidelityDirector,advanceFidelityDirector,fidelityAudit,
  createSmartPremiumTrackMaterial} from "./core/visual-fidelity-v0160.mjs";
 import {SHADOW_TUNNEL,inShadowTunnel,tunnelIntensityAt,installShadowTunnel,
- installTunnelRoadShading} from "./shadow-tunnel-v0160.mjs";
+ installTunnelRoadShading} from "./tunnel/shadow-tunnel-v0160.mjs";
 import {TUNNEL_BLACKOUT,installBlackoutRoadShading,
  separateBladeTipMaterial,createTunnelBlackoutController}
- from "./tunnel-blackout-v0160.mjs";
+ from "./tunnel/tunnel-blackout-v0160.mjs";
 import {UNIFIED_TUNNEL_LIGHTING_1,createUnifiedTunnelLightingController}
- from "./unified-tunnel-lighting-v1.mjs";
-import {ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave,frontPaletteBlend,waveResonanceStrength,spectralChargeStrength,horizonWaveCue} from "./zone-wave-v060.mjs";
+ from "./tunnel/unified-tunnel-lighting-v1.mjs";
+import {ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave,frontPaletteBlend,waveResonanceStrength,spectralChargeStrength,horizonWaveCue} from "./core/zone-wave-v060.mjs";
 import {vaultSpatialWaveEnabled0285,waveSignedGlobal0285,
  VAULT_WAVE_PARITY_0285} from "./tunnel/vault-spatial-wave-parity-v0285.mjs";
 import {STABILITY_0286,reflectionStabilityEnabled0286}
@@ -60,14 +60,14 @@ import {CEILING_FIXTURE_02892,ceilingFixtureEnabled02892}
 import {STRAIGHT_EDGE_PARITY_02891,straightParityEnabled02891,
  vaultStraightRanges02891}
  from "./tunnel/shared-straight-edge-parity-v02891.mjs";
-import {MANTA_IDENTITY,ENGINE_SOCKETS,buildMantaWings} from "./manta-blade-v0484.mjs";
+import {MANTA_IDENTITY,ENGINE_SOCKETS,buildMantaWings} from "./ships/manta-blade-v0484.mjs";
 import {buildPremiumMantaBlade,MANTA_POLISH} from "./ships/manta-blade-v0103.mjs";
 import {buildStingrayEvo,STINGRAY_EVO} from "./ships/stingray-evo-v01342.mjs";
 import {FLEET,FLEET_VERSION,readFleet,saveFleet,equipFleet,
  isFleetUnlocked,recordFleetClear,fleetStatus} from "./ships/fleet-v010.mjs";
 import { makeFullscreenController } from "./ui/fullscreen-v02.mjs";
-import { createTwinEngineFX,ENGINE_TRAIL_SPEC } from "./engine-trails-v01346.mjs";
-import { createNeonPipeline,createNeonKit,NEON_TUNING } from "./neon-v0111.mjs";
+import { createTwinEngineFX,ENGINE_TRAIL_SPEC } from "./ships/engine-trails-v01346.mjs";
+import { createNeonPipeline,createNeonKit,NEON_TUNING } from "./rendering/neon-v0111.mjs";
 import { MESH_SPEC } from "./tracks/shared/smooth-track-v0160.mjs";
 import {OPT_0111,newHudBudget,createDomWriteCache} from "./core/render-optimizer-v0111.mjs";
 import {createUnifiedFlightRig,resetUnifiedFlightRig,advanceUnifiedFlightRig,
@@ -85,18 +85,18 @@ import {SIGNATURE_FLIGHT,createSignatureFlightState,
 import { CINEMATIC_DEFAULTS,createCinematicState,chasePose,cameraBankAt,cinematicFov,engineLightFactor } from "./flight/cinematic-v0165.mjs";
 import {BOOST_SPRING,createBoostSpringState,triggerBoostSpring,stepBoostSpring,boostFovTarget,boostFovResponse} from "./flight/boost-spring-v090.mjs";
 import {BOOST_SPRING as CLASSIC_BOOST_FOV} from "./flight/boost/boost-spring-v0495.mjs";
-import {VELOCITY_SPEC,createVelocityState,igniteVelocity,stepVelocityState} from "./velocity-language-v0496.mjs";
+import {VELOCITY_SPEC,createVelocityState,igniteVelocity,stepVelocityState} from "./rendering/velocity-language-v0496.mjs";
 import {KINETIC_CAMERA,kineticFovAt,createKineticCameraState,
  triggerKineticLanding,kineticCameraAudit}
  from "./flight/kinetic-camera-v090.mjs";
 import { installAeroBarriers,AERO_BARRIER } from "./tracks/barriers/aero-barrier-v0165.mjs";
-import { installSpaceBackdrop } from "./space-v0496.mjs";
+import { installSpaceBackdrop } from "./world/space-v0496.mjs";
 import {SIGNATURE_ENV_0180,installSignatureEnvironment}
- from "./signature-environment-v0180.mjs";
+ from "./world/signature-environment-v0180.mjs";
 import {WORLD_0190,installCinematicWorld}
- from "./world-rebuild-v0190.mjs";
+ from "./world/world-rebuild-v0190.mjs";
 import {ORBITAL_HERO_0192,installOrbitalHero}
- from "./orbital-hero-v0192.mjs";
+ from "./world/orbital-hero-v0192.mjs";
 import {WORLD_ART_0200,installWorldArt}
  from "./world/environment-art-pipeline-v0200.mjs";
 import {WORLD_ART_0201,installWorldArt as installEnclosedWorldArt}
@@ -114,11 +114,11 @@ import {WORLD_ART_02041,installWorldArt as installSculptedNeonWorldArt}
 import {WORLD_ART_0205,installWorldArt as installArchitecturalWorldArt}
  from "./world/environment-art-pipeline-v0205.mjs";
 import {HERO_0210,installCinematicHero}
- from "./cinematic-hero-v0210.mjs";
+ from "./rendering/cinematic-hero-v0210.mjs";
 import {CINEMATIC_GRADE_0210B,installCinematicGradeHero}
- from "./cinematic-grade-v0210b.mjs";
+ from "./rendering/cinematic-grade-v0210b.mjs";
 import {TUNNEL_MEGA_0211,installTunnelMegastructure}
- from "./tunnel-megastructure-v0211.mjs";
+ from "./tunnel/tunnel-megastructure-v0211.mjs";
 import {FULL_TUNNEL_0270,installFullTunnelCircuit0270}
  from "./tracks/vault/full-tunnel-circuit-v0270.mjs";
 import {VAULT_MATERIAL_PARITY_0271,installVaultMaterialParity0271}
@@ -129,46 +129,46 @@ import {VAULT_LIGHTING_0273,installVaultFullLighting0273}
  from "./tracks/vault/vault-full-lighting-v0273.mjs";
 import {VAULT_PREMIUM_FINISH_0274} from "./tracks/vault/vault-premium-finish-v0274.mjs";
 import {TUNNEL_SHARED_ARCHITECTURE_0280,tunnelReleaseAtLeast0280,sharedTunnelVersionActive0280}
- from "./shared-tunnel-architecture-v0280.mjs";
+ from "./tunnel/shared-tunnel-architecture-v0280.mjs";
 import {createSharedTunnelRuntime0280}
- from "./shared-tunnel-runtime-v0280.mjs";
-import {omitLegacyRoadResponseEF05,startupSamplerEnabled02897} from "./true-shared-tunnel-renderer-v0281.mjs";
+ from "./tunnel/shared-tunnel-runtime-v0280.mjs";
+import {omitLegacyRoadResponseEF05,startupSamplerEnabled02897} from "./tunnel/true-shared-tunnel-renderer-v0281.mjs";
 import {SHARED_LIGHT_0282} from "./tunnel/shared-road-ship-light-v0282.mjs";
 import {createSharedOpticalContext,installSharedOpticalShip,installSharedRoadOptics,finalizeSharedOptics} from "./tunnel/shared-optical-assembly.mjs";
 import {PMREM_0284,readPmremRelease0284}
  from "./tunnel/pmrem-reflection-pipeline-v0284.mjs";
 import {VAULT_LIGHT_SEAL_0270,vaultLightLevels0270}
- from "./full-tunnel-light-seal-v0270.mjs";
+ from "./tunnel/full-tunnel-light-seal-v0270.mjs";
 import {NEON_INTERIOR_0212,installNeonDrivenInterior}
- from "./neon-interior-v0212.mjs";
+ from "./tunnel/neon-interior-v0212.mjs";
 import {installNeonDrivenInterior as installClassicNeonInterior}
- from "./neon-interior-v0212-classic.mjs";
+ from "./tunnel/neon-interior-v0212-classic.mjs";
 import {TUNNEL_SPECTRUM_02121}
- from "./tunnel-spectrum-v02121.mjs";
+ from "./tunnel/tunnel-spectrum-v02121.mjs";
 import {EXTERIOR_SEAL_02122,installExteriorLightSeal}
- from "./tunnel-exterior-seal-v02122.mjs";
+ from "./tunnel/tunnel-exterior-seal-v02122.mjs";
 import {STRUCTURAL_TUNNEL_0213,installStructuralTunnelRebuild}
- from "./structural-tunnel-v0213.mjs";
+ from "./tunnel/structural-tunnel-v0213.mjs";
 import {INTEGRATED_NEON_FLOW_0214,installIntegratedNeonFlow}
- from "./integrated-neon-flow-v0214.mjs";
+ from "./rendering/integrated-neon-flow-v0214.mjs";
 import {WHITE_CORE_02123,createWhiteCoreContainment}
- from "./white-core-containment-v02123.mjs";
+ from "./rendering/white-core-containment-v02123.mjs";
 import {SHIP_WHITE_SPILL_02125,createShipWhiteSpillController}
  from "./ships/ship-white-spill-v02125.mjs";
 import {ROAD_SOLAR_SPILL_02126,createRoadSolarSpillController}
- from "./road-solar-spill-v02126.mjs";
+ from "./rendering/road-solar-spill-v02126.mjs";
 import {PREMIUM_ROAD_SURFACE_0215,createPremiumRoadSurfaceController}
- from "./premium-road-surface-v0215.mjs";
+ from "./rendering/premium-road-surface-v0215.mjs";
 import {CINEMATIC_ROAD_0242,createCinematicRoadReflectionController}
- from "./cinematic-road-reflections-v0242.mjs";
+ from "./rendering/cinematic-road-reflections-v0242.mjs";
 import {ROAD_REBUILD_0263,createCinematicRoadReflectionRebuild0263}
- from "./cinematic-road-rebuild-v0263.mjs";
+ from "./rendering/cinematic-road-rebuild-v0263.mjs";
 import {EDGE_FLOOR_02631,installEdgeLightingFloorPools02631}
- from "./edge-lighting-floor-pools-v02631.mjs";
+ from "./tunnel/edge-lighting-floor-pools-v02631.mjs";
 import {EDGE_SOURCE_02632,installRepositionedEdgeAndConnectedFoot02632}
- from "./edge-source-floor-bands-v02632.mjs";
+ from "./tunnel/edge-source-floor-bands-v02632.mjs";
 import {STRAIGHT_EDGE_02633,installStraightOnlyEdgeLighting02633}
- from "./straight-only-edge-lighting-v02633.mjs";
+ from "./tunnel/straight-only-edge-lighting-v02633.mjs";
 import {FINAL_COHESION_0264,installFinalCohesion0264}
  from "./rendering/final-cohesion-v0264.mjs";
 import {UNIFIED_METAL_LIGHT_02641,installUnifiedMetalLighting02641}
@@ -178,21 +178,21 @@ import {REFLECTION_FINISH_02642,installPremiumReflectionFinish02642}
 import {FIXTURE_TRANSPORT_02643,installUnifiedFixtureTransport02643}
  from "./rendering/unified-fixture-transport-v02643.mjs";
 import {TRUE_RAIL_WALL_0265,installTrueRailWallResponse0265}
- from "./true-rail-wall-response-v0265.mjs";
+ from "./tunnel/true-rail-wall-response-v0265.mjs";
 import {CINEMATIC_ENERGY_0216,installCinematicEnergyMotion}
- from "./cinematic-energy-v0216.mjs";
+ from "./rendering/cinematic-energy-v0216.mjs";
 import {MATERIAL_REBIRTH_0220,installPremiumMaterialRebirth}
  from "./rendering/premium-material-rebirth-v0220.mjs";
 import {CINEMATIC_NEON_0220_P2,installCinematicNeonLighting}
- from "./cinematic-neon-lighting-v0220p2.mjs";
+ from "./rendering/cinematic-neon-lighting-v0220p2.mjs";
 import {PHYSICAL_MATERIAL_0230,installPhysicalMaterialRebuild}
- from "./physical-material-rebuild-v0230.mjs";
+ from "./rendering/physical-material-rebuild-v0230.mjs";
 import {TRUE_MATERIAL_0231,installTrueMaterialDepthRebuild}
- from "./true-material-depth-v0231.mjs";
+ from "./rendering/true-material-depth-v0231.mjs";
 import {LIGHT_ARCHITECTURE_0232,installCinematicLightArchitecture}
- from "./cinematic-light-architecture-v0232.mjs";
+ from "./rendering/cinematic-light-architecture-v0232.mjs";
 import {UNIFIED_TUNNEL_0233,installUnifiedTunnelMaterials}
- from "./unified-tunnel-materials-v0233.mjs";
+ from "./rendering/unified-tunnel-materials-v0233.mjs";
 import {ARCHITECTURAL_NEON_0240,installArchitecturalNeonLighting}
  from "./rendering/architectural-neon-lighting-v0240.mjs";
 import {PREMIUM_SURFACE_0241,installPremiumSurfaceCraftsmanship}
@@ -210,32 +210,32 @@ import {LOCAL_REFLECTIONS_0261,installTrueLocalReflectionsPass1}
 import {PREMIUM_METAL_0262,installPremiumMetalSurfaceLibrary,premiumMetalTexturePoolStats0262}
  from "./rendering/premium-metal-surface-v0262.mjs";
 import {VELOCITY_CINEMA_0220_P3,installVelocityCinematography}
- from "./velocity-cinematography-v0220p3.mjs";
+ from "./rendering/velocity-cinematography-v0220p3.mjs";
 import {UNIFIED_GRADE_0220_P4,installUnifiedCinematicGrade}
- from "./unified-cinematic-grade-v0220p4.mjs";
+ from "./rendering/unified-cinematic-grade-v0220p4.mjs";
 import {CINEMATIC_SPACE_0170,createCinematicSpaceLighting,installCinematicRoadLighting}
- from "./cinematic-space-lighting-v0170.mjs";
-import { createContactShadow } from "./ship-v034.mjs";
-import {CLARITY,clarityProfile as selectClarityProfile,dprForAdaptiveLevel,clarityAudit} from "./image-clarity-v083.mjs";
+ from "./world/cinematic-space-lighting-v0170.mjs";
+import { createContactShadow } from "./ships/ship-v034.mjs";
+import {CLARITY,clarityProfile as selectClarityProfile,dprForAdaptiveLevel,clarityAudit} from "./rendering/image-clarity-v083.mjs";
 import {HUD_SPEC,createReactiveHud} from "./ui/reactive-hud-v04991.mjs";
 import {GRIP_SPEC} from "./flight/precision-grip-v084.mjs";
 import {RACING_FEEL,gripApexCue,createRailFeedbackState,
  startRailFeedback,stepRailFeedback} from "./flight/racing-feel-v083.mjs";
 import {SIDE_THRUSTER_SPEC,createSideThrusters} from "./flight/side-thrusters-v061.mjs";
 import {VELOCITY_PRESENCE,createVelocityPresenceState,
- stepVelocityPresence,velocityPresenceAudit} from "./velocity-presence-v0104.mjs";
+ stepVelocityPresence,velocityPresenceAudit} from "./ships/velocity-presence-v0104.mjs";
 import {installReactiveWingFlaps,REACTIVE_FLAPS} from "./ships/reactive-wing-flaps-v0108.mjs";
-import {createLivingWakeFX,LIVING_WAKE} from "./living-wake-v01071.mjs";
+import {createLivingWakeFX,LIVING_WAKE} from "./ships/living-wake-v01071.mjs";
 import {createRailScrapeSparks,RAIL_SPARKS,railContactPoint}
- from "./rail-scrape-sparks-v0165.mjs";
-import { LUMINANCE,validateLuminance } from "./luminance-v0331.mjs";
+ from "./rendering/rail-scrape-sparks-v0165.mjs";
+import { LUMINANCE,validateLuminance } from "./rendering/luminance-v0331.mjs";
 import {RACING_0121,createRacingExperience,resetRacingExperience,
  observeRacingStep,stepRacingExperience,raceRhythmAt,racingExperienceAudit}
- from "./racing-experience-v0160.mjs";
+ from "./core/racing-experience-v0160.mjs";
 import {FIDELITY_0121,readFidelityChoice,saveFidelityChoice,chooseFidelity0121}
  from "./core/fidelity-settings-v0121.mjs";
-import * as timeTrialAPI from "./time-trial-v0160.mjs";
-import {formatTrialTime,formatTrialDelta,updateGhostDelta,ghostAudit} from "./time-trial-v0160.mjs";
+import * as timeTrialAPI from "./core/time-trial-v0160.mjs";
+import {formatTrialTime,formatTrialDelta,updateGhostDelta,ghostAudit} from "./core/time-trial-v0160.mjs";
 import {createRaceSession,readLegacyRaceBest,updateLegacyRaceBest} from "./core/race-session.mjs";
 import {GHOST_VISUAL_0130,createPersonalGhostVisual}
  from "./ui/ghost-visual-v0130.mjs";
@@ -243,9 +243,9 @@ import {CHALLENGES_0140,CHALLENGE_RULES_0140,getChallenge,challengeDistance,
  readChallengeProgress,saveChallengeProgress,challengeSummary,challengeUnlocked,
  evaluateChallenge,recordChallenge,captureChallengeMetrics}
  from "./tracks/skyline/skyline-challenges-v0140.mjs";
-import {createShipArtController} from "./ship-hero-loader-v01342.mjs";
+import {createShipArtController} from "./ships/ship-hero-loader-v01342.mjs";
 import {HANGAR_HERO_0134,createStingrayHeroShowroom}
- from "./hangar-hero-v0134.mjs";
+ from "./ships/hangar-hero-v0134.mjs";
 import {STINGRAY_PRESENTATION_01347,visualSettingsForShip}
  from "./ships/stingray-presentation-v01347.mjs";
 if(validateLuminance().length)throw new Error("Invalid SKYSHIFT atmosphere balance");

@@ -5,7 +5,7 @@ import {EDGE_FLOOR_02631,railSegment02631,nearestFoot02631,
  railSourceData02631,floorY02631,createEmitterGeometry02631,
  createFloorPoolGeometry02631,patchEdgeRoadShader02631,
  installEdgeRoadShader02631,installEdgeLightingFloorPools02631}
- from "../../edge-lighting-floor-pools-v02631.mjs";
+ from "../../tunnel/edge-lighting-floor-pools-v02631.mjs";
 const read=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");
 const p=(s,l,y)=>({x:l,y,z:s});
 class Attr{
@@ -39,7 +39,7 @@ test("0.26.3.1 adds only rendered lighting to a protected race world",()=>{
  assert.equal(EDGE_FLOOR_02631.additionalDynamicLights,0);
  assert.equal(EDGE_FLOOR_02631.additionalPostprocessPasses,0);
  assert.equal(EDGE_FLOOR_02631.additionalTextures,0);
- const code=read("./edge-lighting-floor-pools-v02631.mjs");
+ const code=read("./tunnel/edge-lighting-floor-pools-v02631.mjs");
  assert.doesNotMatch(code,/new THREE\.(PointLight|DirectionalLight|RectAreaLight|SpotLight)/);
  assert.doesNotMatch(code,/new THREE\.(WebGLRenderTarget|PMREMGenerator)/);
 });

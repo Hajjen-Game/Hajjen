@@ -1,0 +1,132 @@
+{
+  "schema": 1,
+  "archiveCommit": "89b1ca990b72a3321303585fa48b924b3e04ed5e",
+  "verifiedHead": "b8e6eef915b70885836fc4da3af64d0fe6251167",
+  "architectureRun": 45869752719,
+  "builtRun": 45869752682,
+  "files": [
+    {
+      "path": "skyshift/boot-v0101.js",
+      "sha": "e5151d024226ae1f78180fc35684a954cfbbb6b5",
+      "bytes": 3561,
+      "readers": [
+        "skyshift/tests/unit/stingray-evo-v0101.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/boot-v0103.js",
+      "sha": "ffe76b59cbe254223ba07c3267a99909ae4709a4",
+      "bytes": 3561,
+      "readers": [
+        "skyshift/tests/unit/circuit-v060.test.mjs",
+        "skyshift/tests/unit/corkscrew-v072.test.mjs",
+        "skyshift/tests/unit/fleet-v010.test.mjs",
+        "skyshift/tests/unit/full-circuit-v050.test.mjs",
+        "skyshift/tests/unit/grip-first-v0901.test.mjs",
+        "skyshift/tests/unit/grip-leap-v081.test.mjs",
+        "skyshift/tests/unit/kinetic-camera-v090.test.mjs",
+        "skyshift/tests/unit/magnetic-wall-v071.test.mjs",
+        "skyshift/tests/unit/precision-grip-v061.test.mjs",
+        "skyshift/tests/unit/premium-ship-v0103.test.mjs",
+        "skyshift/tests/unit/racing-feel-v083.test.mjs",
+        "skyshift/tests/unit/racing-hud-v04991.test.mjs",
+        "skyshift/tests/unit/reactive-hud-v0499.test.mjs",
+        "skyshift/tests/unit/shadow-tunnel-v092.test.mjs",
+        "skyshift/tests/unit/signature-flight-v091.test.mjs",
+        "skyshift/tests/unit/speed-track-v051.test.mjs",
+        "skyshift/tests/unit/steering-authority-v084.test.mjs",
+        "skyshift/tests/unit/stingray-evo-v0102.test.mjs",
+        "skyshift/tests/unit/track-3d-v070.test.mjs",
+        "skyshift/tests/unit/track-rhythm-v082.test.mjs",
+        "skyshift/tests/unit/tunnel-blackout-v0921.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/game-v0101.mjs",
+      "sha": "fe7c7b092ca83647dd4a40a473d1d4a989e09a4e",
+      "bytes": 87787,
+      "readers": [
+        "skyshift/tests/unit/stingray-evo-v0101.test.mjs",
+        "skyshift/tests/unit/stingray-evo-v0102.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/game-v0103.mjs",
+      "sha": "4866e86d277052d128aa5afd0985074ee7e2f8da",
+      "bytes": 88510,
+      "readers": [
+        "skyshift/tests/unit/circuit-v060.test.mjs",
+        "skyshift/tests/unit/corkscrew-v072.test.mjs",
+        "skyshift/tests/unit/fleet-v010.test.mjs",
+        "skyshift/tests/unit/full-circuit-v050.test.mjs",
+        "skyshift/tests/unit/grip-first-v0901.test.mjs",
+        "skyshift/tests/unit/grip-leap-v081.test.mjs",
+        "skyshift/tests/unit/kinetic-camera-v090.test.mjs",
+        "skyshift/tests/unit/precision-grip-v061.test.mjs",
+        "skyshift/tests/unit/premium-ship-v0103.test.mjs",
+        "skyshift/tests/unit/racing-feel-v083.test.mjs",
+        "skyshift/tests/unit/racing-hud-v04991.test.mjs",
+        "skyshift/tests/unit/shadow-tunnel-v092.test.mjs",
+        "skyshift/tests/unit/signature-flight-v091.test.mjs",
+        "skyshift/tests/unit/speed-track-v051.test.mjs",
+        "skyshift/tests/unit/steering-authority-v084.test.mjs",
+        "skyshift/tests/unit/stingray-evo-v010.test.mjs",
+        "skyshift/tests/unit/stingray-evo-v0102.test.mjs",
+        "skyshift/tests/unit/track-3d-v070.test.mjs",
+        "skyshift/tests/unit/track-rhythm-v082.test.mjs",
+        "skyshift/tests/unit/tunnel-blackout-v0921.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/game.mjs",
+      "sha": "30893fea6f41e47ae7d47ca310ea7893f2dbdd4e",
+      "bytes": 21468,
+      "readers": []
+    }
+  ],
+  "readerChanges": [
+    {
+      "path": "skyshift/tests/unit/circuit-v060.test.mjs",
+      "sha": "9b2be91c3aa3bf09857c31df27eae04aa650659c",
+      "before": "import {readFileSync} from \"node:fs\";",
+      "after": "import {readEF08Source as readFileSync} from \"../architecture/legacy-retirement-l1a.mjs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/full-circuit-v050.test.mjs",
+      "sha": "f2616bf9c789e111145cc72a0c4d6249e84b09c6",
+      "before": "import {readFileSync} from \"node:fs\";",
+      "after": "import {readEF08Source as readFileSync} from \"../architecture/legacy-retirement-l1a.mjs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/precision-grip-v061.test.mjs",
+      "sha": "b1ca0e1e139287d4aa929404c6f8a23e6a552b15",
+      "before": "import {readFileSync} from \"node:fs\";",
+      "after": "import {readEF08Source as readFileSync} from \"../architecture/legacy-retirement-l1a.mjs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/speed-track-v051.test.mjs",
+      "sha": "8565b3e0d01aee7f2ecf4404456b73679f1f86c4",
+      "before": "import {readFileSync} from \"node:fs\";",
+      "after": "import {readEF08Source as readFileSync} from \"../architecture/legacy-retirement-l1a.mjs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/track-3d-v070.test.mjs",
+      "sha": "9447d5265171f9f5299d9ed9901f77e50258acfb",
+      "before": "import {readFileSync} from \"node:fs\";",
+      "after": "import {readEF08Source as readFileSync} from \"../architecture/legacy-retirement-l1a.mjs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/stingray-evo-v010.test.mjs",
+      "sha": "4dbcd4a230a461cd80bd2c95ecd3fd48dd351ad3",
+      "before": "import {readFileSync} from \"node:fs\";",
+      "after": "import {readEF08Source as readFileSync} from \"../architecture/legacy-retirement-l1a.mjs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/stingray-evo-v0102.test.mjs",
+      "sha": "379572cc1e88e04bdf7daed1635d7e74920e4a4a",
+      "before": "import {readFileSync} from \"node:fs\";",
+      "after": "import {readEF08Source as readFileSync} from \"../architecture/legacy-retirement-l1a.mjs\";"
+    }
+  ],
+  "note": "Source-only historical entrypoints; no source or Vite production reach. Existing public raw comparison paths reproduced only at Pages assembly. Git archive is exact accepted EF03 baseline."
+}

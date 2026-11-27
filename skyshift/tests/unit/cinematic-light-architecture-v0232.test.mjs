@@ -5,14 +5,14 @@ import {readFileSync} from "node:fs";
 import {patchPremiumMaterialShader}
  from "../../rendering/premium-material-rebirth-v0220.mjs";
 import {patchCinematicNeonShader}
- from "../../cinematic-neon-lighting-v0220p2.mjs";
+ from "../../rendering/cinematic-neon-lighting-v0220p2.mjs";
 import {patchPhysicalMaterialShader}
- from "../../physical-material-rebuild-v0230.mjs";
+ from "../../rendering/physical-material-rebuild-v0230.mjs";
 import {patchTrueMaterialDepthShader}
- from "../../true-material-depth-v0231.mjs";
+ from "../../rendering/true-material-depth-v0231.mjs";
 import {LIGHT_ARCHITECTURE_0232,patchLightArchitectureShader,
  installLightArchitectureShader}
- from "../../cinematic-light-architecture-v0232.mjs";
+ from "../../rendering/cinematic-light-architecture-v0232.mjs";
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const v="#include <common>\nattribute float trackS;\nattribute float glowWeight;\n#include <begin_vertex>";
 const f="#include <common>\n#include <color_fragment>\ndiffuseColor.rgb += tunnelSpectrumTint()*vTunnelGlow;";
@@ -87,7 +87,7 @@ test("all native neon systems and flight mechanics remain protected",()=>{
    "changesCamera","changesRoad","changesShip"])assert.equal(data[key],false);
  assert.equal(data.preservesNativeNeon,true);
  assert.equal(data.preservesRoadSolarSeal,true);
- const source=read("./cinematic-light-architecture-v0232.mjs");
+ const source=read("./rendering/cinematic-light-architecture-v0232.mjs");
  assert.match(source,/targets=Object.entries\(roleMap\)/);
  assert.match(source,/lightArchitecture0232Untouched:\["shell","rib","road","ship"\]/);
  assert.match(source,/if\(!baseStats.trueDepth0231Enabled/);

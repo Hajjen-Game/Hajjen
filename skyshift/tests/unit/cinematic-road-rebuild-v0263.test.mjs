@@ -1,14 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {patchRoadSolarSpillShader} from "../../road-solar-spill-v02126.mjs";
-import {patchPremiumRoadSurfaceShader} from "../../premium-road-surface-v0215.mjs";
-import {patchCinematicRoadReflectionShader} from "../../cinematic-road-reflections-v0242.mjs";
+import {patchRoadSolarSpillShader} from "../../rendering/road-solar-spill-v02126.mjs";
+import {patchPremiumRoadSurfaceShader} from "../../rendering/premium-road-surface-v0215.mjs";
+import {patchCinematicRoadReflectionShader} from "../../rendering/cinematic-road-reflections-v0242.mjs";
 import {
  ROAD_REBUILD_0263,nearestRoadFixtures0263,buildRoadSourceGeometry0263,
  patchCinematicRoadRebuild0263,installCinematicRoadRebuildShader0263,
  createCinematicRoadReflectionRebuild0263
-} from "../../cinematic-road-rebuild-v0263.mjs";
+} from "../../rendering/cinematic-road-rebuild-v0263.mjs";
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 function legacyFragment(){
  return [

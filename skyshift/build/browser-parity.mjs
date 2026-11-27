@@ -27,6 +27,11 @@ const server=spawn('python3',['-c',[
  'http.server.ThreadingHTTPServer(("127.0.0.1",8923),functools.partial(Handler,directory=root)).serve_forever()'
 ].join('\n'),repo,join(here,'site')],{cwd:repo,stdio:'ignore'});
 let browser;const reports=[];
+// The default 'all' retains the original full single-process browser suite.
+// CI may run unchanged groups in independent jobs sharing one verified build.
+const suite=process.env.SKYSHIFT_BROWSER_SUITE||'all';
+assert.ok(['all','core-lifecycle','ef05-baseline','ef07-profile'].includes(suite),'Unknown browser suite: '+suite);
+const runCore=suite==='all'||suite==='core-lifecycle';
 
 // Actual original tunnel and road shader chain on a new authored route.
 // Isolated CI-only document; no production QA entrypoint or fixture assets.
@@ -45,9 +50,9 @@ async function independentRoute(memory){
    const load=p=>import('/skyshift/'+p);
    const [{installConfiguredSharedTunnel},{createSharedOpticalContext,installSharedRoadOptics,installSharedOpticalShip,finalizeSharedOptics},
     {vaultStraightMask02891},{createPremiumTrackMaterial},{ZONE_PALETTES}]=await Promise.all([
-     load('true-shared-tunnel-renderer-v0281.mjs'),load('tunnel/shared-optical-assembly.mjs'),
+     load('tunnel/true-shared-tunnel-renderer-v0281.mjs'),load('tunnel/shared-optical-assembly.mjs'),
      load('tunnel/shared-straight-edge-parity-v02891.mjs'),load('rendering/road/premium-track-v0160.mjs'),
-     load('zone-wave-v060.mjs')]);
+     load('core/zone-wave-v060.mjs')]);
    const lowMemory=memory===4,length=1200,sections=[{start:25,end:625},{start:800,end:1120}];
    // Continuous route: true curve, vertical rise and rotating cross-section.
    const positionAt=(s,l,h)=>{
@@ -174,6 +179,7 @@ async function independentRoute(memory){
 try{
  await sleep(500);
  browser=await chromium.launch({headless:true,executablePath:chrome,args:['--no-sandbox','--disable-dev-shm-usage','--enable-webgl','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+ if(runCore){
  for(const memory of [8,4]){
   const results=[];
   for(const mode of ['source','bundle']){
@@ -246,13 +252,16 @@ try{
    assert.deepEqual(results[1].phases[i].render,results[0].phases[i].render,'render surface parity');
   }
  }
- await captureEF05Baseline({browser,repo,out});
- await captureEF06Lifetime({browser,repo,out,candidateSource:reports});
- await captureEF07Profile({browser,out});
+ }
+ if(suite==='all'||suite==='ef05-baseline')await captureEF05Baseline({browser,repo,out});
+ if(runCore)await captureEF06Lifetime({browser,repo,out,candidateSource:reports});
+ if(suite==='all'||suite==='ef07-profile')await captureEF07Profile({browser,out});
+ if(runCore){
  const independent=[];
  for(const memory of [8,4])independent.push(await independentRoute(memory));
  writeFileSync(join(out,'ef05-independent-report.json'),JSON.stringify(independent,null,2)+'\n');
  console.log('SKYSHIFT_EF05_INDEPENDENT '+JSON.stringify(independent));
  writeFileSync(join(out,'browser-report.json'),JSON.stringify(reports,null,2)+'\n');
  console.log('SKYSHIFT_EF03_BROWSER '+JSON.stringify(reports.map(r=>({mode:r.mode,memory:r.memory,phases:r.phases.map(p=>({...p.timing,requests:undefined}))}))));
+ }
 }finally{await browser?.close();server.kill('SIGTERM');}

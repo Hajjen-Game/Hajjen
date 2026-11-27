@@ -7,9 +7,9 @@
 // highlights are small, colored and analytic. No lights, meshes, textures,
 // UV atlases, render passes, camera or flight physics changes.
 import {installCinematicEnergyMotion}
- from "../cinematic-energy-v0216.mjs";
+ from "./cinematic-energy-v0216.mjs";
 import {createTunnelSpectrumUniforms,updateTunnelSpectrumUniforms}
- from "../tunnel-spectrum-v02121.mjs";
+ from "../tunnel/tunnel-spectrum-v02121.mjs";
 
 export const MATERIAL_REBIRTH_0220=Object.freeze({
  version:"0.22.0",pass:"1 — Premium Material Revolution",

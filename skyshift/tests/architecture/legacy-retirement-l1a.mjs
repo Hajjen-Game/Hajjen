@@ -1,4 +1,6 @@
 import {deckHistoricalExists} from './ef02-closure-deck-overlay.mjs';
+import {entryArchive,readArchivedEntrySource} from '../../build/archived-entry-sources.mjs';
+export const retirementEF08=entryArchive;
 import {ef02iHistoricalExists} from './ef02i-path-overlay.mjs';
 import {ef02hCurrentPath} from './ef02h-path-overlay.mjs';
 // L1A: recover retired source from the pinned Git commit, never from a replacement stub.
@@ -30,13 +32,14 @@ export const retirementEF02J=JSON.parse(readFileSync(resolve(repo,'skyshift/docs
 assert.equal(retirementEF02J.archiveCommit,retirement.archiveCommit);
 export const retirementEF04=JSON.parse(readFileSync(resolve(repo,'skyshift/docs/architecture/ef04-retired-engine.json'),'utf8'));
 assert.equal(retirementEF04.archiveCommit,retirement.archiveCommit);
-const entries=new Map([...retirement.files,...retirementL1B.files,...retirementL1C.files,...retirementL1D.files,...retirementL1E.files,...retirementL1F.files,...retirementEF02E.files,...retirementEF02F.files,...retirementEF02G.files,...retirementEF02J.files,...retirementEF04.files].map(f=>[f.path,f]));
+const entries=new Map([...retirement.files,...retirementL1B.files,...retirementL1C.files,...retirementL1D.files,...retirementL1E.files,...retirementL1F.files,...retirementEF02E.files,...retirementEF02F.files,...retirementEF02G.files,...retirementEF02J.files,...retirementEF04.files,...retirementEF08.files].map(f=>[f.path,f]));
 const asPath=p=>relative(repo,resolve(repo,p instanceof URL?fileURLToPath(p):p)).split('\\').join('/');
 const cache=new Map();
 export function isRetired(p){return entries.has(asPath(p));}
 export function readHistorical(p,encoding='utf8'){
  const key=asPath(p),entry=entries.get(key);
  if(!entry)return readFileSync(p,encoding);
+ if(retirementEF08.files.some(f=>f.path===key))return readArchivedEntrySource(key).toString(encoding);
  assert.ok(!existsSync(resolve(repo,key)),'Retired source unexpectedly present: '+key);
  if(!cache.has(key)){
   const data=execFileSync('git',['show',retirement.archiveCommit+':'+key],{cwd:repo,maxBuffer:8*1024*1024});
@@ -46,7 +49,47 @@ export function readHistorical(p,encoding='utf8'){
  }
  return cache.get(key).toString(encoding);
 }
+// Distinct alias only for seven exact EF08 import-only reader migrations.
+export const readEF08Source=readHistorical;
+// Pinned historical imports may refer to a relocated active source. Verify the
+// exact archived Git object; never use this as a runtime import fallback.
+const ownerMoves=JSON.parse(readFileSync(resolve(repo,'skyshift/docs/architecture/ef08-root-relocations.json'),'utf8')).moves;
+const closedCohort=JSON.parse(readFileSync(resolve(repo,'skyshift/docs/architecture/ef08-obsolete-cohort.json'),'utf8'));
+const closedSources=[...closedCohort.roots,...(closedCohort.sourceFiles||[]),...(closedCohort.browserTests||[])].filter(f=>f.historicalArchive);
 export function historicalExists(p){
+ const key=asPath(p);
+ // Exact, separately pinned evidence for retired source families; never an import fallback.
+ const closed=closedSources.find(f=>f.path===key||f.historicalArchive.path===key);
+ if(closed){
+  const archive=closed.historicalArchive;
+  assert.equal(archive.commit,retirement.archiveCommit,key+' closed cohort archive');
+  assert.ok(!existsSync(resolve(repo,closed.path)),closed.path+' resurrected retired source');
+  assert.ok(!existsSync(resolve(repo,archive.path)),archive.path+' resurrected historical source');
+  const id=archive.commit+':'+archive.path;
+  if(!cache.has(id)){
+   const data=execFileSync('git',['show',id],{cwd:repo,maxBuffer:8*1024*1024});
+   assert.equal(createHash('sha1').update('blob '+data.length+'\0').update(data).digest('hex'),archive.sha,key+' closed cohort Git identity');
+   assert.equal(data.length,archive.bytes,key+' closed cohort historical bytes');
+   cache.set(id,data);
+  }
+  return true;
+ }
+ const move=ownerMoves.find(f=>f.oldPath===key&&f.historicalArchive);
+ if(move){
+  assert.equal(move.historicalArchive.commit,retirement.archiveCommit,key+' archive commit');
+  // Earlier historical snapshots can precede a later verified live implementation.
+  // Preserve the separately pinned archive identity and byte count in that case.
+  if(move.historicalArchive.bytes===undefined)assert.equal(move.historicalArchive.sha,move.sourceSha,key+' archive identity');
+  else assert.ok(Number.isInteger(move.historicalArchive.bytes)&&move.historicalArchive.bytes>0&&move.historicalArchive.sha!==move.sourceSha,key+' distinct archive identity');
+  assert.ok(!existsSync(resolve(repo,key))&&existsSync(resolve(repo,move.newPath)),key+' owner relocation');
+  if(!cache.has(key)){
+   const data=execFileSync('git',['show',move.historicalArchive.commit+':'+key],{cwd:repo,maxBuffer:8*1024*1024});
+   assert.equal(createHash('sha1').update('blob '+data.length+'\0').update(data).digest('hex'),move.historicalArchive.sha,key+' historical Git identity');
+   assert.equal(data.length,move.historicalArchive.bytes??move.bytes,key+' historical bytes');
+   cache.set(key,data);
+  }
+  return true;
+ }
  if(!isRetired(p)){
   const deck=deckHistoricalExists(resolve(repo,asPath(p)));
   if(deck!==null)return deck;

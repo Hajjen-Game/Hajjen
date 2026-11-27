@@ -6,8 +6,8 @@
 // GGX metal/fixture library remains exclusive to Skyline until later port.
 // Metal is source-colored, dark, and solar-independent; lamps use HDR bloom.
 // 170m bounded segments: short camera-distance draw, mobile detail tier.
-import {TUNNEL_PROFILE_0211,sampleSharedTunnelProfile0280} from "../../tunnel-megastructure-v0211.mjs";
-import {SHARED_TUNNEL_STYLE_0280,SHARED_TUNNEL_ROUTES_0280} from "../../shared-tunnel-architecture-v0280.mjs";
+import {TUNNEL_PROFILE_0211,sampleSharedTunnelProfile0280} from "../../tunnel/tunnel-megastructure-v0211.mjs";
+import {SHARED_TUNNEL_STYLE_0280,SHARED_TUNNEL_ROUTES_0280} from "../../tunnel/shared-tunnel-architecture-v0280.mjs";
 import {FULL_TUNNEL_LAYOUT_0270} from "./full-tunnel-layout-v0270.mjs";
 
 export const FULL_TUNNEL_0270=Object.freeze({

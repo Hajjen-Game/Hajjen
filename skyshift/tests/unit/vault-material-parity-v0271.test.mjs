@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {installFullTunnelCircuit0270}
  from "../../tracks/vault/full-tunnel-circuit-v0270.mjs";
-import {TUNNEL_PROFILE_0211} from "../../tunnel-megastructure-v0211.mjs";
+import {TUNNEL_PROFILE_0211} from "../../tunnel/tunnel-megastructure-v0211.mjs";
 import {buildPremiumMetalAtlas0262} from "../../rendering/premium-metal-surface-v0262.mjs";
 import {VAULT_MATERIAL_PARITY_0271,buildVaultMaterialCoords0271,
  patchVaultMaterialShader0271,installVaultMaterialParity0271}

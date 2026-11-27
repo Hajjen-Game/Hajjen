@@ -37,7 +37,7 @@ test("all 3 laps have 5 reachable central main pads and zero risk boosts",()=>{
 });
 test("Vault runtime uses exactly the same authoritative pads for art and physics",async()=>{
  globalThis.location={search:"?track=vault&v=0.28.3"};
- const m=await import("../../risk-reward-v0160.mjs");
+ const m=await import("../../flight/boost/risk-reward-v0160.mjs");
  const {BOOST_PADS,initBoostState,stepBoostState,boostPadAt}
   =await import("../../flight/boost/boost-v0160.mjs");
  assert.equal(m.VAULT_BOOST_0283_ACTIVE,true);

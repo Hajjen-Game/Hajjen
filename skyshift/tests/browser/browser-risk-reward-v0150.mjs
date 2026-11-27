@@ -32,8 +32,8 @@ try{
   const [road,boost,risk,timeTrial]=await Promise.all([
     import("./rendering/legacy/premium-track-v0150.mjs"),
     import("./flight/boost/boost-v0150.mjs"),
-    import("./risk-reward-v0150.mjs"),
-    import("./time-trial-v0150.mjs")
+    import("./flight/boost/risk-reward-v0150.mjs"),
+    import("./core/time-trial-v0150.mjs")
   ]);
   const probe=window.__skyshiftRiskProbe();
   const safe=window.__skyshiftRiskPhysicsSmoke("safe");

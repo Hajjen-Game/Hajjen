@@ -4,6 +4,7 @@
 import {readFileSync,readdirSync,existsSync,statSync} from 'node:fs';
 import {dirname,resolve,relative,extname,join,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {normalizeExplicitAssetBaseReferences} from './dependency-inventory-v2.mjs';
 
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
 const repo=resolve(root,'..');
@@ -29,6 +30,7 @@ if(existsSync(resolve(repo,'.github','workflows')))
  walk(resolve(repo,'.github','workflows'));
 const texts=new Map(allFiles.map(p=>[p,readFileSync(p,'utf8')]));
 function refs(p,source){
+ if(/\.m?js$/.test(p))source=normalizeExplicitAssetBaseReferences(source);
  const found=[];
  for(const re of [localPattern,htmlPattern,cssPattern]){
   re.lastIndex=0;
@@ -102,7 +104,7 @@ export function assertInventorySafety(){
  if(!current.has(resolve(root,'boot-v0210.js'))||
     !current.has(resolve(root,'game-v0210.mjs')))
   throw Error('Expected original live boot/game entrypoints in dependency graph');
- if(!current.has(resolve(root,'style-v061.css')))
+ if(!current.has(resolve(root,'styles/style-v061.css')))
   throw Error('Expected original active style in HTML dependency graph');
  return report;
 }

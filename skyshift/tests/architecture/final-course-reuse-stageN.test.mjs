@@ -6,11 +6,11 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {TRACKS_0160} from '../../tracks/shared/track-selection-v0160.mjs';
 import {SHARED_TUNNEL_STYLE_0280,SHARED_TUNNEL_ROUTES_0280,
- makeTunnelPlan0280} from '../../shared-tunnel-architecture-v0280.mjs';
-import {buildSharedTunnelSection0280} from '../../structural-tunnel-v0213.mjs';
-import {createSharedTunnelRuntime0280} from '../../shared-tunnel-runtime-v0280.mjs';
+ makeTunnelPlan0280} from '../../tunnel/shared-tunnel-architecture-v0280.mjs';
+import {buildSharedTunnelSection0280} from '../../tunnel/structural-tunnel-v0213.mjs';
+import {createSharedTunnelRuntime0280} from '../../tunnel/shared-tunnel-runtime-v0280.mjs';
 import {planTrueSharedTunnel0281,adaptSourcePosition0281,
- TRUE_SHARED_RENDERER_0281} from '../../true-shared-tunnel-renderer-v0281.mjs';
+ TRUE_SHARED_RENDERER_0281} from '../../tunnel/true-shared-tunnel-renderer-v0281.mjs';
 
 const rootRead=p=>readFileSync(new URL('../../'+p,import.meta.url),'utf8');
 const pos=(s,lateral,height)=>({x:lateral,y:height,z:s});

@@ -10,14 +10,14 @@ const [selection,layout,trial,track3d,risk,boost,smooth,premium,aero,shadow,tt,r
  import("../../tracks/shared/circuit-layout-v0160.mjs"),
  import("../../tracks/trials/trial-v0165.mjs"),
  import("../../tracks/shared/track-3d-v0160.mjs"),
- import("../../risk-reward-v0160.mjs"),
+ import("../../flight/boost/risk-reward-v0160.mjs"),
  import("../../flight/boost/boost-v0160.mjs"),
  import("../../tracks/shared/smooth-track-v0160.mjs"),
  import("../../rendering/road/premium-track-v0160.mjs"),
  import("../../tracks/barriers/aero-barrier-v0165.mjs"),
- import("../../shadow-tunnel-v0160.mjs"),
- import("../../time-trial-v0160.mjs"),
- import("../../racing-experience-v0160.mjs")]);
+ import("../../tunnel/shadow-tunnel-v0160.mjs"),
+ import("../../core/time-trial-v0160.mjs"),
+ import("../../core/racing-experience-v0160.mjs")]);
 const src=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const near=(a,b,eps=1e-7)=>assert.ok(Math.abs(a-b)<eps,
  "expected "+a+" ≈ "+b);
@@ -42,7 +42,7 @@ test("genuinely distinct 3D course closes without seam or short microbends",asyn
  near(trial.headingAt(3400)-trial.headingAt(0),Math.PI*2,1e-7);
  const a=trial.poseAt(0),z=trial.poseAt(3400);
  near(a.x,z.x);near(a.z,z.z);near(a.y,z.y);
- const old=await import("../../trial-v0151.mjs");
+ const old=await import("../../tracks/trials/trial-v0151.mjs");
  const orig=old.positionAt(550),fresh=trial.positionAt(550);
  assert.ok(Math.hypot(orig.x-fresh.x,orig.z-fresh.z)>20,
   "Aurora cannot just recolor the Skyline course");
@@ -128,7 +128,7 @@ test("empty risk-pad GLSL compiles to numeric zero, not missing expression",()=>
  assert.doesNotMatch(fragment,/float \w+\s*=\s*;/);
 });
 test("PB/ghost separate from Skyline while keeping Skyline saved records",async()=>{
- const original=(await import("../../time-trial-v0151.mjs")).TIME_TRIAL_0151;
+ const original=(await import("../../core/time-trial-v0151.mjs")).TIME_TRIAL_0151;
  assert.notEqual(tt.TIME_TRIAL_0160.storageKey,original.storageKey);
  assert.notEqual(tt.TIME_TRIAL_0160.trackRevision,original.trackRevision);
  assert.equal(tt.TIME_TRIAL_0160.trackId,"aurora-flow-v0160");
@@ -153,7 +153,7 @@ test("menu uses real circuit selector and Skyline-only Challenges not shown on A
 test("Aurora camera obeys Aurora's physical bank, never archived Skyline 360 roll",async()=>{
  const [camera,oldCamera]=await Promise.all([
   import("../../flight/cinematic-v0165.mjs"),
-  import("../../cinematic-v0901.mjs")]);
+  import("../../flight/cinematic-v0901.mjs")]);
  // Regression: the old chase camera imported trial-v0901 and incorrectly
  // treated Aurora's final 3005-3338m turn as a full corkscrew.
  assert.ok(Math.abs(oldCamera.cameraBankAt(3180))>2,
@@ -180,8 +180,8 @@ test("Aurora camera obeys Aurora's physical bank, never archived Skyline 360 rol
  }
 });
 test("Aurora metal contact sparks are on Aurora rails, never old Skyline world space",async()=>{
- const sparks=await import("../../rail-scrape-sparks-v0165.mjs");
- const oldSparks=await import("../../rail-scrape-sparks-v01091.mjs");
+ const sparks=await import("../../rendering/rail-scrape-sparks-v0165.mjs");
+ const oldSparks=await import("../../rendering/rail-scrape-sparks-v01091.mjs");
  for(const s of [250,715,1530,2060,2750,3180]){
   for(const side of [-1,1]){
    const q=sparks.railContactPoint(s,side);
@@ -231,5 +231,6 @@ test("0.16.5 URLs and menu preserve independent courses and PB/ghosts",()=>{
  assert.match(src("./legacy/boot/boot-v0165.js"),/game-v0165\.mjs\?v=0\.16\.5/);
  assert.match(game,/trackPicker\.addEventListener\("change"/);
  assert.match(game,/from "\.\.\/\.\.\/time-trial-v0160\.mjs"/);
+ assert.match(src("./game-v0210.mjs"),/from "\.\/core\/time-trial-v0160\.mjs"/);
  assert.equal(tt.TIME_TRIAL_0160.storageKey,"skyshift-time-trial-ghost-aurora-0160");
 });

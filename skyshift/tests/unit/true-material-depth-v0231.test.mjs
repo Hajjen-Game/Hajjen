@@ -3,13 +3,13 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {buildStructuralTunnelData}
- from "../../structural-tunnel-v0213.mjs";
+ from "../../tunnel/structural-tunnel-v0213.mjs";
 import {patchPremiumMaterialShader} from "../../rendering/premium-material-rebirth-v0220.mjs";
-import {patchCinematicNeonShader} from "../../cinematic-neon-lighting-v0220p2.mjs";
-import {patchPhysicalMaterialShader} from "../../physical-material-rebuild-v0230.mjs";
+import {patchCinematicNeonShader} from "../../rendering/cinematic-neon-lighting-v0220p2.mjs";
+import {patchPhysicalMaterialShader} from "../../rendering/physical-material-rebuild-v0230.mjs";
 import {TRUE_MATERIAL_0231,patchTrueMaterialDepthShader,
  buildTrueDepthGeometry,installTrueMaterialShader}
- from "../../true-material-depth-v0231.mjs";
+ from "../../rendering/true-material-depth-v0231.mjs";
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const oldVertex="#include <common>\nattribute float trackS;\nattribute float glowWeight;\n#include <begin_vertex>";
 const oldFragment="#include <common>\n#include <color_fragment>\ndiffuseColor.rgb += tunnelSpectrumTint()*vTunnelGlow;";
@@ -131,13 +131,13 @@ test("shader composition and comparison modify uniform, not physical simulation"
 });
 
 test("sealed vault and ribs remain on original 0.23.0 shader",()=>{
- const source=read("./true-material-depth-v0231.mjs");
+ const source=read("./rendering/true-material-depth-v0231.mjs");
  assert.match(source,/meshes\.filter\(\(\{role\}\)=>role==="panel"\|\|role==="conduit"\)/);
  assert.match(source,/trueDepth0231PreservedNativeNeon:true/);
  assert.match(source,/trueDepth0231UntouchedRoles:\["shell","rib"\]/);
  assert.doesNotMatch(source,/d31FaceColor|d31EdgeColor|d31CutColor/);
  assert.match(source,/version:"0\.23\.1\.1"/);
- const structural=read("./structural-tunnel-v0213.mjs");
+ const structural=read("./tunnel/structural-tunnel-v0213.mjs");
  assert.match(structural,/const relief=\(s\)=>unifiedDepth\?1:smooth/);
  assert.match(structural,/shaped\(x,d0\)/);
 });

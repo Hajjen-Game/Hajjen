@@ -2,15 +2,15 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {TUNNEL_PROFILE_0211,sampleSharedTunnelProfile0280,
- tunnelProfilePoint0211} from "../../tunnel-megastructure-v0211.mjs";
-import {buildSharedTunnelSection0280} from "../../structural-tunnel-v0213.mjs";
+ tunnelProfilePoint0211} from "../../tunnel/tunnel-megastructure-v0211.mjs";
+import {buildSharedTunnelSection0280} from "../../tunnel/structural-tunnel-v0213.mjs";
 import {vaultCrossSection0270} from "../../tracks/vault/full-tunnel-circuit-v0270.mjs";
 import {SHARED_TUNNEL_STYLE_0280,SHARED_TUNNEL_ROUTES_0280,
  makeTunnelPlan0280,tunnelReleaseAtLeast0280,
  sharedTunnelVersionActive0280,sharedPhysicalPreset0280}
- from "../../shared-tunnel-architecture-v0280.mjs";
+ from "../../tunnel/shared-tunnel-architecture-v0280.mjs";
 import {createSharedTunnelRuntime0280}
- from "../../shared-tunnel-runtime-v0280.mjs";
+ from "../../tunnel/shared-tunnel-runtime-v0280.mjs";
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const pos=(s,x,y)=>({x,y,z:s});
 const eq=(a,b)=>assert.ok(Math.abs(a-b)<1e-9,String(a)+" != "+String(b));
@@ -25,7 +25,7 @@ test("original Skyline is one immutable source of panels, atlas and native coat"
  assert.equal(p.physical.atlas4GB,128);
  assert.ok(Object.isFrozen(p.panels.palette));
  assert.ok(Object.isFrozen(p.physical.panel));
- assert.match(read("./structural-tunnel-v0213.mjs"),/SHARED_TUNNEL_STYLE_0280\.panels\.palette/);
+ assert.match(read("./tunnel/structural-tunnel-v0213.mjs"),/SHARED_TUNNEL_STYLE_0280\.panels\.palette/);
  assert.match(read("./tracks/vault/vault-architectural-parity-v0272.mjs"),/buildSharedTunnelSection0280\(positionAt,SHARED_PLAN/);
 });
 test("one source profile has IDENTICAL Skyline 368m and Vault 3400m geometry",()=>{
@@ -148,5 +148,5 @@ test("race engine, GRIP and roads are not involved in the new shared visual pipe
  assert.match(g,/__skyshiftSharedTunnelAudit/);
  assert.match(g,/tunnelReleaseAtLeast0280/);
  assert.match(g,/selected==="vault"\?"0\.28\.[0123456789](?:\.[0-9]+)?"/);
- assert.match(read("./shared-tunnel-runtime-v0280.mjs"),/originalPhysicsUntouched:true/);
+ assert.match(read("./tunnel/shared-tunnel-runtime-v0280.mjs"),/originalPhysicsUntouched:true/);
 });

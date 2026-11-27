@@ -6,7 +6,7 @@ import {readHistorical as readFileSync} from "../architecture/legacy-retirement-
 import {
  LIVING_WAKE,wakeEnergy,createWakeHistory,recordWake,historyPoint,
  createLivingWakeFX
-} from "../../living-wake-v01071.mjs";
+} from "../../ships/living-wake-v01071.mjs";
 const src=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const speed=n=>44*1.11**n;
 test("quiet straight lines do not fully activate in early zones",()=>{

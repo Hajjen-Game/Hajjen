@@ -3,9 +3,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {INTEGRATED_NEON_FLOW_0214,buildIntegratedNeonFlowData}
- from "../../integrated-neon-flow-v0214.mjs";
+ from "../../rendering/integrated-neon-flow-v0214.mjs";
 import {buildStructuralTunnelData}
- from "../../structural-tunnel-v0213.mjs";
+ from "../../tunnel/structural-tunnel-v0213.mjs";
 const read=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");
 const pos=(s,x,y)=>({x,y,z:s});
 test("4 deliberate uninterrupted light flows follow original banked arch",()=>{
@@ -84,7 +84,7 @@ test("flow cannot revive exterior light, replace steering or allocate lighting p
  assert.equal(c.shipUnchanged,true);assert.equal(c.gripUnchanged,true);
  assert.equal(c.cameraUnchanged,true);assert.equal(c.globalSunUnchanged,true);
  assert.equal(c.globalBloomUnchanged,true);
- const code=read("./integrated-neon-flow-v0214.mjs");
+ const code=read("./rendering/integrated-neon-flow-v0214.mjs");
  assert.match(code,/installStructuralTunnelRebuild/);
  assert.match(code,/flowCohesion:true/);
  assert.match(code,/bindTunnelSpectrumMaterial/);

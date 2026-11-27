@@ -31,8 +31,8 @@ try{
    const [trial,selection,premium,boost,shadow,record,racing]=await Promise.all([
     import("./tracks/trials/trial-v0165.mjs"),import("./tracks/shared/track-selection-v0160.mjs"),
     import("./rendering/road/premium-track-v0160.mjs"),import("./flight/boost/boost-v0160.mjs"),
-    import("./shadow-tunnel-v0160.mjs"),import("./time-trial-v0160.mjs"),
-    import("./racing-experience-v0160.mjs")]);
+    import("./tunnel/shadow-tunnel-v0160.mjs"),import("./core/time-trial-v0160.mjs"),
+    import("./core/racing-experience-v0160.mjs")]);
    const p=trial.positionAt(550);
    const end=trial.positionAt(3400);
    const start=trial.positionAt(0);
@@ -59,7 +59,7 @@ try{
  // position after 475m, reducing steering to 6.5% under full GRIP.
  const fullGripBrowser=await page.evaluate(async()=>{
   const [t,old]=await Promise.all([
-   import("./tracks/trials/trial-v0165.mjs"),import("./trial-v0164.mjs")]);
+   import("./tracks/trials/trial-v0165.mjs"),import("./tracks/trials/trial-v0164.mjs")]);
   function turn(mod,s){
    const st=mod.newFlightState(),p=mod.positionAt(s);
    Object.assign(st,{s,lateral:0,worldX:p.x,worldZ:p.z,
@@ -123,7 +123,7 @@ try{
  const skyline=await page.evaluate(async()=>{
   const [trial,premium,record,selection,boost]=await Promise.all([
    import("./tracks/trials/trial-v0165.mjs"),import("./rendering/road/premium-track-v0160.mjs"),
-   import("./time-trial-v0160.mjs"),import("./tracks/shared/track-selection-v0160.mjs"),
+   import("./core/time-trial-v0160.mjs"),import("./tracks/shared/track-selection-v0160.mjs"),
    import("./flight/boost/boost-v0160.mjs")]);
   const p=trial.positionAt(550);
   return {selected:selection.TRACK_ID_0160,

@@ -23,8 +23,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Fetch immutable station comparison archive
-        run: git fetch --no-tags --depth=1 origin 06754fc69e87b23e63b73e1552f99883fadc3897
+      - name: Fetch immutable station and entry comparison archives
+        run: |
+          git fetch --no-tags --depth=1 origin 06754fc69e87b23e63b73e1552f99883fadc3897
+          git fetch --no-tags --depth=1 origin 89b1ca990b72a3321303585fa48b924b3e04ed5e
       - name: Reproducible install from committed lock
         run: npm ci --no-audit --no-fund && npm ls --depth=0
       - name: Build and verify actual production artifact
@@ -42,9 +44,74 @@ jobs:
           trap 'kill "$server" 2>/dev/null || true' EXIT
           sleep 1
           node verify-publication.mjs http://127.0.0.1:8924/ 1
-      - name: Compare real source and built WebGL / CSS / cold-warm transfer
+      - name: Share verified production artifact with all browser suites
+        uses: actions/upload-artifact@v4
+        with:
+          name: skyshift-ef03-verified-build
+          path: |
+            skyshift/build/dist/
+            skyshift/build/site/
+          if-no-files-found: error
+  browser-parity:
+    name: Real WebGL / ${{ matrix.suite }}
+    needs: production-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [core-lifecycle, ef05-baseline, ef07-profile]
+    defaults:
+      run:
+        working-directory: skyshift/build
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Fetch immutable comparison archives
+        run: |
+          git fetch --no-tags --depth=1 origin 06754fc69e87b23e63b73e1552f99883fadc3897
+          git fetch --no-tags --depth=1 origin 89b1ca990b72a3321303585fa48b924b3e04ed5e
+      - name: Install original locked browser dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Reuse the exact verified Pages and build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: skyshift-ef03-verified-build
+          path: skyshift/build
+      - name: Run existing real browser functional and visual gates
+        env:
+          SKYSHIFT_BROWSER_SUITE: ${{ matrix.suite }}
         run: npm run test:browser
-      - name: Keep lock, production artifact and real comparison evidence
+      - name: Preserve this suite's full WebGL evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: skyshift-ef03-browser-${{ matrix.suite }}
+          path: skyshift/build/evidence/
+          if-no-files-found: warn
+  collect-evidence:
+    name: Preserve complete combined production and WebGL evidence
+    if: always()
+    needs: [production-build, browser-parity]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Collect exact verified production artifact
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: skyshift-ef03-verified-build
+          path: skyshift/build
+      - name: Collect all independent WebGL suite captures
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: skyshift-ef03-browser-*
+          merge-multiple: true
+          path: skyshift/build/evidence
+      - name: Preserve existing combined evidence artifact contract
         if: always()
         uses: actions/upload-artifact@v4
         with:

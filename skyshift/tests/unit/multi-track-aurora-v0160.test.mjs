@@ -10,14 +10,14 @@ const [selection,layout,trial,track3d,risk,boost,smooth,premium,aero,shadow,tt,r
  import("../../tracks/shared/circuit-layout-v0160.mjs"),
  import("../../tracks/trials/trial-v0160.mjs"),
  import("../../tracks/shared/track-3d-v0160.mjs"),
- import("../../risk-reward-v0160.mjs"),
+ import("../../flight/boost/risk-reward-v0160.mjs"),
  import("../../flight/boost/boost-v0160.mjs"),
  import("../../tracks/shared/smooth-track-v0160.mjs"),
  import("../../rendering/road/premium-track-v0160.mjs"),
  import("../../tracks/barriers/aero-barrier-v0160.mjs"),
- import("../../shadow-tunnel-v0160.mjs"),
- import("../../time-trial-v0160.mjs"),
- import("../../racing-experience-v0160.mjs")]);
+ import("../../tunnel/shadow-tunnel-v0160.mjs"),
+ import("../../core/time-trial-v0160.mjs"),
+ import("../../core/racing-experience-v0160.mjs")]);
 const src=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const near=(a,b,eps=1e-7)=>assert.ok(Math.abs(a-b)<eps,
  "expected "+a+" ≈ "+b);
@@ -42,7 +42,7 @@ test("genuinely distinct 3D course closes without seam or short microbends",asyn
  near(trial.headingAt(3400)-trial.headingAt(0),Math.PI*2,1e-7);
  const a=trial.poseAt(0),z=trial.poseAt(3400);
  near(a.x,z.x);near(a.z,z.z);near(a.y,z.y);
- const old=await import("../../trial-v0151.mjs");
+ const old=await import("../../tracks/trials/trial-v0151.mjs");
  const orig=old.positionAt(550),fresh=trial.positionAt(550);
  assert.ok(Math.hypot(orig.x-fresh.x,orig.z-fresh.z)>20,
   "Aurora cannot just recolor the Skyline course");
@@ -128,7 +128,7 @@ test("empty risk-pad GLSL compiles to numeric zero, not missing expression",()=>
  assert.doesNotMatch(fragment,/float \w+\s*=\s*;/);
 });
 test("PB/ghost separate from Skyline while keeping Skyline saved records",async()=>{
- const original=(await import("../../time-trial-v0151.mjs")).TIME_TRIAL_0151;
+ const original=(await import("../../core/time-trial-v0151.mjs")).TIME_TRIAL_0151;
  assert.notEqual(tt.TIME_TRIAL_0160.storageKey,original.storageKey);
  assert.notEqual(tt.TIME_TRIAL_0160.trackRevision,original.trackRevision);
  assert.equal(tt.TIME_TRIAL_0160.trackId,"aurora-flow-v0160");

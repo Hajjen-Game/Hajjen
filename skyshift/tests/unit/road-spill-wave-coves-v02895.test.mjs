@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {ZONE_PALETTES} from "../../zone-wave-v060.mjs";
+import {ZONE_PALETTES} from "../../core/zone-wave-v060.mjs";
 import {vaultStraightMask02891} from "../../tunnel/shared-straight-edge-parity-v02891.mjs";
 import {ROAD_SPILL_COVE_02895,roadSpillEnabled02895,coveWaveEnabled02895,
  smoothPulse02895,sampleEdgeSpill02895,patchRoadSpill02895,
@@ -160,7 +160,7 @@ test("native road controller updates palette and restores original program",()=>
 });
 
 import {sourceLocalRoadExpressionEF05} from "../../tunnel/road-spill-wave-coves-v02895.mjs";
-import {planConfiguredTunnelModules0281} from "../../true-shared-tunnel-renderer-v0281.mjs";
+import {planConfiguredTunnelModules0281} from "../../tunnel/true-shared-tunnel-renderer-v0281.mjs";
 test("EF05 road spill follows unequal module origins and does not light open gaps",()=>{
  const full=planConfiguredTunnelModules0281(3400,[{start:0,end:3400}]);
  assert.equal(sourceLocalRoadExpressionEF05(full),null);

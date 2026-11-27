@@ -6,7 +6,7 @@ import {execFileSync} from "node:child_process";
 import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const run=track=>JSON.parse(execFileSync(process.execPath,
- [new URL("../../track-physics-parity-probe-v0164.mjs",import.meta.url).pathname,track],
+ [new URL("../../qa/track-physics-parity-probe-v0164.mjs",import.meta.url).pathname,track],
  {encoding:"utf8"}));
 const skyline=run("skyline"),aurora=run("aurora");
 const near=(a,b,eps=1e-9)=>assert.ok(Math.abs(a-b)<eps,`expected ${a} ≈ ${b}`);
@@ -37,7 +37,7 @@ test("same bounded local tangent projection and no Aurora-only forward lock",()=
  near(aurora.projectedDelta,skyline.projectedDelta,.004);
 });
 test("source-level proof: physics has ZERO course-specific behavior",()=>{
- const code=source("./trial-v0164.mjs");
+ const code=source("./tracks/trials/trial-v0164.mjs");
  const collision=code.slice(code.indexOf("export function constrainToGuardrail("),
   code.indexOf("const STEP="));
  const integration=code.slice(code.indexOf("export function stepFlight("));
@@ -64,7 +64,7 @@ test("Skyline original course stays unchanged; Aurora PB has a new revision",()=
  const reg=source("./tracks/shared/track-selection-v0160.mjs");
  assert.match(reg,/trackRevision:"aurora-fair-flow-0164"/);
  assert.match(reg,/trackRevision:"skyline-risk-diversity-0151"/);
- const records=source("./time-trial-v0160.mjs");
+ const records=source("./core/time-trial-v0160.mjs");
  assert.match(records,/skyshift-time-trial-ghost-aurora-0164/);
  assert.match(records,/skyshift-time-trial-ghost-0151/);
  const game=source("./legacy/game/game-v0164.mjs"),html=source("./index.html");

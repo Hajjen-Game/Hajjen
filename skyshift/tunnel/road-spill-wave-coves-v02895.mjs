@@ -85,7 +85,7 @@ export function sourceLocalRoadExpressionEF05(modules,moduleMeters=340,sourceMet
 const GLSL_COMMON="#include <common>";
 const GGX_ANCHOR=/reflectedLight\.directSpecular\+=u94Tint\*u94Cool\*(?:0\.045|0\.065);\n\}/;
 export function patchRoadSpill02895(vertex,fragment,{
- moduleMeters=340,sourceMeters=368,lowMemory=false,sourceModules=null
+ moduleMeters=340,sourceMeters=368,lowMemory=false,sourceModules=null,edgeOnly=false
 }={}){
  const localExpression=sourceLocalRoadExpressionEF05(sourceModules,moduleMeters,sourceMeters);
  if(!fragment.includes(GLSL_COMMON)||
@@ -125,12 +125,20 @@ export function patchRoadSpill02895(vertex,fragment,{
  const marker=f.match(GGX_ANCHOR)?.[0];
  if(!marker)throw Error("0.28.9.5 tail/source-lobe anchor unavailable");
  const spill=[
+  ...(edgeOnly?[
+   "// 0.28.9.8: discard all earlier specular contributions INSIDE the tunnel.",
+   "// Native world, amber arch, cove and broad cinematic reflections are not edge emitters.",
+   "float edgeOnlyInterior02898=clamp(r263Interior,0.0,1.0);",
+   "reflectedLight.directSpecular*=1.0-edgeOnlyInterior02898;",
+   "reflectedLight.indirectSpecular*=1.0-edgeOnlyInterior02898;"
+  ]:[]),
   "// One smooth, locally supported color lobe, no rectangle/extra light mesh.",
   "float s95Signed=mod(vTrackCoord.x-uS95Front+.5*uS95Lap,uS95Lap)-.5*uS95Lap;",
   "float s95Mix=uS95Active*(1.0-smoothstep(-"+
    ZONE_WAVE.atmosphereTransitionMeters.toFixed(1)+","+
    ZONE_WAVE.atmosphereTransitionMeters.toFixed(1)+",s95Signed));",
-  "vec3 s95Tint=mix(uS95Old,uS95Next,clamp(s95Mix,0.0,1.0));",
+  edgeOnly?"vec3 s95Tint=vec3(0.06,0.71,0.90);":
+   "vec3 s95Tint=mix(uS95Old,uS95Next,clamp(s95Mix,0.0,1.0));",
   "float s95GuideSafe=(1.0-.91*clamp(guided,0.0,1.0))*",
   " (1.0-.95*clamp(whiteCore,0.0,1.0))*",
   " (1.0-.86*clamp(padCoverage,0.0,1.0));",
@@ -257,7 +265,7 @@ export function installWaveCoupledCove02895(THREE,section,module,{
 }
 export function installRoadSpill02895(THREE,road,{
  enabled=false,lowMemory=false,trackLength=3400,
- moduleMeters=340,sourceMeters=368,sourceModules=null}={}){
+ moduleMeters=340,sourceMeters=368,sourceModules=null,edgeOnly=false}={}){
  if(!enabled)return inactive("historic/roadSpill=classic");
  const mat=road?.material;
  if(!mat?.isMeshStandardMaterial)
@@ -273,13 +281,13 @@ export function installRoadSpill02895(THREE,road,{
  mat.onBeforeCompile=function(shader,renderer){
   before.call(this,shader,renderer);
   const p=patchRoadSpill02895(shader.vertexShader,shader.fragmentShader,{
-   moduleMeters,sourceMeters,lowMemory,sourceModules});
+   moduleMeters,sourceMeters,lowMemory,sourceModules,edgeOnly});
   shader.vertexShader=p.vertexShader;shader.fragmentShader=p.fragmentShader;
   Object.assign(shader.uniforms,uniforms);
  };
  mat.customProgramCacheKey=function(){
   return key.call(this)+"-local-edge-pools-02895-"+(lowMemory?"4GB":"High")+
-   (localExpression?"-route-"+localExpression:"");
+   (localExpression?"-route-"+localExpression:"")+(edgeOnly?"-edge-only-02898":"");
  };
  mat.needsUpdate=true;
  let disposed=false;

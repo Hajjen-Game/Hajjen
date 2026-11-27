@@ -10,6 +10,7 @@ import {chromium} from 'playwright-core';
 import {captureEF05Baseline} from './ef05-baseline-parity.mjs';
 import {captureEF06Lifetime} from './ef06-resource-startup.mjs';
 import {captureEF07Profile} from './ef07-profile.mjs';
+import {PRODUCTION_TRACK} from '../tracks/shared/production-catalog.mjs';
 const here=dirname(fileURLToPath(import.meta.url)),repo=resolve(here,'../..'),out=join(here,'evidence');
 mkdirSync(out,{recursive:true});
 const chrome=[process.env.CHROME_PATH,'/usr/bin/google-chrome','/usr/bin/google-chrome-stable','/usr/bin/chromium'].filter(Boolean).find(existsSync);
@@ -68,7 +69,7 @@ async function independentRoute(memory){
    document.body.appendChild(renderer.domElement);
    const camera=new THREE.PerspectiveCamera(72,960/540,.1,400);
    const policy={spatialWave:true,stableStrips:true,archFeet:true,precisionNeon:true,
-    cinematicMetal:true,straightOnly:true,ceilingFixtures:true,premiumArch:true,
+    cinematicMetal:true,upperWallStability:true,straightOnly:true,ceilingFixtures:true,premiumArch:true,
     waveCove:true,fastFrames:!lowMemory,straightRanges:[{from:39,to:240},{from:840,to:1010}]};
    const tunnel=installConfiguredSharedTunnel(THREE,world,{track:'independent-ef05-fixture',
     positionAt,trackLength:length,sections,policy,lowMemory,omitLegacyRoadResponse:true});
@@ -97,7 +98,7 @@ async function independentRoute(memory){
    const road=new THREE.Mesh(geo,premium.material);
    road.name='Zone Ribbon · integrated PBR racing deck';world.add(road);
    const {native,finish,straight,arch,cove,spill}=installSharedRoadOptics(THREE,world,opticalContext,{
-    road:true,cinematic:true,straight:true,arch:true,unifiedSources:true,ceiling:true,ceilingFixtures:true,spill:true
+    road:true,cinematic:true,straight:true,arch:true,unifiedSources:true,ceiling:true,ceilingFixtures:true,spill:true,edgeOnly:true
    });
    const ship=new THREE.Mesh(new THREE.BoxGeometry(2.5,.7,4),new THREE.MeshStandardMaterial({color:0x768ba8,metalness:.6,roughness:.35}));
    ship.name='fixture hull';world.add(ship);
@@ -200,7 +201,7 @@ try{
     transferred=0;completed=0;requests.length=0;const started=performance.now();
     // Real cold/warm production navigations cover default, retired Skyline,
     // retired Aurora, and canonical Vault while preserving the original QA source.
-    const route=mode==='source'?'track=vault&v=0.28.9.7':
+    const route=mode==='source'?'track=vault&v='+PRODUCTION_TRACK.version:
      memory===8?(phase==='cold'?'':'track=skyline&v=0.26.5'):
       (phase==='cold'?'track=aurora&v=0.26.5':'track=vault&v=0.28.9.7&sharedTunnel=classic&trueSharedRenderer=classic');
     await page.goto(url+'?'+(route?route+'&':'')+'startupAudit=1&trackRepairSmoke=1',{waitUntil:'domcontentloaded',timeout:80000});
@@ -224,7 +225,7 @@ try{
     assert.equal(boot.selected,'vault');
     assert.equal(boot.challengeHidden,true);
     const query=new URLSearchParams(boot.query);
-    assert.equal(query.get('track'),'vault');assert.equal(query.get('v'),'0.28.9.7');
+    assert.equal(query.get('track'),'vault');assert.equal(query.get('v'),PRODUCTION_TRACK.version);
     assert.equal(query.get('startupAudit'),'1');assert.equal(query.get('trackRepairSmoke'),'1');
     assert.notEqual(query.get('sharedTunnel'),'classic');assert.notEqual(query.get('trueSharedRenderer'),'classic');
     assert.deepEqual(boot.catalog,mode==='bundle'?['vault']:['skyline','aurora','vault']);
@@ -242,6 +243,15 @@ try{
     assert.ok(render.width>100&&render.height>100&&!render.lost,JSON.stringify(render));
     assert.deepEqual(errors,[],mode+' '+memory+'GB errors');
     await page.screenshot({path:join(out,mode+'-'+memory+'GB-'+phase+'.png')});
+    if(mode==='bundle'&&phase==='warm'){
+     for(const station of [1246,1840]){
+      const pose=await page.evaluate(s=>window.__skyshiftTrackRepairTeleport(s),station);
+      assert.equal(pose.track,'vault');assert.equal(pose.finishS,3400);assert.ok(pose.withinPhysicalRoll);
+      await page.waitForTimeout(900);
+      await page.screenshot({path:join(out,'02898-Vault-'+memory+'GB-'+station+'-after.png'),timeout:60000});
+     }
+     assert.deepEqual(errors,[],'0.28.9.8 live material capture errors');
+    }
     phases.push({timing,startup,styles:boot.styles,title:boot.title,render});
    }
    const row={mode,memory,phases};reports.push(row);results.push(row);await context.close();

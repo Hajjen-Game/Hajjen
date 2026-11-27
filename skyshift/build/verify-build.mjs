@@ -14,7 +14,7 @@ const html=await readFile(join(dist,'index.html'),'utf8');
 assert.equal(report.cssOrder.length,8);
 assert.equal(report.sourceVersion,'0.26.5');
 assert.equal(report.three,'0.180.0');
-assert.deepEqual(report.productionCatalog,[{id:'vault',version:'0.28.9.7',name:'NEON VAULT CIRCUIT',option:'NEON VAULT — FULL TUNNEL CIRCUIT'}]);
+assert.deepEqual(report.productionCatalog,[{id:'vault',version:'0.28.9.8',name:'NEON VAULT CIRCUIT',option:'NEON VAULT — FULL TUNNEL CIRCUIT'}]);
 const picker=html.match(/<select id="track-picker"[^>]*>([\s\S]*?)<\/select>/)?.[1];
 assert.ok(picker,'production circuit picker');
 assert.deepEqual([...picker.matchAll(/<option value="([^"]+)"/g)].map(x=>x[1]),['vault']);

@@ -1,0 +1,7 @@
+# SKYSHIFT 0.28.9.8 — Upper Wall Stability & Edge-Only Road
+
+Owner report 27 November 2026: upper tunnel side panel hotspots shimmer in motion; remove all racing-deck reflections except actual lower edge strips. Reuse 0.28.6 roof derivative roughness floor on the upper side panels after 0.28.9 local polish, attenuate only the added local cinematic source gain in that region. Preserve existing source meshes, roof, wall wave, PMREM, ship, boost, guides, arch feet, straight-only clearance and physics. The native indexed road keeps its existing edge-lip distance/straight/guide mask and cyan emitter color; discard prior world/arch/cove/broad specular inside tunnel sections before adding the edge lobe. No geometry, light, texture or render-pass additions. Existing explicit comparison routes 0.28.9.7 and earlier remain unchanged; `surfaceFinish=classic` provides an explicit visual rollback. Current production catalog 0.28.9.8. Rollback 36e6adbf1e500de3be3e2cb0858c19dfd97453be.
+
+Use existing High and 4GB real WebGL CI and current shader unit gates; capture current game at stations 1246 and 1840 (user screenshot showed 4646m total on lap 2). Temporal shimmer still needs physical desktop/mobile playtest. Do not mark published until CI and Pages are green.
+
+Owner requested delivery through main after each completed game change and autonomous CI repair, not another engineering-foundation cleanup pass. Maintain existing safety gates and avoid direct unverified production changes.

@@ -135,6 +135,7 @@ import {createSharedTunnelRuntime0280}
 import {omitLegacyRoadResponseEF05,startupSamplerEnabled02897} from "./tunnel/true-shared-tunnel-renderer-v0281.mjs";
 import {SHARED_LIGHT_0282} from "./tunnel/shared-road-ship-light-v0282.mjs";
 import {createSharedOpticalContext,installSharedOpticalShip,installSharedRoadOptics,finalizeSharedOptics} from "./tunnel/shared-optical-assembly.mjs";
+import {surfaceFinishEnabled02898} from "./tracks/shared/production-catalog.mjs";
 import {PMREM_0284,readPmremRelease0284}
  from "./tunnel/pmrem-reflection-pipeline-v0284.mjs";
 import {VAULT_LIGHT_SEAL_0270,vaultLightLevels0270}
@@ -311,6 +312,7 @@ const roadSpillReleaseEnabled=trueSharedVaultEnabled&&roadSpillEnabled02895(loca
 const coveWaveReleaseEnabled=trueSharedVaultEnabled&&coveWaveEnabled02895(location.search);
 const curveContinuityReleaseEnabled=trueSharedVaultEnabled&&
  surfaceContinuityEnabled02896(location.search);
+const surfaceFinish02898=trueSharedVaultEnabled&&surfaceFinishEnabled02898(location.search);
 const sharedRoadLightEnabled=sharedOpticsEnabled&&
  new URLSearchParams(location.search).get("sharedRoadLight")!=="classic";
 const sharedShipLightEnabled=sharedOpticsEnabled&&
@@ -1353,7 +1355,7 @@ function initScene(){
   policy:{
    spatialWave:sharedWaveParityEnabled,stableStrips:stabilityReleaseEnabled,
    archFeet:archFootAssemblyEnabled,precisionNeon:precisionNeonReleaseEnabled,
-   cinematicMetal:cinematicMetalReleaseEnabled,straightOnly:straightParityReleaseEnabled,
+   cinematicMetal:cinematicMetalReleaseEnabled,upperWallStability:surfaceFinish02898,straightOnly:straightParityReleaseEnabled,
    ceilingFixtures:ceilingFixtureReleaseEnabled,premiumArch:archOpticsReleaseEnabled,
    waveCove:coveWaveReleaseEnabled,fastFrames:!limitedMemory&&startupSamplerEnabled02897(location.search),
    straightRanges:straightParityReleaseEnabled?vaultStraightRanges02891():[]
@@ -1523,7 +1525,7 @@ function initScene(){
    THREE,world,opticalContext,{
     road:sharedRoadLightEnabled,cinematic:cinematicMetalReleaseEnabled,straight:straightParityReleaseEnabled,
     arch:archRoadReleaseEnabled,unifiedSources:unifiedSourcesReleaseEnabled,ceiling:unifiedCeilingRoadReleaseEnabled,
-    ceilingFixtures:ceilingFixtureReleaseEnabled,spill:roadSpillReleaseEnabled
+    ceilingFixtures:ceilingFixtureReleaseEnabled,spill:roadSpillReleaseEnabled,edgeOnly:surfaceFinish02898
    },{initialWave:zoneWave,previousCeiling:unifiedCeilingRoad,previousSpill:roadSpill02895}));
  // 0.28.9.6: same indexed PBR road, optically soften the original
  // edge-light mask before curves, and remove the periodic 3400m
@@ -3648,7 +3650,7 @@ function initScene(){
  // independent release in the HUD, never misleading 0.26.5.
  if(isVault()&&sharedOpticsEnabled)
   UI.topbarTrack.textContent=ACTIVE_TRACK_0160.name+
-   (curveContinuityReleaseEnabled?" · 0.28.9.7":
+   (surfaceFinish02898?" · 0.28.9.8":curveContinuityReleaseEnabled?" · 0.28.9.7":
     roadSpillReleaseEnabled||coveWaveReleaseEnabled?" · 0.28.9.5":
      unifiedSourcesReleaseEnabled?" · 0.28.9.4":
   archOpticsReleaseEnabled?" · 0.28.9.3":

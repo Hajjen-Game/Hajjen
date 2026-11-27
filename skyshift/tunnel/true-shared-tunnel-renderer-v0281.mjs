@@ -96,6 +96,7 @@ export function validateSharedTunnelPolicy(policy,trackLength){
   !Number.isFinite(r.to)||r.from<0||r.to<=r.from||r.to>trackLength))
   throw Error("EF05 straight range outside track");
  return Object.freeze({...Object.fromEntries(policyKeys.map(k=>[k,policy[k]])),
+  upperWallStability:policy.upperWallStability===true,
   straightRanges:Object.freeze(ranges.map(r=>Object.freeze({...r})))});
 }
 // Historical release and URL selection stays at the compatibility boundary.
@@ -382,7 +383,8 @@ export function installConfiguredSharedTunnel(THREE,world,{
    // while 0.28.4 PMREM captures its ORIGINAL scene. The game enables
    // the cinematic grade only after the authentic PMREM capture finishes.
    item.cinematic=installCinematicTunnel0289(section,{
-    enabled:cinematicMetal0289,lowMemory,contrast:false,strips:false
+    enabled:cinematicMetal0289,lowMemory,contrast:false,strips:false,
+    upperWallStability:style.upperWallStability
    });
    if(cinematicMetal0289&&!item.cinematic.active)
     throw Error("0.28.9 original metal shader unavailable in module "+

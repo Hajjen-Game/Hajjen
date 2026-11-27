@@ -151,6 +151,13 @@
             <label class="performance-check"><input id="exterior-backdrop" type="checkbox"> Exterior stars and nebulae</label>
             <label class="performance-check"><input id="distant-detail-lod" type="checkbox"> Distant detail LOD (test)</label>
             <label class="performance-check"><input id="tunnel-occlusion" type="checkbox"> Behind-wall occlusion (experimental)</label>
+            <div id="velocity-experience-settings" class="hidden">
+              <div class="settings-subhead">VELOCITY EXPERIENCE</div>
+              <label for="motion-blur">MOTION BLUR</label>
+              <select id="motion-blur"><option value="off">Off</option><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select>
+              <label class="performance-check"><input id="adaptive-velocity-camera" type="checkbox" checked> Adaptive velocity camera</label>
+              <p class="settings-hint">Peripheral speed blur with boost response. Independent of bloom resolution. Turn off to compare.</p>
+            </div>
             <p class="settings-hint">Bloom only changes the glow blur resolution. Test switches can be compared independently. Geometry and flight physics are unchanged.</p>
           </div>
         </div>

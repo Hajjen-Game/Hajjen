@@ -102,3 +102,7 @@
 /* 0.29.3.1 Advanced GPU switches use the existing scrollable settings. */
 #advanced-gpu-settings{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:6px;align-items:center}
 #advanced-gpu-settings.hidden{display:none!important}
+
+/* 0.29.4 — independent camera and motion blur controls. */
+#velocity-experience-settings{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:6px;align-items:center}
+#velocity-experience-settings.hidden{display:none!important}

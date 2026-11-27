@@ -2,7 +2,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
-import {CIRCUIT} from "../../trial-v0901.mjs";
+import {CIRCUIT} from "../../tracks/trials/trial-v0901.mjs";
 import {tunnelIntensityAt,SHADOW_TUNNEL} from "../../tunnel/shadow-tunnel-v092.mjs";
 import {TUNNEL_BLACKOUT,blackoutLevelsAt,patchBlackoutRoadFragment,
  createTunnelBlackoutController,separateBladeTipMaterial}

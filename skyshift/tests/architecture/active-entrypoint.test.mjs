@@ -184,7 +184,7 @@ test('current time-trial module preserves a PB through ghost toggle, abandonment
 // EF02J: run retained rail-spark behavior against the actual shared renderer
 // and the current track adapter, instead of obsolete versioned entrypoints.
 {
- const {RAIL_SPARKS,railContactPoint,sparkDemand,createSparkState,advanceSparkState,resetSparkState,createRailScrapeSparks}=await import('../../rail-scrape-sparks-v0165.mjs');
+ const {RAIL_SPARKS,railContactPoint,sparkDemand,createSparkState,advanceSparkState,resetSparkState,createRailScrapeSparks}=await import('../../rendering/rail-scrape-sparks-v0165.mjs');
 const speed=stage=>44*1.11**stage;
 test("not near-rail steering; zero emission without REAL physical contact",()=>{
  const scenarios=[
@@ -358,7 +358,7 @@ test('current rail spark contact anchors follow the real rail face on all retain
   const selection=await import('./tracks/shared/track-selection-v0160.mjs');
   assert.equal(selection.ACTIVE_TRACK_0160.id,track);
   const {poseAt,widthAt,positionAt,surfaceNormalAt,GUARDRAIL,CIRCUIT}=await import('./tracks/trials/trial-v0165.mjs');
-  const {railContactPoint}=await import('./rail-scrape-sparks-v0165.mjs');
+  const {railContactPoint}=await import('./rendering/rail-scrape-sparks-v0165.mjs');
   assert.ok(CIRCUIT.lapLength>0);
   // Sample the entire authored course, not old fixed release coordinates.
   for(let i=0;i<64;i++){
@@ -388,9 +388,9 @@ test('live game feeds physics-owned grounded rail contact to shared sparks, and 
  const entry=html.match(/data-game-module="([^"]+)"/)?.[1];
  assert.ok(entry);
  const game=readFileSync(at(entry),'utf8');
- assert.match(game,/from "\.\/rail-scrape-sparks-v0165\.mjs"/);
- const adapter=readFileSync(at('rail-scrape-sparks-v0165.mjs'),'utf8');
- assert.match(adapter,/from "\.\/rendering\/rail-scrape-sparks\.mjs"/);
+ assert.match(game,/from "\.\/rendering\/rail-scrape-sparks-v0165\.mjs"/);
+ const adapter=readFileSync(at('rendering/rail-scrape-sparks-v0165.mjs'),'utf8');
+ assert.match(adapter,/from "\.\/rail-scrape-sparks\.mjs"/);
  assert.match(game,/createRailScrapeSparks\(THREE,scene/);
  assert.match(game,/railSparks\?\.dispose\(\)/);
  assert.match(game,/railSparks\?\.reset\(\)/);

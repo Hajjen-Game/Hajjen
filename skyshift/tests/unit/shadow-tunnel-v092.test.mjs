@@ -2,7 +2,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
-import {CIRCUIT,positionAt,TRIAL} from "../../trial-v0901.mjs";
+import {CIRCUIT,positionAt,TRIAL} from "../../tracks/trials/trial-v0901.mjs";
 import {MAGNETIC_WALL,CORKSCREW,SKYLINE_LEAP} from "../../tracks/shared/track-3d-v082.mjs";
 import {ZONE_PALETTES} from "../../zone-wave-v060.mjs";
 import {SHADOW_TUNNEL,TUNNEL_SECTION,inShadowTunnel,tunnelIntensityAt,

@@ -184,3 +184,34 @@ test('race and boost ownership retains all original relative module targets',()=
  }
  assert.equal(edges,17,'reviewed module edge count');
 });
+
+// Check every relative import in the complete camera/flight/rail/trial ownership batch,
+// including multiline imports and re-exports, against its original target.
+test('camera, flight, rail and trial ownership retains all original relative module targets',()=>{
+ const batch=rootRelocations.batches.find(b=>b.rollbackCommit==='d0e1b66f68225071f86319284ca00656e22169e3');
+ assert.ok(batch,'missing reviewed camera, flight, rail and trial batch');
+ assert.equal(batch.moves.length,12);
+ const current=new Map(rootRelocations.moves.map(f=>[f.oldPath,f.newPath]));
+ const specs=s=>[...s.matchAll(/(?:\bfrom\s*|\bimport\s*\(\s*|\bimport\s+|\bnew\s+URL\s*\(\s*)["'](\.{1,2}\/[^"']+)["']/g)].map(m=>m[1]);
+ const target=(p,s)=>relative(repo,resolve(dirname(resolve(repo,p)),s.split(/[?#]/)[0])).split(sep).join('/');
+ let edges=0;
+ for(const f of batch.moves){
+  const source=readFileSync(resolve(repo,f.newPath),'utf8');
+  let original=source;
+  for(const e of [...f.pathEdits].reverse()){
+   assert.equal(original.split(e.after).length-1,1,f.newPath+' inverse path edit');
+   original=original.replace(e.after,e.before);
+  }
+  const bytes=Buffer.from(original);
+  assert.equal(createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex'),f.sourceSha);
+  const old=specs(original),now=specs(source);
+  assert.equal(now.length,old.length,f.newPath+' relative import count');
+  for(let i=0;i<old.length;i++){
+   const prior=target(f.oldPath,old[i]),actual=target(f.newPath,now[i]);
+   assert.equal(actual,current.get(prior)||prior,f.newPath+' changed module target');
+   assert.ok(tracked.has(actual)&&existsSync(resolve(repo,actual)),f.newPath+' missing relative target '+actual);
+   edges++;
+  }
+ }
+ assert.equal(edges,55,'reviewed module edge count');
+});

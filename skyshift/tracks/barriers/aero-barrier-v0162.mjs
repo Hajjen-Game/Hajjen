@@ -4,7 +4,7 @@ import {isAurora} from "../shared/track-selection-v0160.mjs";
 // A faceted safety wall replaces the round-looking continuous neon tube.
 import {
  TRIAL,GUARDRAIL,COURSE_SEGMENTS,positionAt,widthAt,curvatureAt,gapAt,GAPS,CORKSCREW
-} from "../../trial-v0162.mjs";
+} from "../trials/trial-v0162.mjs";
 import {ZONE_WAVE,ZONE_PALETTES,SPECTRAL_FRONT_GLSL} from "../../zone-wave-v060.mjs";
 import {createAeroBarrierAPI} from "./shared-aero-barrier.mjs";
 export const {

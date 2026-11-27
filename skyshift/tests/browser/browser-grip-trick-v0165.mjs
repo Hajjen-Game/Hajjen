@@ -59,7 +59,7 @@ try{
  // position after 475m, reducing steering to 6.5% under full GRIP.
  const fullGripBrowser=await page.evaluate(async()=>{
   const [t,old]=await Promise.all([
-   import("./tracks/trials/trial-v0165.mjs"),import("./trial-v0164.mjs")]);
+   import("./tracks/trials/trial-v0165.mjs"),import("./tracks/trials/trial-v0164.mjs")]);
   function turn(mod,s){
    const st=mod.newFlightState(),p=mod.positionAt(s);
    Object.assign(st,{s,lateral:0,worldX:p.x,worldZ:p.z,

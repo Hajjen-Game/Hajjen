@@ -1,13 +1,12 @@
-import {ACTIVE_TRACK_0160,isAurora} from "./tracks/shared/track-selection-v0160.mjs";
-// SKYSHIFT 0.15.1 — identical steering/GRIP with optional real SAFE/RISK boost lanes.
-import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from "./flight/boost/boost-v0160.mjs";
-import {GRIP_SPEC,initGripState,stepGripState} from "./flight/precision-grip-v084.mjs";
-import {STEERING_AUTHORITY,normalYawFactorAt,yawAuthorityAt,steeringBalanceAt} from "./flight/steering-authority-v01348.mjs";
+// SKYSHIFT 0.13.4.8 — same Skyline physics/track; half the extra GRIP yaw authority.
+import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from "../../flight/boost/boost-v082.mjs";
+import {GRIP_SPEC,initGripState,stepGripState} from "../../flight/precision-grip-v084.mjs";
+import {STEERING_AUTHORITY,normalYawFactorAt,yawAuthorityAt,steeringBalanceAt} from "../../flight/steering-authority-v01348.mjs";
 import {AIR_TRICKS,initAirTrickState,beginAirTrick,advanceAirTrick,
- finalizeAirTrick,stepLandingBoost,settleTrickVisual} from "./flight/air-tricks-v083.mjs";
-import {TRACK_3D,SKYLINE_LEAP,elevationAt,gradeAt,pitchAt,groundNormalAt,jumpAt,upcomingJump,elevationAudit,MAGNETIC_WALL,magneticBankAt,magneticWallAt,CORKSCREW,corkscrewBankAt,corkscrewAt,corkscrewProgressAt} from "./tracks/shared/track-3d-v0160.mjs";
+ finalizeAirTrick,stepLandingBoost,settleTrickVisual} from "../../flight/air-tricks-v083.mjs";
+import {TRACK_3D,SKYLINE_LEAP,elevationAt,gradeAt,pitchAt,groundNormalAt,jumpAt,upcomingJump,elevationAudit,MAGNETIC_WALL,magneticBankAt,magneticWallAt,CORKSCREW,corkscrewBankAt,corkscrewAt,corkscrewProgressAt} from "../shared/track-3d-v082.mjs";
 import {CIRCUIT,CIRCUIT_LENGTH,COURSE_SEGMENTS as LOOP_SEGMENTS,
- lapPosition,sectionAt,circuitPlanSummary as baseCircuitPlanSummary} from "./tracks/shared/circuit-layout-v0160.mjs";
+ lapPosition,sectionAt,circuitPlanSummary as baseCircuitPlanSummary} from "../shared/circuit-layout-v082.mjs";
 export {BOOST_PADS,BOOST_CONFIG,CIRCUIT,TRACK_3D,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW,pitchAt,gradeAt,elevationAudit,AIR_TRICKS,STEERING_AUTHORITY,normalYawFactorAt,yawAuthorityAt,steeringBalanceAt};
 // Intentionally small handling lab: geometric straights, circular arcs and
 // quintic-curvature transitions. No incidental heading changes, no jump hazards.
@@ -17,8 +16,7 @@ export const lerp=(a,b,t)=>a+(b-a)*t;
 export const smooth=x=>{const t=clamp(x,0,1);return t*t*(3-2*t);};
 
 export const TRIAL=Object.freeze({
- id:ACTIVE_TRACK_0160.id==="aurora"?"aurora-flow-v0160":"skyline-grip-first-v0901",
- name:ACTIVE_TRACK_0160.name,length:CIRCUIT.lapLength,
+ id:"skyline-grip-first-v0901",name:"TRACK RHYTHM SKYLINE",length:CIRCUIT.lapLength,
  raceLength:CIRCUIT.totalDistance,laps:CIRCUIT.laps,
  hoverHeight:1.05,gravity:22,fallDepth:8.5,shieldPenalty:20,
  startSpeed:44,endSpeed:44*1.11**8,
@@ -45,7 +43,7 @@ export const COURSE_SEGMENTS=LOOP_SEGMENTS;
 // Pulse area is zero: no heading drift downstream or handwritten chicanes.
 // Full-speed laps need deliberate GRIP at technical apexes, while lap one
 // remains learnable without it. Never add lane magnets or steering assists.
-export const TECHNICAL_APEX_PULSES=Object.freeze(isAurora()?{}:{
+export const TECHNICAL_APEX_PULSES=Object.freeze({
  "high-speed-sweep":0.00857070014,
  "precision-apex":0.0145,
  "back-sweeper":0.014,
@@ -62,7 +60,7 @@ export function circuitPlanSummary(){
   gripApexes:Object.keys(TECHNICAL_APEX_PULSES)};
 }
 export const MAX_BANK_RAD=2*Math.PI;
-export const GAPS=Object.freeze(isAurora()?[]:[SKYLINE_LEAP]);
+export const GAPS=Object.freeze([SKYLINE_LEAP]);
 export const ISLANDS=Object.freeze([]);
 export const SPLITS=Object.freeze([]);
 export const RISK_CUTS=Object.freeze([]);
@@ -70,13 +68,9 @@ export const CHECKPOINTS=Object.freeze(
  Array.from({length:CIRCUIT.laps*10+1},(_,i)=>i*CIRCUIT.lapLength/10));
 export const SECTORS=Object.freeze(
  CIRCUIT.sectors.map(s=>({s:s.start,name:s.name,tint:0x43ddf0})));
-export const ROAD_CUES=Object.freeze(isAurora()?[
- {s:205,label:"GLASS SWEEP",kind:"turn"},
- {s:1140,label:"NORTH SWITCHBACK",kind:"turn"},
- {s:2840,label:"HIGHLAND RUN",kind:"turn"}
-]:[{s:120,label:"SWEEP AHEAD",kind:"turn"},
- {s:SKYLINE_LEAP.approachStart,label:"LEAP AHEAD",kind:"jump"},
- {s:776,label:"GRIP APEX AHEAD",kind:"grip"},
+export const ROAD_CUES=Object.freeze([{s:120,label:"SWEEP AHEAD",kind:"turn"},
+  {s:SKYLINE_LEAP.approachStart,label:"LEAP AHEAD",kind:"jump"},
+  {s:776,label:"GRIP APEX AHEAD",kind:"grip"},
  {s:MAGNETIC_WALL.start-30,label:"MAGNETIC WALL AHEAD",kind:"magnetic"},
  {s:CORKSCREW.start-75,label:"CORKSCREW AHEAD",kind:"corkscrew"}]);
 // A single start/finish gantry lives at the seam; every lap crosses it.
@@ -85,10 +79,9 @@ export const ARCHES=Object.freeze([
 ]);
 export const GEOMETRY_BREAKS=Object.freeze([
  ...new Set([...COURSE_SEGMENTS.flatMap(c=>c.type==="turn"?
-  [c.start,c.start+c.entry,c.end-c.exit,c.end]:[c.start,c.end]),
-  ...(isAurora()?[]:[SKYLINE_LEAP.start,SKYLINE_LEAP.end,
-   MAGNETIC_WALL.start,MAGNETIC_WALL.riseEnd,MAGNETIC_WALL.fallStart,
-   MAGNETIC_WALL.end,CORKSCREW.start,CORKSCREW.end])])
+   [c.start,c.start+c.entry,c.end-c.exit,c.end]:[c.start,c.end]),SKYLINE_LEAP.start,SKYLINE_LEAP.end,
+    MAGNETIC_WALL.start,MAGNETIC_WALL.riseEnd,MAGNETIC_WALL.fallStart,MAGNETIC_WALL.end,
+    CORKSCREW.start,CORKSCREW.end])
 ].sort((a,b)=>a-b));
 export const SPEED_SECTIONS=Object.freeze([
  {start:0,end:CIRCUIT.lapLength,id:"skyline-lap"}
@@ -159,12 +152,10 @@ export function surfaceHeightAt(s,lateral=0){
 // before the technical 90° bend; at high zone speeds the apex requires GRIP
 // to avoid the rail. Low-speed laps teach the line without a forced crash.
 export const GRIP_APEX=Object.freeze({
- id:isAurora()?"no-narrow-apex":"precision-grip-apex",name:"GRIP APEX",
- funnelStart:isAurora()?4000:777,throatStart:isAurora()?4010:840,
- throatEnd:isAurora()?4020:962,funnelEnd:isAurora()?4030:995,
- minWidthMeters:isAurora()?23.2:14,normalWidthMeters:23.2,
- peakCurvature:isAurora()?0.0086:0.01649,
- fullGripRequiredAtFastestZone:!isAurora()
+ id:"precision-grip-apex",name:"GRIP APEX",
+ funnelStart:777,throatStart:840,throatEnd:962,funnelEnd:995,
+ minWidthMeters:14,normalWidthMeters:23.2,
+ peakCurvature:0.01649,fullGripRequiredAtFastestZone:true
 });
 export function gripApexAt(s){
  const d=lapPosition(s);
@@ -219,32 +210,8 @@ export function constrainToGuardrail(st,dt){
  const side=Math.sign(old),clamped=side*limit;
  const contact=positionAt(st.s,clamped,0);
  st.worldX=contact.x;st.worldZ=contact.z;st.lateral=clamped;
- if(isAurora()){
-  // A solid guardrail prevents the *nose* from continuing to rotate
-  // through the wall. Without contact response, holding GRIP into a
-  // 180° switchback could turn the ship 108° against the tangent while
-  // the world position was repeatedly snapped back to the same rail.
-  // This is a physical wall constraint, NOT auto-steering or a magnet:
-  // it acts only on an active actual contact and only toward that wall.
-  const tangent=headingAt(st.s);
-  const headingError=Math.atan2(Math.sin(st.heading-tangent),
-   Math.cos(st.heading-tangent));
-  const outward=headingError*side;
-  if(outward>0){
-   const MAX_OUTWARD_YAW=.52; // ~30° glancing approach
-   if(outward>MAX_OUTWARD_YAW){
-    st.heading=tangent+side*MAX_OUTWARD_YAW;
-    st.railHeadingCorrections++;
-    st.railPeakBlockedAngle=Math.max(st.railPeakBlockedAngle,
-     outward-MAX_OUTWARD_YAW);
-   }
-   // Stop yaw accumulating into the wall. Pilot may immediately
-   // counter-steer away; no forced turn along the centerline.
-   if(st.yawRate*side>0)st.yawRate=0;
-  }
- }
- // Position response remains a hard physical rail limit with no
- // artificial speed boost, camera shake or inward lane attraction.
+ // Collision clips outward displacement only, never alters steering,
+ // yaw, forward speed, or cross-track position while inside the limit.
  if(st.lastRailSide!==side)st.railContacts++;
  st.lastRailSide=side;st.railSeconds+=dt;
  st.railMaxPenetration=Math.max(st.railMaxPenetration,Math.abs(old)-limit);
@@ -305,19 +272,12 @@ export function positionAt(s,lateral=0,height=0){
 // The derivative is a unit tangent so short local updates converge even
 // on the tight 14m GRIP throat; all guesses remain within the old window.
 export const PROJECTION_083=Object.freeze({
- version:isAurora()?"forward-only-rail-projection-0162":"bounded-local-tangent-083",
- iterations:4,backwardMeters:isAurora()?0:4,forwardMeters:10,
- trackMagnet:false,forwardOnlyOnAurora:isAurora()
+ version:"bounded-local-tangent-083",iterations:4,
+ backwardMeters:4,forwardMeters:10,trackMagnet:false
 });
-export function projectWorldToTrack(x,z,hintS,maxForward=PROJECTION_083.forwardMeters){
- // Aurora is an auto-accelerating race. A pilot pressed into a curved
- // rail must never teleport BACKWARD along arc length while the world
- // position is clipped to the guardrail. This was responsible for hundreds
- // of nonmonotone Time Trial frames and an apparent turn-around on lap 3.
- // Skyline retains its archived projection behavior.
+export function projectWorldToTrack(x,z,hintS){
  const from=Math.max(0,hintS-PROJECTION_083.backwardMeters);
- const to=Math.min(TRIAL.raceLength+2,hintS+
-  Math.max(0,Math.min(PROJECTION_083.forwardMeters,maxForward)));
+ const to=Math.min(TRIAL.raceLength+2,hintS+PROJECTION_083.forwardMeters);
  let best=clamp(hintS,from,to);
  for(let i=0;i<PROJECTION_083.iterations;i++){
   const p=poseAt(best);
@@ -359,7 +319,6 @@ export function newFlightState(){
   totalHeadingError:0,maxHeadingErrorDeg:0,headingSamples:0,
   maxLateral:0,offRoadSeconds:0,steerSeconds:0,
   railContacts:0,railSeconds:0,railMaxPenetration:0,lastRailSide:0,
-  railHeadingCorrections:0,railPeakBlockedAngle:0,reverseProjectionTicks:0,
   steerReversals:0,lastSteerSign:0,neutralFrames:0,
   y:surfaceHeightAt(5)+TRIAL.hoverHeight,vy:0,grounded:true,
   airborneSeconds:0,peakAirHeightMeters:0,
@@ -471,9 +430,7 @@ export function stepFlight(st,dt,control={}){
   const startPose=poseAt(st.s);
   st.worldX+=startPose.rightX*rollShift+Math.sin(st.heading)*forward*dt;
   st.worldZ+=startPose.rightZ*rollShift-Math.cos(st.heading)*forward*dt;
-  const q=projectWorldToTrack(st.worldX,st.worldZ,st.s,
-   isAurora()?Math.max(.15,forward*dt*1.15):PROJECTION_083.forwardMeters);
-  if(isAurora()&&q.s+1e-8<beforeS)st.reverseProjectionTicks++;
+  const q=projectWorldToTrack(st.worldX,st.worldZ,st.s);
   st.s=q.s;st.lateral=q.lateral;
  }
  const contacted=constrainToGuardrail(st,dt);
@@ -663,12 +620,7 @@ export function stepFlight(st,dt,control={}){
    railContactStarted,railScrubIntensity:st.railScrubIntensity,
    trickStarted,trickCompleted,landingBoostAwarded,
    landingBoostRejected,landingBoostReason,
-   boostActivated:triggeredBoost?.id??null,
-   boostChoice:triggeredBoost?{
-    id:triggeredBoost.id,group:triggeredBoost.group,
-    kind:triggeredBoost.kind,multiplier:triggeredBoost.multiplier,
-    durationSeconds:triggeredBoost.durationSeconds}:null,
-   lapCompleted,routeChoice:null,
+   boostActivated:triggeredBoost?.id??null,lapCompleted,routeChoice:null,
    wallEntered,wallExited,cleanWallExit,wallActive:st.magneticActive,
    corkscrewEntered,corkscrewExited,cleanCorkscrewExit,
    corkscrewActive:st.corkscrewActive,

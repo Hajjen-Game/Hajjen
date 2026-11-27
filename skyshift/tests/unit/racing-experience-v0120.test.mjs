@@ -5,7 +5,7 @@ import {RACING_0121,createRacingExperience,resetRacingExperience,
  racingExperienceAudit} from "../../core/racing-experience-v0121.mjs";
 import {LANDMARKS_0120,createSectorLandmarkData}
  from "../../world/sector-landmarks-v0120.mjs";
-import {positionAt,widthAt} from "../../trial-v0901.mjs";
+import {positionAt,widthAt} from "../../tracks/trials/trial-v0901.mjs";
 
 const mock=(s=780)=>({s,grounded:true,gripIntensity:0,
  steering:0,yawRate:0,railContacts:0,elapsed:0,

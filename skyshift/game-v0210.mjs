@@ -227,7 +227,7 @@ import {VELOCITY_PRESENCE,createVelocityPresenceState,
 import {installReactiveWingFlaps,REACTIVE_FLAPS} from "./ships/reactive-wing-flaps-v0108.mjs";
 import {createLivingWakeFX,LIVING_WAKE} from "./ships/living-wake-v01071.mjs";
 import {createRailScrapeSparks,RAIL_SPARKS,railContactPoint}
- from "./rail-scrape-sparks-v0165.mjs";
+ from "./rendering/rail-scrape-sparks-v0165.mjs";
 import { LUMINANCE,validateLuminance } from "./rendering/luminance-v0331.mjs";
 import {RACING_0121,createRacingExperience,resetRacingExperience,
  observeRacingStep,stepRacingExperience,raceRhythmAt,racingExperienceAudit}

@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {createFlightMotionState as legacyMotion,stepFlightMotion as legacyStep}
- from "../../flight-motion-v044.mjs";
+ from "../../flight/flight-motion-v044.mjs";
 import {createFlightMotionState as optimizedMotion,stepFlightMotion as optimizedStep}
  from "../../flight/flight-motion-v0112.mjs";
 import {capturePose as legacyCapture,interpolatePose as legacyInterpolate,
@@ -13,8 +13,8 @@ import {createSignatureFlightState,stepSignatureFlight}
 import {createKineticCameraState,stepKineticCamera}
  from "../../flight/kinetic-camera-v090.mjs";
 import {CINEMATIC_DEFAULTS,createCinematicState,turnPreview,stepCinematic}
- from "../../cinematic-v0901.mjs";
-import {MOTION_DEFAULTS} from "../../flight-motion-v044.mjs";
+ from "../../flight/cinematic-v0901.mjs";
+import {MOTION_DEFAULTS} from "../../flight/flight-motion-v044.mjs";
 import {createUnifiedFlightRig,advanceUnifiedFlightRig,
  resetUnifiedFlightRig,unifiedFlightAudit} from "../../flight/unified-flight-v0112.mjs";
 const near=(a,b,which,tolerance=1e-11)=>{

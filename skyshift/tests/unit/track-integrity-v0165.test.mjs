@@ -153,7 +153,7 @@ test("menu uses real circuit selector and Skyline-only Challenges not shown on A
 test("Aurora camera obeys Aurora's physical bank, never archived Skyline 360 roll",async()=>{
  const [camera,oldCamera]=await Promise.all([
   import("../../flight/cinematic-v0165.mjs"),
-  import("../../cinematic-v0901.mjs")]);
+  import("../../flight/cinematic-v0901.mjs")]);
  // Regression: the old chase camera imported trial-v0901 and incorrectly
  // treated Aurora's final 3005-3338m turn as a full corkscrew.
  assert.ok(Math.abs(oldCamera.cameraBankAt(3180))>2,
@@ -180,8 +180,8 @@ test("Aurora camera obeys Aurora's physical bank, never archived Skyline 360 rol
  }
 });
 test("Aurora metal contact sparks are on Aurora rails, never old Skyline world space",async()=>{
- const sparks=await import("../../rail-scrape-sparks-v0165.mjs");
- const oldSparks=await import("../../rail-scrape-sparks-v01091.mjs");
+ const sparks=await import("../../rendering/rail-scrape-sparks-v0165.mjs");
+ const oldSparks=await import("../../rendering/rail-scrape-sparks-v01091.mjs");
  for(const s of [250,715,1530,2060,2750,3180]){
   for(const side of [-1,1]){
    const q=sparks.railContactPoint(s,side);

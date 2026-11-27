@@ -24,7 +24,7 @@ assert.equal(new Set(rootRelocations.moves.map(f=>f.oldPath)).size,rootRelocatio
 assert.equal(new Set(rootRelocations.moves.map(f=>f.newPath)).size,rootRelocations.moves.length,'Duplicate relocation destination');
 for(const f of rootRelocations.moves){
  assert.ok(roots.delete(f.oldPath),'Unreviewed or already retired root '+f.oldPath);
- assert.match(f.newPath,/^skyshift\/(?:(?:rendering|tunnel|ships|qa|world|core|flight\/boost)\/[^/]+\.mjs|styles\/[^/]+\.css)$/);
+ assert.match(f.newPath,/^skyshift\/(?:(?:rendering|tunnel|ships|qa|world|core|flight|flight\/boost|tracks\/trials)\/[^/]+\.mjs|styles\/[^/]+\.css)$/);
  assert.equal(f.oldPath.split('/').at(-1),f.newPath.split('/').at(-1));
  assert.match(f.sourceSha,/^[a-f0-9]{40}$/);assert.match(f.destinationSha,/^[a-f0-9]{40}$/);
 }

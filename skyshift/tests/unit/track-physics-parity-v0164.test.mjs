@@ -37,7 +37,7 @@ test("same bounded local tangent projection and no Aurora-only forward lock",()=
  near(aurora.projectedDelta,skyline.projectedDelta,.004);
 });
 test("source-level proof: physics has ZERO course-specific behavior",()=>{
- const code=source("./trial-v0164.mjs");
+ const code=source("./tracks/trials/trial-v0164.mjs");
  const collision=code.slice(code.indexOf("export function constrainToGuardrail("),
   code.indexOf("const STEP="));
  const integration=code.slice(code.indexOf("export function stepFlight("));

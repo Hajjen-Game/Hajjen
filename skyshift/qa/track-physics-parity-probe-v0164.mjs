@@ -1,7 +1,7 @@
 // Track parity probe. Every line of handling and rail physics must be shared.
 // Run as a child process so URL-selected course modules initialize fresh.
 globalThis.location={search:"?track="+(process.argv[2]??"aurora")};
-const t=await import("../trial-v0164.mjs");
+const t=await import("../tracks/trials/trial-v0164.mjs");
 const RAD=180/Math.PI;
 const st=t.newFlightState();
 const snapshots=[];

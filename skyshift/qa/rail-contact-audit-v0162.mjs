@@ -2,7 +2,7 @@
 // No game play path imports this file. Both node and real WebGL smoke use it.
 import {TRIAL,GUARDRAIL,newFlightState,stepFlight,headingAt,positionAt,
  surfaceHeightAt,surfaceNormalAt,guardrailLateralLimit,speedAt}
- from "../trial-v0162.mjs";
+ from "../tracks/trials/trial-v0162.mjs";
 import {createTimeTrialState,startTimeTrial,captureTimeTrialSample}
  from "../core/time-trial-v0160.mjs";
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));

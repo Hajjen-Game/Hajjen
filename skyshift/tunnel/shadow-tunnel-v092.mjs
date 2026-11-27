@@ -1,7 +1,7 @@
 // SKYSHIFT 0.9.2 — Shadow Tunnel: an authored dark/glow driving sequence.
 // All geometry follows the existing PBR deck centerline; no vehicle collision,
 // steering, air trick, camera, checkpoint or speed changes. Fixed geometry only.
-import {CIRCUIT,positionAt} from "../trial-v0901.mjs";
+import {CIRCUIT,positionAt} from "../tracks/trials/trial-v0901.mjs";
 export const SHADOW_TUNNEL=Object.freeze({
  version:"shadow-tunnel-092",
  name:"SHADOW TUNNEL",start:2050,end:2810,lengthMeters:760,

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {auditHandlingFairness,FAIRNESS_0135,sectionCurvature,
  simulateApproach,yawFeasibility} from "../../qa/handling-fairness-v0135.mjs";
 import {COURSE_SEGMENTS,TRIAL,GRIP_APEX,stepFlight,newFlightState}
- from "../../trial-v01348.mjs";
+ from "../../tracks/trials/trial-v01348.mjs";
 import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 test("full authored course has deterministic finite curvature and lane width",()=>{
  const a=auditHandlingFairness();
@@ -33,7 +33,7 @@ test("idealized 120Hz driving probe never changes active physics",()=>{
  assert.ok(Number.isFinite(a.peakHeadingErrorDeg));
  assert.ok(Number.isFinite(a.peakLateralMeters));
  assert.ok(!a.failed);
- const x=readFileSync(new URL("../../"+"./trial-v01348.mjs",import.meta.url),"utf8");
+ const x=readFileSync(new URL("../../"+"./tracks/trials/trial-v01348.mjs",import.meta.url),"utf8");
  assert.match(x,/const result=stepLandingBoost|stepLandingBoost\(st,dt/);
  assert.doesNotMatch(x,/handling-fairness-v0135|simulateApproach/);
 });

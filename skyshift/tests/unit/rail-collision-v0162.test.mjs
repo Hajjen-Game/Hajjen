@@ -4,10 +4,10 @@ import assert from "node:assert/strict";
 import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 globalThis.location={search:"?track=aurora"};
 const [trial,audit,oldTrial,camera]=await Promise.all([
- import("../../trial-v0162.mjs"),
+ import("../../tracks/trials/trial-v0162.mjs"),
  import("../../qa/rail-contact-audit-v0162.mjs"),
  import("../../tracks/trials/trial-v0160.mjs"),
- import("../../cinematic-v0162.mjs")]);
+ import("../../flight/cinematic-v0162.mjs")]);
 const src=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 test("real log reproduced: old Aurora rail solver allowed backwards arc projection",()=>{
  assert.equal(oldTrial.PROJECTION_083.backwardMeters,4);

@@ -71,5 +71,5 @@ test("0.10.3 live source retains GRIP-first pilot physics and Kinetic Camera",()
  assert.match(game,/triggerSignatureLanding/);
  assert.match(game,/signatureFlightAudit/);
  assert.match(prior,/version:"0\.9\.0\.1"/);
- assert.match(read("./trial-v0901.mjs"),/GRIP-First Steering Balance/);
+ assert.match(read("./tracks/trials/trial-v0901.mjs"),/GRIP-First Steering Balance/);
 });

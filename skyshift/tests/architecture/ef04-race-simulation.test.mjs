@@ -495,8 +495,9 @@ import {createRaceCountdown} from '../../core/race-countdown.mjs';
 test('0.29.8.1 countdown holds the authoritative race gate, never skips digits and pauses in hidden tabs',()=>{
  const c=createRaceCountdown();c.start();assert.equal(c.label,'3');
  for(let i=0;i<60;i++)c.advance(1/60,false);assert.equal(c.label,'3');
- c.advance(20,true);assert.equal(c.label,'3','slow frame cannot skip digits');
- for(let i=0;i<180;i++)c.advance(1/60,true);
+ c.advance(20,true);assert.equal(c.label,'2','slow frame advances exactly one digit');
+ c.advance(2,true);assert.equal(c.label,'1','low FPS still makes real-time progress');
+ c.advance(1,true);
  assert.deepEqual(c.history(),['3','2','1','GO!']);assert.equal(c.label,'GO!');
  for(let i=0;i<60;i++)c.advance(1/60,true);assert.equal(c.label,'');
  c.start();assert.deepEqual(c.history(),['3']);c.cancel();assert.equal(c.label,'');
@@ -509,4 +510,15 @@ test('0.29.8.1 countdown defers launch event and resets the clock exactly once o
  life.enterPlaying(null,{countdown:true});assert.equal(uiState.mode,'countdown');assert.deepEqual(calls,['reset']);
  assert.equal(life.finishCountdown(),true);assert.equal(uiState.mode,'playing');assert.deepEqual(clock,{last:99,accum:0});
  assert.deepEqual(calls,['reset','clear','time_trial_start']);assert.equal(life.finishCountdown(),false);
+});
+
+test('0.29.8.1 countdown uses visible wall time at 1 FPS and normal frame rates',()=>{
+ for(const fps of [1,2,10,30,60,120]){
+  const c=createRaceCountdown();c.start();
+  for(let i=0;i<fps*3;i++)c.advance(1/fps,true);
+  assert.equal(c.label,'GO!',String(fps));assert.deepEqual(c.history(),['3','2','1','GO!']);
+ }
+ const source=readFileSync(new URL('../../game-v0210.mjs',import.meta.url),'utf8');
+ assert.match(source,/if\(countdownFrameReady\)\{\s*tickRaceCountdown\(rawDt\);\s*if\(uiState.mode==="countdown"\)return;/);
+ assert.match(source,/if\(uiState.mode==="countdown"&&!countdownFrameReady\)\{\s*countdownFrameReady=true;/);
 });

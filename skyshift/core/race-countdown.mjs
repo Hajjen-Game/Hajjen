@@ -8,7 +8,9 @@ export function createRaceCountdown(){
   start(){index=0;remaining=durations[0];history=["3"];},
   advance(dt,visible=true){
    if(index<0||!visible||!Number.isFinite(dt)||dt<=0)return label();
-   remaining-=Math.min(.1,dt);
+   // Use actual visible time; consume at most one digit per presentation.
+   // A slow frame can extend the countdown, never skip an unshown digit.
+   remaining-=dt;
    if(remaining<=1e-8){
     index++;
     if(index>=labels.length){index=-1;remaining=0;}

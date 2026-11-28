@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {MANTA_REBIRTH,mantaWingSurfaces,buildMantaRebirthData,buildMantaVisualRebirth} from '../../ships/manta-visual-rebirth.mjs';
+import {MANTA_REBIRTH,MANTA_MATERIAL_CORRECTION,mantaLeadingInlayPath,mantaWingSurfaces,buildMantaRebirthData,buildMantaVisualRebirth} from '../../ships/manta-visual-rebirth.mjs';
 import {ENGINE_SOCKETS} from '../../ships/manta-blade-v0484.mjs';
 test('rebirth is finite, mirrored and within original wing beam, with genuinely volumetric facets',()=>{
  const w=mantaWingSurfaces();
@@ -25,7 +25,13 @@ test('rebirth integrates with the real two-tip blackout contract without dimming
  class Mesh{constructor(geometry,material){this.geometry=geometry;this.material=material;this.rotation={};this.position={set(){}};this.isMesh=true;}}
  class Group{constructor(){this.children=[]}add(o){this.children.push(o)}traverse(fn){fn(this);for(const o of this.children)fn(o);}}
  const THREE={Group,Mesh,BufferGeometry:Geometry,Float32BufferAttribute:class{constructor(a,n){this.count=a.length/n}},MeshPhysicalMaterial:Material,MeshBasicMaterial:Material,CylinderGeometry:Geometry,BoxGeometry:Geometry,DoubleSide:2};
- const glow=new Material(),craft=buildMantaVisualRebirth(THREE,glow);
+ const glow=new Material(),craft=buildMantaVisualRebirth(THREE,glow),previous=buildMantaVisualRebirth(THREE,glow,{corrected:false});
+ assert.equal(craft.spec.version,"0.29.5.1");assert.equal(previous.spec.version,"0.29.5");
+ for(const key of ["titanium","chamfer","graphite","turbine"]){
+  assert.ok(craft.materials[key].color);assert.ok(craft.materials[key].roughness>previous.materials[key].roughness);
+  assert.ok(craft.materials[key].clearcoat<previous.materials[key].clearcoat);
+ }
+ assert.equal(craft.polishStats().baseHullDrawCalls,previous.polishStats().baseHullDrawCalls);
  const tips=craft.ship.children.filter(o=>o.name==='Manta blade tip luminescence');
  const inlays=craft.ship.children.find(o=>o.name==='Precision cyan inlays and twin nozzle rims');
  assert.equal(tips.length,2);
@@ -42,4 +48,14 @@ test('rebirth integrates with the real two-tip blackout contract without dimming
  assert.equal(craft.materials.cyan.opacity,.63);assert.equal(craft.enginePlumes[0].material,glow);
  ctrl.reset();assert.equal(tip.material.opacity,.63);
  assert.equal(craft.polishStats().baseHullDrawCalls,11);
+});
+
+test('corrected forward wing inlays are mirrored and have substantially more luminous surface without exceeding budget',()=>{
+ const left=mantaLeadingInlayPath(-1),right=mantaLeadingInlayPath(1);
+ assert.equal(left.length,5);assert.deepEqual(left,right.map(([x,z])=>[-x,z]));
+ const area=data=>{let total=0;for(let i=0;i<data.length;i+=9){const [ax,ay,az,bx,by,bz,cx,cy,cz]=data.slice(i,i+9);const u=[bx-ax,by-ay,bz-az],v=[cx-ax,cy-ay,cz-az];total+=Math.hypot(u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0])/2;}return total;};
+ const old=buildMantaRebirthData(false),now=buildMantaRebirthData(true);
+ assert.ok(area(now.inlay)>area(old.inlay)*1.5);
+ for(const k of ['armor','bevel','nozzle','glass','portTip','starboardTip'])assert.deepEqual(now[k],old[k]);
+ assert.ok(Object.values(now).reduce((n,a)=>n+a.length/9,124)<=MANTA_MATERIAL_CORRECTION.maxGeometryTriangles);
 });

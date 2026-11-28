@@ -29,7 +29,7 @@ try{
    page.on('pageerror',e=>errors.push(e.message));page.on('crash',()=>errors.push('renderer crash'));
    page.on('console',m=>{if(m.type()==='error'&&/THREE.WebGLProgram|shader error|INVALID_OPERATION|context lost|startup failed/i.test(m.text()))errors.push(m.text());});
    const url=new URL(live||'http://127.0.0.1:8926/skyshift/');
-   url.search=memory===8?'track=vault&v=0.29.8.1&vaultJump=1':'track=vault&v=0.29.8.1';
+   url.search=memory===8?'track=vault&v=0.29.8.2&vaultJump=1':'track=vault&v=0.29.8.2';
    url.searchParams.set('vaultJumpSmoke','1');url.searchParams.set('release','0290-public-proof-'+Date.now());
    await page.goto(url.href,{waitUntil:'domcontentloaded',timeout:80000});
    await page.waitForFunction(()=>window.__skyshiftBoot?.menuReadyMs!==undefined,null,{timeout:30000});
@@ -80,14 +80,14 @@ try{
    await page.locator('#pause-menu-btn').click();
    if(await page.evaluate(()=>!!document.fullscreenElement))await page.evaluate(()=>document.exitFullscreen());
    const probe=await page.evaluate(()=>window.__skyshiftVaultJumpProbe());
-   assert.equal(probe.active,true,JSON.stringify(probe));assert.equal(probe.version,'0.29.8.1');assert.equal(new URLSearchParams(probe.query).get('v'),'0.29.8.1');
+   assert.equal(probe.active,true,JSON.stringify(probe));assert.equal(probe.version,'0.29.8.2');assert.equal(new URLSearchParams(probe.query).get('v'),'0.29.8.2');
    assert.equal(probe.polish,true);assert.equal(probe.rampRise,7.5);
    assert.equal(probe.speedProfile.id,'hyper-0297');assert.equal(probe.speedProfile.startSpeed,60);assert.equal(probe.speedProfile.endSpeed,105);
    assert.deepEqual(probe.speedProfile.cruiseTargets,Array.from({length:9},(_,i)=>Math.min(105,60*1.11**i)));
    assert.equal(probe.speedProfile.launchPresentationRatio,1);
    assert.equal(probe.mounted,true);assert.equal(probe.pmrem,true);assert.equal(probe.gaps.length,1);assert.equal(probe.gaps[0].id,'vault-mega-jump');
    assert.equal(probe.inside,0);assert.ok(probe.before>0&&probe.after>0);assert.equal(probe.roadBefore,true);assert.equal(probe.roadGap,false);assert.equal(probe.roadAfter,true);
-   assert.match(await page.locator('#menu-track-name').textContent(),/MEGA JUMP.*0\.29\.8\.1/);
+   assert.match(await page.locator('#menu-track-name').textContent(),/MEGA JUMP.*0\.29\.8\.2/);
    const verifyManta=async(label)=>{
     const p=await page.evaluate(()=>window.__skyshiftMantaVisualProbe());
     for(const k of ['before','after']){
@@ -148,7 +148,7 @@ try{
    await page.locator('#settings-back-btn').click();
    await page.locator('#start-btn').click();
    await page.waitForFunction(()=>window.__skyshiftPerfProbe?.().state==='playing',null,{timeout:40000});
-   const frames={},comparisons=[];let advanced=null,velocity=null,mantaRace=null;
+   const frames={},comparisons=[];let advanced=null,velocity=null,mantaRace=null,clearanceProof=null;
    for(const phase of ['approach','air','landing']){
     const result=await page.evaluate(p=>window.__skyshiftVaultJumpCapture(p),phase);frames[phase]=result;
     await page.waitForTimeout(1000);
@@ -162,6 +162,21 @@ try{
     // Keep the expensive full-browser proof in the existing job.
     if(phase==='approach'){
      mantaRace=await verifyManta('race');assert.equal(mantaRace.mode,'playing');
+     clearanceProof=await page.evaluate(()=>window.__skyshiftGroundClearanceProof());
+     assert.equal(clearanceProof.rows.length,2);
+     for(const row of clearanceProof.rows){
+      assert.ok(row.clearance.beforeMeters<0,JSON.stringify(row.clearance));
+      assert.ok(row.clearance.afterMeters>=.1199,JSON.stringify(row.clearance));
+      assert.ok(row.clearance.liftMeters>0&&row.unchangedRoll);
+      assert.ok(Math.abs(row.translation-row.clearance.liftMeters)<1e-6);
+      assert.ok(row.clearance.meshes>0&&row.clearance.shaderPlumes===1);
+      assert.notEqual(row.beforePng,row.afterPng,'actual corrected visual frame must change');
+      for(const key of ['beforePng','afterPng']){
+       writeFileSync(join(out,'grip-clearance-'+memory+'GB-'+row.direction+'-'+key+'.png'),Buffer.from(row[key].split(',')[1],'base64'));delete row[key];
+      }
+     }
+     assert.equal(clearanceProof.airborne.liftMeters,0);
+     assert.equal(clearanceProof.airborne.active,false);
      const proof=await page.evaluate(()=>window.__skyshiftColorWaveProof());
      const wave=proof.zones;
      assert.equal(wave[0].palette.secondary,0x70c9ff);
@@ -246,7 +261,7 @@ try{
    assert.equal(endurance.temperatureC,null);assert.ok(endurance.samples.length>0);
    assert.ok(endurance.samples.at(-1).viewportCss.width>0);
    assert.deepEqual(errors,[],'real game errors');
-   reports.push({memory,boot,countdown:{frozen,launched},probe,frames,layout,endurance,comparisons,advanced,velocity,mantaHangar,mantaRace});
+   reports.push({memory,boot,countdown:{frozen,launched},probe,frames,layout,endurance,comparisons,advanced,velocity,mantaHangar,mantaRace,clearanceProof});
   }finally{await context.close();}
  }
  writeFileSync(join(out,'vault-jump-report.json'),JSON.stringify(reports,null,2));

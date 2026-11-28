@@ -555,3 +555,39 @@ test('haptics settings persist, patterns scale duration not hardware amplitude, 
  const source=readFileSync(new URL('../../game-v0210.mjs',import.meta.url),'utf8');
  assert.match(source,/const result=stepFlight\(flight,dt,input\);\s*haptics\?\.observe\(result,!document.hidden\)/);
 });
+
+import {IMPACT_HAPTIC_PATTERNS} from '../../core/race-haptics.mjs';
+import {boxPlaneMinimum,plumePlaneMinimum,createGroundClearance} from '../../ships/ground-clearance.mjs';
+test('0.29.8.2 impact-only haptics are quiet for rewards, death overrides terminal fall exactly once',()=>{
+ let t=0;const calls=[];const h=createRaceHaptics({refined:true,now:()=>t,vibrate:p=>{calls.push(p);return true;}});
+ for(const r of [{boostActivated:'main'},{landed:true},{landed:true,landingBoostAwarded:true}])assert.equal(h.observe(r),false);
+ assert.deepEqual(calls,[]);
+ h.observe({railContactStarted:true,railContact:true});assert.deepEqual(calls,[IMPACT_HAPTIC_PATTERNS.wall]);
+ t=100;h.observe({crashed:true});assert.deepEqual(calls.at(-1),IMPACT_HAPTIC_PATTERNS.fall);
+ t=110;h.observe({kind:'failed',crashed:true,railContact:true});assert.deepEqual(calls.at(-1),IMPACT_HAPTIC_PATTERNS.death);
+ t=1500;h.observe({kind:'failed'});h.observe({railContact:true});assert.equal(calls.length,3);
+ assert.deepEqual(h.stats().accepted,{wall:1,fall:1,death:1});
+ h.reset();h.observe({kind:'failed',railContact:true});assert.deepEqual(calls.at(-1),IMPACT_HAPTIC_PATTERNS.death);
+});
+test('0.29.8.2 plane support includes the actual transformed hull box and shader-expanded exhaust',()=>{
+ const road={x:0,y:0,z:0},n={x:0,y:1,z:0};
+ const box={min:{x:-2.9,y:-.082,z:-2.1},max:{x:2.9,y:.3,z:2.62}};
+ for(const a of [-.60,0,.60]){
+  const c=Math.cos(a),q=Math.sin(a),matrix=[c,q,0,0,-q,c,0,0,0,0,1,0,0,1.05,0,1];
+  const expected=Math.min(...[-2.9,2.9].flatMap(x=>[-.082,.3].map(y=>x*q+y*c+1.05)));
+  assert.ok(Math.abs(boxPlaneMinimum(box,matrix,road,n)-expected)<1e-10);
+  const plume=plumePlaneMinimum(matrix,road,n,{length:8,width:.5,bias:.03});assert.ok(Number.isFinite(plume));
+ }
+ const pitch=-.16,c=Math.cos(pitch),q=Math.sin(pitch),matrix=[1,0,0,0,0,c,q,0,0,-q,c,0,0,1.05,0,1];
+ assert.ok(plumePlaneMinimum(matrix,road,n,{length:12,width:.5,bias:0})>plumePlaneMinimum(matrix,road,n,{length:2,width:.5,bias:0})-1e-8);
+});
+test('0.29.8.2 lift is visual only, immediate safe rise and smooth release, no airborne correction',()=>{
+ const p={x:0,y:1,z:0},n={x:0,y:1,z:0};
+ const root={position:p,visible:true,children:[],updateMatrixWorld(){for(const mesh of this.children){mesh.matrixWorld.elements[12]=p.x;mesh.matrixWorld.elements[13]=p.y;mesh.matrixWorld.elements[14]=p.z;}},traverse(fn){fn(this);for(const mesh of this.children)fn(mesh);}};
+ const mesh={isMesh:true,visible:true,parent:root,geometry:{boundingBox:{min:{x:-1,y:-1.6,z:-1},max:{x:1,y:1,z:1}}},matrixWorld:{elements:[1,0,0,0,0,1,0,0,0,0,1,0,0,1,0,1]}};root.children.push(mesh);
+ const guard=createGroundClearance({onRoad:()=>true,positionAt:()=>({x:0,y:0,z:0}),surfaceNormalAt:()=>n});guard.bind(root);
+ const flight=Object.freeze({s:10,lateral:0,grounded:true,y:1});
+ const first=guard.apply(root,flight,1/60,true);assert.ok(Math.abs(first.liftMeters-.72)<1e-9);assert.ok(first.afterMeters>=.119999);
+ p.y=3;const recovery=guard.apply(root,flight,1/60,true);assert.ok(recovery.liftMeters>0&&recovery.liftMeters<first.liftMeters);
+ p.y=1;assert.equal(guard.apply(root,{...flight,grounded:false},1/60,true).liftMeters,0);assert.equal(p.y,1);assert.equal(flight.y,1);
+});

@@ -240,8 +240,10 @@ export const RAIL_SPECTRAL_FRAGMENT=`
   return `
   float rail${k}On=step(${(k-.5).toFixed(1)},uZoneActiveCount);
   float rail${k}D=mod(waveTrack-uRailFront${k}+uCircuitLength*.5,uCircuitLength)-uCircuitLength*.5;
-  float rail${k}Mix=rail${k}On*(1.0-smoothstep(uZoneFeather*.3,
-    uZoneFeather*2.0,abs(rail${k}D)));
+  ${COLOR_WAVE_ACTIVE?
+   `float rail${k}Mix=rail${k}On*(1.0-smoothstep(-${ZONE_WAVE.atmosphereTransitionMeters.toFixed(1)},${ZONE_WAVE.atmosphereTransitionMeters.toFixed(1)},rail${k}D));`:
+   `float rail${k}Mix=rail${k}On*(1.0-smoothstep(uZoneFeather*.3,
+    uZoneFeather*2.0,abs(rail${k}D)));`}
   railColor=mix(railColor,uRailNext${k},rail${k}Mix);
   railWhite=max(railWhite,rail${k}On*spectralWhiteCore(rail${k}D));
   railBloom=max(railBloom,rail${k}On*spectralWhiteBloom(rail${k}D));

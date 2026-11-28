@@ -263,6 +263,14 @@ function stepFlight(st,dt,control={}){
   if(solid&&st.vy<=0&&st.y-TRIAL.hoverHeight*groundNormalY<=ground&&
       st.y-TRIAL.hoverHeight*groundNormalY>=ground-.50){
    landImpact=-st.vy;
+   // Optional surface-relative impact: the contact plane, not world Y,
+   // determines normal closing speed on a descending or ascending deck.
+   // Preserve the same 18 m/s trick criterion and all ballistic integration.
+   if(TRIAL.surfaceRelativeLandingImpact){
+    const previousGround=surfaceHeightAt(beforeS,beforeLateral);
+    const groundRate=(ground-previousGround)/dt;
+    landImpact=Math.max(0,(groundRate-st.vy)*groundNormalY);
+   }
    st.y=ground+TRIAL.hoverHeight*groundNormalY;st.vy=0;
    st.grounded=true;st.landings++;landed=true;
    if(st.lastJumpLap===Math.floor(st.s/CIRCUIT.lapLength)+1)

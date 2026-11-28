@@ -41,6 +41,7 @@ export const TRIAL=Object.freeze({
  raceLength:CIRCUIT.totalDistance,laps:CIRCUIT.laps,
  hoverHeight:1.05,gravity:22,fallDepth:8.5,shieldPenalty:20,
  ...(VAULT_JUMP_POLISH_ACTIVE?{railShieldDamage:VAULT_RAIL_SHIELD_DAMAGE}:{}),
+ ...(VAULT_HYPER_VELOCITY_ACTIVE?{surfaceRelativeLandingImpact:true}:{}),
  startSpeed:SPEED_PROFILE.startSpeed,endSpeed:SPEED_PROFILE.endSpeed,
  zoneSpeedStep:SPEED_PROFILE.zoneSpeedStep,zoneAccelerationSeconds:.85,targetDurationSeconds:SPEED_PROFILE.targetDurationSeconds,
  // 0.8.4: original reference yaw preserved, but ordinary steering turns

@@ -134,6 +134,7 @@ for(const release of ["0.28.9.11","0.29.1","0.29.6","0.29.7"])test("Vault jump c
  assert.equal(VAULT_MEGA_JUMP_ACTIVE,true);
  const hyper=${release==='0.29.7'};
  assert.equal(route.TRIAL.startSpeed,hyper?60:44);
+ assert.equal(Boolean(route.TRIAL.surfaceRelativeLandingImpact),hyper);
  assert.equal(route.TRIAL.endSpeed,hyper?105:44*1.11**8);
  assert.equal(route.newFlightState().currentSpeed,route.TRIAL.startSpeed);
  for(let stage=0;stage<9;stage++){
@@ -179,14 +180,17 @@ for(const release of ["0.28.9.11","0.29.1","0.29.6","0.29.7"])test("Vault jump c
  for(const stage of (hyper?[0,1,2,3,4,5,6,7,8]:[0,4,8])){
   const st=route.newFlightState(),s=j.start-24,p=route.positionAt(s);
   Object.assign(st,{s,worldX:p.x,worldZ:p.z,heading:route.headingAt(s),y:route.surfaceHeightAt(s)+route.TRIAL.hoverHeight,zoneSpeedStage:stage,zoneCruiseSpeed:route.speedAt(s,stage),currentSpeed:route.speedAt(s,stage),checkpoint:1020,checkpointsPassed:3});
+  let impact=null;
   for(let i=0;i<1200&&!st.cleanLeapLandings&&!st.falls;i++){
    const rolling=!st.grounded&&!st.trickReady;
-   route.stepFlight(st,1/120,{grip:rolling,steer:rolling?.65:0});
+   const result=route.stepFlight(st,1/120,{grip:rolling,steer:rolling?.65:0});
+   if(result.landed)impact=result.landImpact;
   }
   assert.equal(st.autoLaunches,1,'stage '+stage);
   assert.equal(st.falls,0,'stage '+stage);
   assert.equal(st.cleanLeapLandings,1,'stage '+stage);
   assert.equal(st.trickFullRotations,1,'stage '+stage);
+  assert.ok(Number.isFinite(impact)&&impact>=0&&impact<=18,'stage '+stage+' normal impact '+impact+' at '+st.s);
   assert.equal(st.landingBoostActivations,1,'stage '+stage+' '+st.lastTrickFailReason);
   assert.ok(st.s<j.chamberEnd,'landing after chamber');
  }

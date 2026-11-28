@@ -1,7 +1,7 @@
 // SKYSHIFT 0.12.1 — Smart Fidelity is ON by default, including 4 GB devices.
 // All ordinary adaptive resolution / bloom / SMAA policies stay unchanged.
 // Explicit A/B presets retain precedence. Choice is persisted across visits.
-import {selectFidelityProfile} from "./visual-fidelity-v0114.mjs";
+import {selectFidelityProfile} from "./visual-fidelity.mjs";
 export const FIDELITY_0121=Object.freeze({
  version:"smart-fidelity-default-0121",storageKey:"skyshift-premium-fidelity",
  defaultEnabled:true,queryParameter:"fidelity",

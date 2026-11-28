@@ -1100,7 +1100,7 @@ function makeShip(id=fleetProgress.selected){
  releaseShip();
  shipGlow=neonKit.ship;
  const craft=id==="stingray"?
-   buildStingrayEvo(THREE,shipGlow):(mantaQaOverride??VAULT_MANTA_REBIRTH_ACTIVE)?buildMantaVisualRebirth(THREE,shipGlow,{corrected:["0.29.5.1","0.29.5.2","0.29.6","0.29.7"].includes(mantaQaOverride??VAULT_JUMP_VERSION)}):buildPremiumMantaBlade(THREE,shipGlow);
+   buildStingrayEvo(THREE,shipGlow):(mantaQaOverride??VAULT_MANTA_REBIRTH_ACTIVE)?buildMantaVisualRebirth(THREE,shipGlow,{corrected:["0.29.5.1","0.29.5.2","0.29.6","0.29.7","0.29.8"].includes(mantaQaOverride??VAULT_JUMP_VERSION)}):buildPremiumMantaBlade(THREE,shipGlow);
  activeCraft=craft;activeShipId=id;ship=craft.ship;
  // A stable SINGLE transform for the full craft (including animated tail
  // and attached engine FX), never evaluated from wing-road intersections.
@@ -1124,7 +1124,7 @@ function makeShip(id=fleetProgress.selected){
  shipWhiteSpill?.attachShip(ship);
  sharedShipLight?.attachShip(ship);
  pmremPipeline?.attachShip(ship);
- premiumFX=createTwinEngineFX(THREE,scene,ship,craft.materials.cyan,{energyPlumes:id==="manta"&&["0.29.5.2","0.29.6","0.29.7"].includes(mantaQaOverride??VAULT_JUMP_VERSION)});
+ premiumFX=createTwinEngineFX(THREE,scene,ship,craft.materials.cyan,{energyPlumes:id==="manta"&&["0.29.5.2","0.29.6","0.29.7","0.29.8"].includes(mantaQaOverride??VAULT_JUMP_VERSION)});
  reactiveWingFlaps=installReactiveWingFlaps(THREE,ship,{variant:id});
  livingWake=createLivingWakeFX(THREE,scene,ship,{variant:id,
   lowMemory:claritySettings?.lowMemory??false});
@@ -1165,7 +1165,7 @@ function refreshHangar(){
   art.heroApplied?"HERO 4.0 · PANSARSVANS · STABIL SVÄNG":
   art.status==="loading"?"HERO-MODELL · LADDAR 3D-GEOMETRI":
   "Segmenterad mekanisk svans · reagerar på styrning, GRIP och boost":
-  VAULT_MANTA_REBIRTH_ACTIVE?(["0.29.5.1","0.29.5.2","0.29.6","0.29.7"].includes(VAULT_JUMP_VERSION)?"DARK GRAPHITE · CYAN WING INLAYS · DUBBLA MOTORER":"GRAPHITE REBIRTH · SKULPTERAT SKROV · DUBBLA MOTORER"):"Hårdskuren interceptor · dubbla motorer";
+  VAULT_MANTA_REBIRTH_ACTIVE?(["0.29.5.1","0.29.5.2","0.29.6","0.29.7","0.29.8"].includes(VAULT_JUMP_VERSION)?"DARK GRAPHITE · CYAN WING INLAYS · DUBBLA MOTORER":"GRAPHITE REBIRTH · SKULPTERAT SKROV · DUBBLA MOTORER"):"Hårdskuren interceptor · dubbla motorer";
  for(const item of FLEET){
   const card=document.querySelector('[data-fleet-card="'+item.id+'"]');
   const status=document.querySelector('[data-fleet-status="'+item.id+'"]');
@@ -1324,8 +1324,9 @@ function equipFleetShip(id){
  if(activeShipId!==previewShipId)makeShip(previewShipId);
  refreshHangar();
 }
-function initScene(){
+async function initScene(){
  markStartup("sceneBegin");
+ if(window.__skyshiftBoot?.deferred)await window.__skyshiftLoadingStage("BUILDING ROAD AND RENDERER",2);
  scene=new THREE.Scene();
  hangarHeroRig=createStingrayHeroShowroom(THREE,scene);
  scene.background=new THREE.Color(COLOR[0].sky);
@@ -1427,6 +1428,7 @@ function initScene(){
  // Reinstall the SAME Skyline source pipeline over the independent
  // Vault spline. Its 0.27.x pipeline only runs on explicit classic/fallback.
  markStartup("sharedTunnelBegin");
+ if(window.__skyshiftBoot?.deferred)await window.__skyshiftLoadingStage("BUILDING TUNNEL GEOMETRY",3);
  const trueSharedVault=sharedTunnelRuntime.installTrueShared({
   enabled:trueSharedVaultEnabled,
   policy:{
@@ -1684,6 +1686,7 @@ function initScene(){
   identitySurface,stationWorld,fixtureTransport,straightEdges:edgeFloorLighting
  });
  markStartup("roadAndFixturesReady");
+ if(window.__skyshiftBoot?.deferred)await window.__skyshiftLoadingStage("BAKING LOCAL REFLECTIONS",4);
  // 0.28.4 PMREM is captured ONCE from the already built original
  // Skyline-shaped Vault, after all source fixtures/physical shaders exist.
  // Only actual tunnel PBR coats + the hull use the resulting CubeUV.
@@ -4981,15 +4984,16 @@ function installControls(){
  installRaceInput({UI,uiState,clamp,addEventListener:(...args)=>runtimeLifetime.listenActive(window,...args),
   document,pause,resume,closeSettings,enterPlaying,listen:runtimeLifetime.listenActive});
 }
+async function initializeGame(){
 try{
  // Wire the buttons before costly WebGL scene construction.
  installFullscreen();
  installControls();
- if(isVault()&&["0.29.0","0.29.1","0.29.2","0.29.3","0.29.3.1","0.29.4","0.29.4.1","0.29.4.2","0.29.5","0.29.5.1","0.29.5.2","0.29.6","0.29.7"].includes(new URLSearchParams(location.search).get("v"))&&new URLSearchParams(location.search).get("vaultJump")!=="0"&&
+ if(isVault()&&["0.29.0","0.29.1","0.29.2","0.29.3","0.29.3.1","0.29.4","0.29.4.1","0.29.4.2","0.29.5","0.29.5.1","0.29.5.2","0.29.6","0.29.7","0.29.8"].includes(new URLSearchParams(location.search).get("v"))&&new URLSearchParams(location.search).get("vaultJump")!=="0"&&
   (!VAULT_MEGA_JUMP_ACTIVE||!trueSharedVaultEnabled||!authoritativeDeck028911||GAPS.length!==1))
   throw Error("0.29.0 requested but physical Mega Jump unavailable");
  runtimeLifetime.bind(window,UI.canvas);
- initScene();
+ await initScene();
  installFlightTuningPanel({document,location,flightTuning,cinematicTuning});
  resetFlight();
  installRaceQa({window,document,location,performance,ctx:{get flight(){return flight},
@@ -5109,7 +5113,7 @@ try{
    };
    try{
     velocityCinematography.setMode("off");
-    const plumeRelease=["0.29.5.2","0.29.6","0.29.7"].includes(VAULT_JUMP_VERSION);
+    const plumeRelease=["0.29.5.2","0.29.6","0.29.7","0.29.8"].includes(VAULT_JUMP_VERSION);
     const corrected=plumeRelease||VAULT_JUMP_VERSION==="0.29.5.1";
     const before=capture(corrected?"0.29.5":false);
     const exhaustBefore=plumeRelease&&playing?capture("0.29.5.1"):null;
@@ -5267,6 +5271,15 @@ try{
     rolls:flight.trickFullRotations,boosts:flight.landingBoostActivations,falls:flight.falls,peak:flight.peakAirHeightMeters};
   };
  }
+ if(window.__skyshiftBoot?.deferred){
+  await window.__skyshiftLoadingStage("PREPARING SHADERS AND FIRST FRAME",5);
+  // Real composer warm-up before the race clock starts; retain normal render ownership.
+  camera.updateMatrixWorld(true);
+  if(renderer.compileAsync)await renderer.compileAsync(scene,camera);
+  if(neonPipeline)neonPipeline.render(0);else renderer.render(scene,camera);
+  markStartup("raceWarmFrame");
+  await window.__skyshiftLoadingStage("RACE READY",6);
+ }
  // Pre-boot START queues a legacy "time-trial" mode string.
  // Only actual selected catalog objects may enter Challenge mode.
  markStartup("bootReady");
@@ -5279,3 +5292,5 @@ try{
  UI.error.classList.remove("hidden");
  UI.error.textContent="SKYSHIFT could not start: "+(error?.message||"Unknown startup error");
 }
+}
+void initializeGame();

@@ -42,7 +42,7 @@ export const LEGACY_ZONE_PALETTES=Object.freeze([
 
 export function colorWaveEnabled(search=typeof location==="undefined"?"":location.search){
  const q=new URLSearchParams(search||"");
- return q.get("track")==="vault"&&["0.29.6","0.29.7"].includes(q.get("v"))&&q.get("vaultJump")!=="0"&&q.get("colorWave")!=="classic";
+ return q.get("track")==="vault"&&["0.29.6","0.29.7","0.29.8"].includes(q.get("v"))&&q.get("vaultJump")!=="0"&&q.get("colorWave")!=="classic";
 }
 export const COLOR_WAVE_ACTIVE=colorWaveEnabled();
 export const COLOR_WAVE_PALETTES=Object.freeze([

@@ -108,15 +108,24 @@ try{
     // Keep the expensive full-browser proof in the existing job.
     if(phase==='approach'){
      mantaRace=await verifyManta('race');assert.equal(mantaRace.mode,'playing');
-     const wave=await page.evaluate(()=>window.__skyshiftColorWaveProof());
+     const proof=await page.evaluate(()=>window.__skyshiftColorWaveProof());
+     const wave=proof.zones;
      assert.equal(wave.length,9);assert.equal(new Set(wave.map(x=>x.png)).size,9,'real palette frames must differ');
      for(const row of wave){
       assert.ok(row.emitters.some(x=>x.role==='secondary'&&x.vertices>0));
       assert.ok(row.emitters.some(x=>x.role==='highlight'&&x.vertices>0));
       for(const e of row.emitters)assert.equal(e.from,row.palette[e.role]);
       assert.equal(row.road.waveColors[0],row.palette.secondary);
+      assert.equal(row.road.accentWaveColors[0],row.palette.highlight);
       writeFileSync(join(out,'color-wave-'+memory+'GB-zone-'+(row.stage+1)+'.png'),Buffer.from(row.png.split(',')[1],'base64'));
      }
+     for(const e of proof.transition.emitters){
+      assert.equal(e.active,1);assert.equal(e.front,proof.transition.front);
+      assert.equal(e.from,wave[0].palette[e.role]);assert.equal(e.to,wave[1].palette[e.role]);
+     }
+     assert.equal(proof.transition.road.waveColors[1],wave[1].palette.secondary);
+     assert.equal(proof.transition.road.accentWaveColors[1],wave[1].palette.highlight);
+     writeFileSync(join(out,'color-wave-'+memory+'GB-transition.png'),Buffer.from(proof.transition.png.split(',')[1],'base64'));
      advanced=await page.evaluate(()=>window.__skyshiftAdvancedGpuProbe({capture:true}));
      for(const name of ['baseline','occlusion','exterior','lod','bloom78','bloom65','bloom50']){
       const row=advanced[name];assert.ok(row.work.triangles>0);

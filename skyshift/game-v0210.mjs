@@ -5067,8 +5067,13 @@ try{
       neonPipeline.render(0);
       result.push({stage,palette:COLOR_WAVE_PALETTES[stage],emitters:trueSharedVault.colorWaveStats(),road:roadSpill02895.stats(),png:renderer.domElement.toDataURL("image/png")});
      }
-     return result;
-    }finally{updatePalette(0);}
+     const front=flight.s+30;
+     const moving={activeCount:1,shaderBaseStage:0,playerStage:1,fronts:[front,-10000,-10000],lastStepSeconds:flight.elapsed};
+     sharedTunnelRuntime.updateWave(moving);premiumSurface.setWaveState(moving);identitySurface.setWaveState(moving);
+     archRoadReflections?.updateWave(moving);unifiedCeilingRoad?.updateWave(moving);roadSpill02895?.updateWave(moving);sharedShipLight?.update(flight.s,moving);
+     neonPipeline.render(0);
+     return {zones:result,transition:{front,emitters:trueSharedVault.colorWaveStats(),road:roadSpill02895.stats(),png:renderer.domElement.toDataURL("image/png")}};
+    }finally{updatePalette(0);sharedShipLight?.update(flight.s,visualWaveView02899(zoneWave,flight.s));}
    };
    if(VAULT_MANTA_REBIRTH_ACTIVE)window.__skyshiftMantaVisualProbe=()=>{
    if(activeShipId!=="manta")throw Error("Manta visual proof requires equipped Manta");

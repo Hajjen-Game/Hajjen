@@ -51,12 +51,20 @@ try{
    assert.ok(await page.evaluate(()=>window.__skyshiftStartupAudit().stamps.raceWarmFrame!==undefined));
    await page.waitForFunction(()=>window.__skyshiftCountdownProbe?.().mode==='countdown',null,{timeout:10000});
    const frozen=await page.evaluate(()=>window.__skyshiftCountdownProbe());
-   assert.equal(frozen.elapsed,0);assert.equal(frozen.distance,0);assert.equal(frozen.visible,true);
+   assert.equal(frozen.elapsed,0);assert.equal(frozen.distance,5,"unchanged authoritative spawn station");assert.equal(frozen.visible,true);
    assert.equal(await page.locator('#race-loading').isVisible(),false);
    assert.equal(await page.locator('#mobile-controls').isVisible(),false);
    await page.waitForFunction(()=>window.__skyshiftCountdownProbe?.().mode==='playing',null,{timeout:30000});
    const launched=await page.evaluate(()=>window.__skyshiftCountdownProbe());
    assert.deepEqual(launched.history,['3','2','1','GO!']);
+   assert.deepEqual(launched.frames.map(row=>row.label),['3','2','1','GO!']);
+   const spawn=launched.frames[0];
+   assert.equal(spawn.distance,5);
+   for(const row of launched.frames){
+    assert.equal(row.elapsed,0,'race clock must not advance before GO');
+    assert.equal(row.distance,spawn.distance,'race distance must stay at the original spawn until GO');
+    for(const axis of ['worldX','worldZ','y'])assert.equal(row[axis],spawn[axis],'frozen authoritative '+axis+' at '+row.label);
+   }
    await page.locator('#pause-btn').click();
    await page.locator('#pause-menu-btn').click();
    if(await page.evaluate(()=>!!document.fullscreenElement))await page.evaluate(()=>document.exitFullscreen());

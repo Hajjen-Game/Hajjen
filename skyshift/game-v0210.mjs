@@ -857,6 +857,7 @@ let waveSmokeHold=false;
 
 const countdownEnabled=VAULT_MEGA_JUMP_ACTIVE&&VAULT_JUMP_VERSION==="0.29.8.1";
 const raceCountdown=createRaceCountdown();
+const countdownProofFrames=[];
 const raceLifecycle=createRaceLifecycle({UI,uiState,raceSession,timeTrialState,resetFlight,refreshHud,hudBudget,clearInput,refreshTrialMenu,worldClock,event,now:()=>performance.now(),clearTimeout,ctx:{get sceneReady(){return sceneReady&&(!window.__skyshiftBoot?.deferred||window.__skyshiftBoot.phase==="ready")},get currentChallenge(){return currentChallenge},get world(){return world},setChallenge(challenge){currentChallenge=challenge;lastChallengeGrading=null},app:()=>$("app"),hideGhost:()=>ghostVisual?.hide()}});
 function bestForTrial(){return readLegacyRaceBest(fleetStorage(),raceBestKey);}
 // A best Time Trial is separate from the historic normal-circuit record.
@@ -3928,6 +3929,11 @@ function enterPlaying(challenge=null){
  raceLifecycle.enterPlaying(challenge,{countdown:true});
  if(uiState.mode!=="countdown")return;
  raceCountdown.start();showRaceCountdown("3");
+ countdownProofFrames.length=0;recordCountdownProof("3");
+}
+function recordCountdownProof(label){
+ if(new URLSearchParams(location.search).get("vaultJumpSmoke")!=="1")return;
+ countdownProofFrames.push({label,elapsed:flight.elapsed,distance:flight.s,worldX:flight.worldX,worldZ:flight.worldZ,y:flight.y});
 }
 function tickRaceCountdown(dt){
  if(!countdownEnabled||!raceCountdown.label)return;
@@ -3938,6 +3944,7 @@ function tickRaceCountdown(dt){
  const next=raceCountdown.advance(dt,!document.hidden);
  if(previous===next)return;
  showRaceCountdown(next);
+ if(next)recordCountdownProof(next);
  if(next==="GO!"){
   // This executes AFTER the current frame's physics gate. The first
   // authoritative simulation step can only run on the next frame.
@@ -5096,7 +5103,7 @@ try{
   UI,uiState,ZONE_WAVE,ZONE_PALETTES,updateZoneWave,setZoneSpeedStage,announceSector,refreshHud,waveResonanceStrength,clamp,SHADOW_TUNNEL,positionAt,surfaceHeightAt,TRIAL,headingAt,createFlightMotionState,createCinematicState,createKineticCameraState,snapRacePose,raceSimulation,chaseCameraController,inShadowTunnel,tunnelIntensityAt,bankAt,CAMERA_MODE,speedAt,widthAt,cameraBankAt,railContactPoint,ACTIVE_TRACK_0160,CIRCUIT,isVault,placeShip,saveFleet,fleetStorage,recordFleetClear,refreshHangar,fleetStatus,STINGRAY_PRESENTATION_01347,VAULT_BOOST_0283_ACTIVE,TRACK_ID_0160,BOOST_PADS,RHYTHM_GATES_0160,timeTrialState,challengeSummary,endRun,RISK_REWARD_0160,newFlightState,stepFlight,THREE,buildMantaWings,motionRig,perfSettings,perfSummary,frameProfiler,unifiedFlightAudit,fidelityAudit,racingExperienceAudit,ghostAudit,hudBudget,domWrites});
  // Verify the exact mounted deck and fly its real physics only on explicit QA URLs.
  if(new URLSearchParams(location.search).get("vaultJumpSmoke")==="1"){
-  window.__skyshiftCountdownProbe=()=>({mode:uiState.mode,label:raceCountdown.label,elapsed:flight.elapsed,distance:flight.s,history:raceCountdown.history(),visible:!$("race-countdown").classList.contains("hidden")});
+  window.__skyshiftCountdownProbe=()=>({mode:uiState.mode,label:raceCountdown.label,elapsed:flight.elapsed,distance:flight.s,history:raceCountdown.history(),frames:countdownProofFrames.map(row=>({...row})),visible:!$("race-countdown").classList.contains("hidden")});
   if(endurance)window.__skyshiftEnduranceProbe=()=>{endurance.sample(frameProfiler,readEnduranceSnapshot,true);return endurance.report();};
   if(smartPerformance)window.__skyshiftSmartPerformanceProbe=()=>{
    const render=enabled=>{

@@ -1324,9 +1324,19 @@ function equipFleetShip(id){
  if(activeShipId!==previewShipId)makeShip(previewShipId);
  refreshHangar();
 }
+// Every asynchronous boot boundary must recheck the existing lifetime owner.
+// A page exit or lost context must not resume construction on released handles.
+function assertStartupLifetime(){
+ if(runtimeLifetime.disposed||runtimeLifetime.contextLost)
+  throw Error("Race initialization interrupted");
+}
+async function raceLoadingStage(label,step){
+ await window.__skyshiftLoadingStage(label,step);
+ assertStartupLifetime();
+}
 async function initScene(){
  markStartup("sceneBegin");
- if(window.__skyshiftBoot?.deferred)await window.__skyshiftLoadingStage("BUILDING ROAD AND RENDERER",2);
+ if(window.__skyshiftBoot?.deferred)await raceLoadingStage("BUILDING ROAD AND RENDERER",2);
  scene=new THREE.Scene();
  hangarHeroRig=createStingrayHeroShowroom(THREE,scene);
  scene.background=new THREE.Color(COLOR[0].sky);
@@ -1428,7 +1438,7 @@ async function initScene(){
  // Reinstall the SAME Skyline source pipeline over the independent
  // Vault spline. Its 0.27.x pipeline only runs on explicit classic/fallback.
  markStartup("sharedTunnelBegin");
- if(window.__skyshiftBoot?.deferred)await window.__skyshiftLoadingStage("BUILDING TUNNEL GEOMETRY",3);
+ if(window.__skyshiftBoot?.deferred)await raceLoadingStage("BUILDING TUNNEL GEOMETRY",3);
  const trueSharedVault=sharedTunnelRuntime.installTrueShared({
   enabled:trueSharedVaultEnabled,
   policy:{
@@ -1686,7 +1696,7 @@ async function initScene(){
   identitySurface,stationWorld,fixtureTransport,straightEdges:edgeFloorLighting
  });
  markStartup("roadAndFixturesReady");
- if(window.__skyshiftBoot?.deferred)await window.__skyshiftLoadingStage("BAKING LOCAL REFLECTIONS",4);
+ if(window.__skyshiftBoot?.deferred)await raceLoadingStage("BAKING LOCAL REFLECTIONS",4);
  // 0.28.4 PMREM is captured ONCE from the already built original
  // Skyline-shaped Vault, after all source fixtures/physical shaders exist.
  // Only actual tunnel PBR coats + the hull use the resulting CubeUV.
@@ -4994,6 +5004,7 @@ try{
   throw Error("0.29.0 requested but physical Mega Jump unavailable");
  runtimeLifetime.bind(window,UI.canvas);
  await initScene();
+ assertStartupLifetime();
  installFlightTuningPanel({document,location,flightTuning,cinematicTuning});
  resetFlight();
  installRaceQa({window,document,location,performance,ctx:{get flight(){return flight},
@@ -5272,20 +5283,23 @@ try{
   };
  }
  if(window.__skyshiftBoot?.deferred){
-  await window.__skyshiftLoadingStage("PREPARING SHADERS AND FIRST FRAME",5);
+  await raceLoadingStage("PREPARING SHADERS AND FIRST FRAME",5);
   // Real composer warm-up before the race clock starts; retain normal render ownership.
   camera.updateMatrixWorld(true);
   if(renderer.compileAsync)await renderer.compileAsync(scene,camera);
+  assertStartupLifetime();
   if(neonPipeline)neonPipeline.render(0);else renderer.render(scene,camera);
   markStartup("raceWarmFrame");
-  await window.__skyshiftLoadingStage("RACE READY",6);
+  await raceLoadingStage("RACE READY",6);
  }
  // Pre-boot START queues a legacy "time-trial" mode string.
  // Only actual selected catalog objects may enter Challenge mode.
+ assertStartupLifetime();
  markStartup("bootReady");
  window.__skyshiftBootReady?.(()=>enterPlaying(null));
  runtimeLifetime.start();
 }catch(error){
+ if(runtimeLifetime.disposed)return; // Permanent page exit already owns cleanup.
  runtimeLifetime.dispose();
  console.error("SKYSHIFT startup failed",error);
  window.__skyshiftBootFail?.(error);

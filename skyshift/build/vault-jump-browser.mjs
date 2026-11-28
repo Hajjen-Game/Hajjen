@@ -32,6 +32,7 @@ try{
    assert.equal(await page.evaluate(()=>window.__skyshiftBoot.phase),'menu');
    assert.equal(await page.evaluate(()=>typeof window.__skyshiftStartupAudit),'undefined');
    assert.equal(await page.evaluate(()=>window.__skyshiftBoot.moduleReady),false);
+   assert.equal(await page.evaluate(()=>performance.getEntriesByType('resource').some(x=>/\/(?:game-v0210|three-engine)-[^/]+\.js(?:\?|$)/.test(x.name))),false,'cold menu cannot fetch game or Three.js bundle');
    await page.locator('#menu-settings-btn').click();
    await page.locator('#frame-cap').selectOption('90');
    await page.locator('#settings-back-btn').click();
@@ -59,7 +60,7 @@ try{
    assert.equal(probe.speedProfile.launchPresentationRatio,1);
    assert.equal(probe.mounted,true);assert.equal(probe.pmrem,true);assert.equal(probe.gaps.length,1);assert.equal(probe.gaps[0].id,'vault-mega-jump');
    assert.equal(probe.inside,0);assert.ok(probe.before>0&&probe.after>0);assert.equal(probe.roadBefore,true);assert.equal(probe.roadGap,false);assert.equal(probe.roadAfter,true);
-   assert.match(await page.locator('#menu-track-name').textContent(),/MEGA JUMP.*0\.29\.7/);
+   assert.match(await page.locator('#menu-track-name').textContent(),/MEGA JUMP.*0\.29\.8/);
    const verifyManta=async(label)=>{
     const p=await page.evaluate(()=>window.__skyshiftMantaVisualProbe());
     for(const k of ['before','after']){
@@ -215,7 +216,7 @@ try{
    assert.equal(endurance.temperatureC,null);assert.ok(endurance.samples.length>0);
    assert.ok(endurance.samples.at(-1).viewportCss.width>0);
    assert.deepEqual(errors,[],'real game errors');
-   reports.push({memory,probe,frames,layout,endurance,comparisons,advanced,velocity,mantaHangar,mantaRace});
+   reports.push({memory,boot,probe,frames,layout,endurance,comparisons,advanced,velocity,mantaHangar,mantaRace});
   }finally{await context.close();}
  }
  writeFileSync(join(out,'vault-jump-report.json'),JSON.stringify(reports,null,2));

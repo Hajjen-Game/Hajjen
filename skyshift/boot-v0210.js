@@ -21,7 +21,7 @@
  window.__skyshiftLoadingStage=async(label,step)=>{
   if(!deferred||boot.phase!=="loading")return;
   boot.loadingStages.push({label,step,ms:Math.round(performance.now()-boot.loadStartedAt)});
-  message.textContent=label;progress.value=step;await paint();
+  message.textContent=label;progress.value=step===6?6:step-1;await paint();
  };
  boot.loadingStages=[];
  function report(message,kind){
@@ -96,7 +96,8 @@
  },true);
  window.__skyshiftBootReady=function(startQueued){
   boot.moduleReady=true;boot.phase="ready";boot.error="";
-  if(deferred){boot.raceLoadMs=Math.round(performance.now()-boot.loadStartedAt);progress.value=6;loading.classList.add("hidden");start.disabled=false;document.getElementById("fleet-preview-mode").textContent="LIVE 3D PREVIEW";}
+  document.removeEventListener("fullscreenchange",syncBootFullscreen);document.removeEventListener("webkitfullscreenchange",syncBootFullscreen);
+  if(deferred){delete boot.menuSnapshot;boot.raceLoadMs=Math.round(performance.now()-boot.loadStartedAt);progress.value=6;loading.classList.add("hidden");start.disabled=false;document.getElementById("fleet-preview-mode").textContent="LIVE 3D PREVIEW";}
   boot.readyAfterMs=Math.round((performance.now()-boot.startedAt)*10)/10;
   status.classList.add("hidden");
   start.firstChild.textContent="START RUN ";
@@ -123,7 +124,7 @@
  function loadRace(){
   if(loadPromise)return loadPromise;
   boot.phase="loading";boot.loadStartedAt=performance.now();
-  menuController?.dispose();start.disabled=true;
+  boot.menuSnapshot=menuController?.snapshot();menuController?.dispose();start.disabled=true;
   loading.classList.remove("hidden");
   loadPromise=(async()=>{await window.__skyshiftLoadingStage("LOADING 3D ENGINE",1);await importGame();})().catch(fail);
   return loadPromise;

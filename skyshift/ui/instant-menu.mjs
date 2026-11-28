@@ -4,7 +4,7 @@ import {FLEET,readFleet,saveFleet,equipFleet,isFleetUnlocked} from "../ships/fle
 import {readPerformance,savePerformance} from "../core/smart-performance.mjs";
 import {readAdvancedGpu,saveAdvancedGpu} from "../core/advanced-gpu-settings.mjs";
 import {readVelocityExperience,saveVelocityExperience} from "../core/velocity-experience-settings.mjs";
-import {readFidelityChoice,saveFidelityChoice} from "../core/fidelity-settings-v0121.mjs";
+import {readFidelityChoice,saveFidelityChoice} from "../core/fidelity-preference.mjs";
 import {createTimeTrialAPI} from "../core/time-trial.mjs";
 import {TIME_TRIAL_0160} from "../core/time-trial-v0160.mjs";
 
@@ -22,7 +22,7 @@ export function mountInstantMenu({document,window}){
  const trial=createTimeTrialAPI({...TIME_TRIAL_0160,storageKey:"skyshift-time-trial-ghost-vault-hyper-0297",trackRevision:TIME_TRIAL_0160.trackRevision+"|hyper-0297"});
  const best=trial.loadPersonalGhost(storage);
  if(best){$("tt-menu-status").textContent="PERSONAL BEST · "+trial.formatTrialTime(best.duration)+" · "+best.ship.toUpperCase();visible("tt-menu-status",true);}
- $("track-picker").value="vault";$("track-name")?.removeAttribute("aria-busy");
+ $("track-picker").value="vault";
  $("menu-track-name").textContent="NEON VAULT · MEGA JUMP · 0.29.8";
  $("topbar-track-name").textContent="NEON VAULT · MEGA JUMP · 0.29.8";
  $("track-tagline").textContent="EXPANSION CHAMBER · 54.4 M LEAP · AIR TRICKS";
@@ -72,5 +72,5 @@ export function mountInstantMenu({document,window}){
  });
  on($("fidelity-btn"),"click",()=>{fidelity=!fidelity;saveFidelityChoice(fidelity,storage);const url=new URL(window.location.href);url.searchParams.set("fidelity",fidelity?"on":"off");window.history.replaceState(null,"",url);syncFidelity();});
  on($("track-picker"),"change",()=>{$("track-picker").value="vault";});
- return {dispose(){for(const fn of cleanups.splice(0))fn();}};
+ return {snapshot:()=>({fleet:{...fleet},performance:{...performance},gpu:{...gpu},velocity:{...velocity}}),dispose(){for(const fn of cleanups.splice(0))fn();}};
 }

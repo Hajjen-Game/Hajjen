@@ -586,7 +586,7 @@ const worldEnabled=envEnabled&&!rebirthEnabled&&
  new URLSearchParams(location.search).get("world")!=="classic";
 const architectureEnabled=worldEnabled&&new URLSearchParams(location.search).get("architecture")!=="classic";
 function fleetStorage(){try{return localStorage}catch{return null}}
-let fleetProgress=readFleet(fleetStorage());
+let fleetProgress=window.__skyshiftBoot?.menuSnapshot?.fleet??readFleet(fleetStorage());
 let previewShipId=fleetProgress.selected,activeShipId="",activeCraft=null;
 const shipArtController=createShipArtController(THREE,{
  search:location.search,
@@ -789,11 +789,11 @@ let renderSamples=0,renderCallTotal=0,renderCallPeak=0,triangleTotal=0;
 const raceSimulation=createRaceSimulation();
 let frameMonitor=createFrameMonitor();
 const perfSettings=readPerfConfig(location.search);
-const smartPerformance=VAULT_SMART_ACTIVE?readPerformance(fleetStorage(),matchMedia('(pointer:coarse)').matches,perfSettings):null;
+const smartPerformance=VAULT_SMART_ACTIVE?(window.__skyshiftBoot?.menuSnapshot?.performance??readPerformance(fleetStorage(),matchMedia('(pointer:coarse)').matches,perfSettings)):null;
 const presentationGate=createPresentationGate();
 let trackVisibility=null,detailLod=null;
-const advancedGpu=VAULT_ADVANCED_GPU_ACTIVE?readAdvancedGpu(fleetStorage()):null;
-const velocityExperience=VAULT_VELOCITY_ACTIVE?readVelocityExperience(fleetStorage(),VAULT_EXTREME_BLUR_ACTIVE):null;
+const advancedGpu=VAULT_ADVANCED_GPU_ACTIVE?(window.__skyshiftBoot?.menuSnapshot?.gpu??readAdvancedGpu(fleetStorage())):null;
+const velocityExperience=VAULT_VELOCITY_ACTIVE?(window.__skyshiftBoot?.menuSnapshot?.velocity??readVelocityExperience(fleetStorage(),VAULT_EXTREME_BLUR_ACTIVE)):null;
 const blurCraftProjection=new THREE.Vector3();
 function velocityExperienceAudit(){return velocityExperience?{...velocityExperience,blur:velocityCinematography?.stats?.(),camera:{aspect:camera?.aspect,verticalFov:camera?.fov,horizontalFov:camera?horizontalFov(camera.fov,camera.aspect):null,peakVerticalFov:chaseCameraController.maxKineticFov}}:null;}
 let lastAdvancedGpuFrame=null;
@@ -854,7 +854,7 @@ const visualWaveView02899=createSinglePassWaveView02899();
 let tunnelInside=false,tunnelEntries=0,tunnelExits=0,tunnelSeconds=0,tunnelMaxIntensity=0;
 let waveSmokeHold=false;
 
-const raceLifecycle=createRaceLifecycle({UI,uiState,raceSession,timeTrialState,resetFlight,refreshHud,hudBudget,clearInput,refreshTrialMenu,worldClock,event,now:()=>performance.now(),clearTimeout,ctx:{get sceneReady(){return sceneReady},get currentChallenge(){return currentChallenge},get world(){return world},setChallenge(challenge){currentChallenge=challenge;lastChallengeGrading=null},app:()=>$("app"),hideGhost:()=>ghostVisual?.hide()}});
+const raceLifecycle=createRaceLifecycle({UI,uiState,raceSession,timeTrialState,resetFlight,refreshHud,hudBudget,clearInput,refreshTrialMenu,worldClock,event,now:()=>performance.now(),clearTimeout,ctx:{get sceneReady(){return sceneReady&&(!window.__skyshiftBoot?.deferred||window.__skyshiftBoot.phase==="ready")},get currentChallenge(){return currentChallenge},get world(){return world},setChallenge(challenge){currentChallenge=challenge;lastChallengeGrading=null},app:()=>$("app"),hideGhost:()=>ghostVisual?.hide()}});
 function bestForTrial(){return readLegacyRaceBest(fleetStorage(),raceBestKey);}
 // A best Time Trial is separate from the historic normal-circuit record.
 function refreshTrialMenu(){

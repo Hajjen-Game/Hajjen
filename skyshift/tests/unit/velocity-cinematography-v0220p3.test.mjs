@@ -2,6 +2,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
+import {spawnSync} from "node:child_process";
 import {VELOCITY_CINEMA_0220_P3,VELOCITY_SHADER_0220_P3,
  velocityCinemaIntensity,installVelocityCinematography}
  from "../../rendering/velocity-cinematography-v0220p3.mjs";
@@ -96,7 +97,8 @@ test("new release preserves older 0.22.0 and 0.22.0.2 visual comparisons",()=>{
  assert.match(game,/__skyshiftVelocityCinemaProbe/);
  assert.match(game,/setInternalPixelRatio\(targetDpr/);
  assert.match(game,/velocityCinematography\?\.setQualityLevel/);
- assert.match(game,/speedMultiplier:\(flight\?\.currentSpeed\?\?0\)\/Math\.max\(1,TRIAL\.startSpeed\)/);
+ assert.match(game,/velocityCinematography\?\.update\?\.\(\{[\s\S]*?speedMultiplier:velocityPresentationRatio\(flight\?\.currentSpeed\?\?0\)/);
+ assert.match(game,/unifiedCinematicGrade\?\.update\?\.\(\{[\s\S]*?speedMultiplier:velocityPresentationRatio\(flight\?\.currentSpeed\?\?0\)/);
  assert.match(game,/compareBeforeVelocityCinema:"\?velocityCinema=classic"/);
  assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.26\.\d+/);
  assert.match(read("./index.html"),/0\.26\.\d+/);
@@ -133,4 +135,32 @@ test("velocity settings persist approved modes and retain older four-mode URL co
  saveVelocityExperience(storage,{motionBlur:"extreme",adaptiveCamera:true},true);
  assert.equal(readVelocityExperience(storage,true).motionBlur,"extreme");
  assert.equal(readVelocityExperience(storage,false).motionBlur,"high");
+});
+
+test("legacy velocity normalization stays numerically exact; Hyper uses the approved endpoints",()=>{
+ for(const release of ["0.22.0","0.22.0.2","0.29.6","0.29.7"]){
+  const code=`
+   globalThis.location={search:'?track=vault&v='+${JSON.stringify(release)}+'&vaultJump=1'};
+   const assert=(await import('node:assert/strict')).default;
+   const {TRIAL,velocityPresentationRatio:ratio}=await import('./skyshift/tracks/trials/trial-v0165.mjs');
+   const {trueVelocityResponse}=await import('./skyshift/rendering/true-velocity-motion-blur.mjs');
+   if(${release==="0.29.7"}){
+    assert.equal(TRIAL.startSpeed,60);
+    assert.equal(TRIAL.endSpeed,105);
+    assert.equal(ratio(60),1);
+    assert.ok(Math.abs(ratio(105)-1.11**8)<1e-10);
+    assert.ok(ratio(60)<ratio(80)&&ratio(80)<ratio(105)&&ratio(105)<ratio(147));
+    assert.equal(trueVelocityResponse({playing:true,mode:'extreme',speedMultiplier:ratio(60),boostMultiplier:1.4}).gain,0);
+    assert.ok(trueVelocityResponse({playing:true,mode:'extreme',speedMultiplier:ratio(105)}).gain>0);
+   }else{
+    assert.equal(TRIAL.startSpeed,44);
+    for(const speed of [0,22,44,60,88,105,147]){
+     assert.equal(ratio(speed),speed/Math.max(1,TRIAL.startSpeed));
+    }
+   }
+  `;
+  const result=spawnSync(process.execPath,["--input-type=module","-e",code],
+   {cwd:new URL("../../../",import.meta.url).pathname,encoding:"utf8",timeout:25000});
+  assert.equal(result.status,0,release+": "+result.stderr);
+ }
 });

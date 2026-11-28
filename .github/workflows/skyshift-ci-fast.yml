@@ -144,6 +144,8 @@ jobs:
             skyshift/tests/unit/rail-body-containment-v02124.test.mjs \
             skyshift/tests/unit/ship-white-spill-v02125.test.mjs \
             skyshift/tests/unit/road-solar-spill-v02126.test.mjs \
+            skyshift/tests/unit/velocity-cinematography-v0220p3.test.mjs \
+            skyshift/tests/unit/unified-cinematic-grade-v0220p4.test.mjs \
             skyshift/tests/unit/dark-metallic-foundation-v0250.test.mjs \
             skyshift/tests/unit/micro-surface-metal-definition-v0251.test.mjs \
             skyshift/tests/unit/dual-tone-lighting-v0260.test.mjs \

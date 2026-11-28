@@ -4782,7 +4782,7 @@ function exportAudit(){
         paletteNames:ZONE_PALETTES.map(p=>p.name),
         colorWaveVersion:COLOR_WAVE_ACTIVE?"1.0":"classic",
         rolePalettes:COLOR_WAVE_ACTIVE?COLOR_WAVE_PALETTES.map(({name,primary,secondary,highlight})=>({name,primary,secondary,highlight})):null,
-        edgeAndFootWave: trueSharedVault?.colorWaveStats?.()??[],
+        edgeAndFootWave: sharedTunnelRuntime?.colorWaveStats?.()??[],
         waveFeatherMeters:ZONE_WAVE.featherMeters,
         waveCrestMeters:ZONE_WAVE.crestMeters,
         whiteCoreMeters:ZONE_WAVE.whiteCoreMeters,
@@ -5057,7 +5057,7 @@ try{
     physicsHz:120,pacing:presentationGate.stats()};
   };
   if(COLOR_WAVE_ACTIVE)window.__skyshiftColorWaveProof=()=>{
-    if(!trueSharedVault?.active||uiState.mode!=="playing")throw Error("Color wave proof needs live Vault race");
+    if(!sharedTunnelRuntime?.colorWaveStats?.().length||uiState.mode!=="playing")throw Error("Color wave proof needs live Vault race and installed color emitters");
     const result=[];
     try{
      for(let stage=0;stage<9;stage++){
@@ -5065,14 +5065,14 @@ try{
       sharedTunnelRuntime.updateWave(visual);premiumSurface.setWaveState(visual);identitySurface.setWaveState(visual);
       archRoadReflections?.updateWave(visual);unifiedCeilingRoad?.updateWave(visual);roadSpill02895?.updateWave(visual);sharedShipLight?.update(flight.s,visual);
       neonPipeline.render(0);
-      result.push({stage,palette:COLOR_WAVE_PALETTES[stage],emitters:trueSharedVault.colorWaveStats(),road:roadSpill02895.stats(),png:renderer.domElement.toDataURL("image/png")});
+      result.push({stage,palette:COLOR_WAVE_PALETTES[stage],emitters:sharedTunnelRuntime.colorWaveStats(),road:roadSpill02895.stats(),png:renderer.domElement.toDataURL("image/png")});
      }
      const front=flight.s+30;
      const moving={activeCount:1,shaderBaseStage:0,playerStage:1,fronts:[front,-10000,-10000],lastStepSeconds:flight.elapsed};
      sharedTunnelRuntime.updateWave(moving);premiumSurface.setWaveState(moving);identitySurface.setWaveState(moving);
      archRoadReflections?.updateWave(moving);unifiedCeilingRoad?.updateWave(moving);roadSpill02895?.updateWave(moving);sharedShipLight?.update(flight.s,moving);
      neonPipeline.render(0);
-     return {zones:result,transition:{front,emitters:trueSharedVault.colorWaveStats(),road:roadSpill02895.stats(),png:renderer.domElement.toDataURL("image/png")}};
+     return {zones:result,transition:{front,emitters:sharedTunnelRuntime.colorWaveStats(),road:roadSpill02895.stats(),png:renderer.domElement.toDataURL("image/png")}};
     }finally{updatePalette(0);sharedShipLight?.update(flight.s,visualWaveView02899(zoneWave,flight.s));}
    };
    if(VAULT_MANTA_REBIRTH_ACTIVE)window.__skyshiftMantaVisualProbe=()=>{

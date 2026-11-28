@@ -25,17 +25,37 @@ try{
    page.on('pageerror',e=>errors.push(e.message));page.on('crash',()=>errors.push('renderer crash'));
    page.on('console',m=>{if(m.type()==='error'&&/THREE.WebGLProgram|shader error|INVALID_OPERATION|context lost|startup failed/i.test(m.text()))errors.push(m.text());});
    const url=new URL(live||'http://127.0.0.1:8926/skyshift/');
-   url.search=memory===8?'track=vault&v=0.29.4.2&vaultJump=1':'track=vault&v=0.29.4.2';
+   url.search=memory===8?'track=vault&v=0.29.5&vaultJump=1':'track=vault&v=0.29.5';
    url.searchParams.set('vaultJumpSmoke','1');url.searchParams.set('release','0290-public-proof-'+Date.now());
    await page.goto(url.href,{waitUntil:'domcontentloaded',timeout:80000});
    await page.waitForFunction(()=>['ready','failed'].includes(window.__skyshiftBoot?.phase),null,{timeout:220000});
    assert.equal(await page.evaluate(()=>window.__skyshiftBoot.phase),'ready',JSON.stringify(await page.evaluate(()=>window.__skyshiftBoot)));
    const probe=await page.evaluate(()=>window.__skyshiftVaultJumpProbe());
-   assert.equal(probe.active,true,JSON.stringify(probe));assert.equal(probe.version,'0.29.4.2');assert.equal(new URLSearchParams(probe.query).get('v'),'0.29.4.2');
+   assert.equal(probe.active,true,JSON.stringify(probe));assert.equal(probe.version,'0.29.5');assert.equal(new URLSearchParams(probe.query).get('v'),'0.29.5');
    assert.equal(probe.polish,true);assert.equal(probe.rampRise,7.5);
    assert.equal(probe.mounted,true);assert.equal(probe.pmrem,true);assert.equal(probe.gaps.length,1);assert.equal(probe.gaps[0].id,'vault-mega-jump');
    assert.equal(probe.inside,0);assert.ok(probe.before>0&&probe.after>0);assert.equal(probe.roadBefore,true);assert.equal(probe.roadGap,false);assert.equal(probe.roadAfter,true);
-   assert.match(await page.locator('#menu-track-name').textContent(),/MEGA JUMP.*0\.29\.4\.2/);
+   assert.match(await page.locator('#menu-track-name').textContent(),/MEGA JUMP.*0\.29\.5/);
+   const verifyManta=async(label)=>{
+    const p=await page.evaluate(()=>window.__skyshiftMantaVisualProbe());
+    for(const k of ['before','after']){
+     writeFileSync(join(out,'manta-'+memory+'GB-'+label+'-'+k+'.png'),Buffer.from(p[k].png.split(',')[1],'base64'));delete p[k].png;
+    }
+    assert.equal(p.after.spec.version,'0.29.5');assert.equal(p.after.spec.visualBeamMeters,5.8);
+    assert.deepEqual(p.after.sockets,p.before.sockets);
+    assert.equal(p.after.flaps.wingCount,2);assert.equal(p.after.spec.physicsChanged,false);
+    assert.equal(p.after.spec.addedLights,0);assert.equal(p.after.spec.addedTextures,0);
+    assert.ok(p.after.polish.geometryTriangles<=p.after.spec.maxGeometryTriangles,JSON.stringify(p.after.polish));
+    assert.ok(p.after.hullCalls<=p.before.hullCalls,JSON.stringify(p));
+    assert.ok(p.after.pmrem>0,'rebirth hull must use actual PMREM');
+    assert.ok(p.fractionOver2>.0001,'real rendered hull must change');
+    return p;
+   };
+   await page.locator('#hangar-btn').click();
+   await page.waitForTimeout(600);
+   const mantaHangar=await verifyManta('hangar');
+   assert.equal(mantaHangar.mode,'hangar');
+   await page.locator('#hangar-back').click();
    await page.locator('#menu-settings-btn').click();
    await page.locator('#frame-cap').selectOption('90');
    await page.locator('#graphics-quality').selectOption('fixed');
@@ -65,7 +85,7 @@ try{
    await page.locator('#settings-back-btn').click();
    await page.locator('#start-btn').click();
    await page.waitForFunction(()=>window.__skyshiftPerfProbe?.().state==='playing',null,{timeout:40000});
-   const frames={},comparisons=[];let advanced=null,velocity=null;
+   const frames={},comparisons=[];let advanced=null,velocity=null,mantaRace=null;
    for(const phase of ['approach','air','landing']){
     const result=await page.evaluate(p=>window.__skyshiftVaultJumpCapture(p),phase);frames[phase]=result;
     await page.waitForTimeout(1000);
@@ -78,6 +98,7 @@ try{
     // One multi-effect A/B on the existing approach capture per profile.
     // Keep the expensive full-browser proof in the existing job.
     if(phase==='approach'){
+     mantaRace=await verifyManta('race');assert.equal(mantaRace.mode,'playing');
      advanced=await page.evaluate(()=>window.__skyshiftAdvancedGpuProbe({capture:true}));
      for(const name of ['baseline','occlusion','exterior','lod','bloom78','bloom65','bloom50']){
       const row=advanced[name];assert.ok(row.work.triangles>0);
@@ -143,7 +164,7 @@ try{
    assert.equal(endurance.temperatureC,null);assert.ok(endurance.samples.length>0);
    assert.ok(endurance.samples.at(-1).viewportCss.width>0);
    assert.deepEqual(errors,[],'real game errors');
-   reports.push({memory,probe,frames,layout,endurance,comparisons,advanced,velocity});
+   reports.push({memory,probe,frames,layout,endurance,comparisons,advanced,velocity,mantaHangar,mantaRace});
   }finally{await context.close();}
  }
  writeFileSync(join(out,'vault-jump-report.json'),JSON.stringify(reports,null,2));

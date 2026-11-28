@@ -1,13 +1,13 @@
+import {buildMantaVisualRebirth,MANTA_REBIRTH} from "./ships/manta-visual-rebirth.mjs";
 import {installTrueVelocityMotionBlur} from "./rendering/true-velocity-motion-blur.mjs";
 import {readVelocityExperience,saveVelocityExperience,adaptiveVelocityFov,horizontalFov} from "./core/velocity-experience-settings.mjs";
-import {installAdaptiveVelocityBlur} from "./rendering/adaptive-velocity-blur.mjs";
 import {readAdvancedGpu,saveAdvancedGpu,resolveBloomScale} from "./core/advanced-gpu-settings.mjs";
 import {createTunnelOcclusion} from "./rendering/conservative-tunnel-occlusion.mjs";
 import {createDistantDetailLod} from "./rendering/distant-detail-lod.mjs";
 import {readPerformance,savePerformance,createPresentationGate} from "./core/smart-performance.mjs";
 import {createTrackSectionVisibility} from "./rendering/track-section-visibility.mjs";
 import * as THREE from "three";
-import {VAULT_MEGA_JUMP,VAULT_MEGA_JUMP_ACTIVE,VAULT_JUMP_POLISH_ACTIVE,VAULT_COMPACT_ACTIVE,VAULT_SMART_ACTIVE,VAULT_ADVANCED_GPU_ACTIVE,VAULT_VELOCITY_ACTIVE,VAULT_EXTREME_BLUR_ACTIVE,VAULT_TRUE_BLUR_ACTIVE,VAULT_JUMP_VERSION,chamberProfileAt} from "./tracks/vault/vault-mega-jump.mjs";
+import {VAULT_MEGA_JUMP,VAULT_MEGA_JUMP_ACTIVE,VAULT_JUMP_POLISH_ACTIVE,VAULT_COMPACT_ACTIVE,VAULT_SMART_ACTIVE,VAULT_ADVANCED_GPU_ACTIVE,VAULT_VELOCITY_ACTIVE,VAULT_EXTREME_BLUR_ACTIVE,VAULT_TRUE_BLUR_ACTIVE,VAULT_MANTA_REBIRTH_ACTIVE,VAULT_JUMP_VERSION,chamberProfileAt} from "./tracks/vault/vault-mega-jump.mjs";
 import {createTunnelProfileSampler} from "./tunnel/profile-sampler.mjs";
 import {createRaceLifecycle} from "./core/race-lifecycle.mjs";
 import {createRuntimeLifetime} from "./core/runtime-lifetime.mjs";
@@ -1089,12 +1089,14 @@ function releaseShip(){
   for(const [geometry,listener] of watches)geometry.removeEventListener("dispose",listener);
  }
 }
+// Only the explicit browser smoke probe may override the release's hull.
+let mantaQaOverride=null;
 function makeShip(id=fleetProgress.selected){
  // Ship and engine visuals can change; the real physical state is untouched.
  releaseShip();
  shipGlow=neonKit.ship;
  const craft=id==="stingray"?
-   buildStingrayEvo(THREE,shipGlow):buildPremiumMantaBlade(THREE,shipGlow);
+   buildStingrayEvo(THREE,shipGlow):(mantaQaOverride??VAULT_MANTA_REBIRTH_ACTIVE)?buildMantaVisualRebirth(THREE,shipGlow):buildPremiumMantaBlade(THREE,shipGlow);
  activeCraft=craft;activeShipId=id;ship=craft.ship;
  // A stable SINGLE transform for the full craft (including animated tail
  // and attached engine FX), never evaluated from wing-road intersections.
@@ -1159,7 +1161,7 @@ function refreshHangar(){
   art.heroApplied?"HERO 4.0 · PANSARSVANS · STABIL SVÄNG":
   art.status==="loading"?"HERO-MODELL · LADDAR 3D-GEOMETRI":
   "Segmenterad mekanisk svans · reagerar på styrning, GRIP och boost":
-  "Hårdskuren interceptor · dubbla motorer";
+  VAULT_MANTA_REBIRTH_ACTIVE?"GRAPHITE REBIRTH · SKULPTERAT SKROV · DUBBLA MOTORER":"Hårdskuren interceptor · dubbla motorer";
  for(const item of FLEET){
   const card=document.querySelector('[data-fleet-card="'+item.id+'"]');
   const status=document.querySelector('[data-fleet-status="'+item.id+'"]');
@@ -1641,7 +1643,7 @@ function initScene(){
  });
  neonPipeline.resize(innerWidth,innerHeight);
  // Selective HDR velocity pass between SMAA and OutputPass; off when idle.
- velocityCinematography=VAULT_TRUE_BLUR_ACTIVE?installTrueVelocityMotionBlur(THREE,neonPipeline,camera,{mode:velocityExperience.motionBlur}):velocityExperience?installAdaptiveVelocityBlur(THREE,neonPipeline,{mode:velocityExperience.motionBlur,extremeEnabled:VAULT_EXTREME_BLUR_ACTIVE}):installVelocityCinematography(THREE,neonPipeline,{
+ velocityCinematography=velocityExperience?installTrueVelocityMotionBlur(THREE,neonPipeline,camera,{mode:velocityExperience.motionBlur}):installVelocityCinematography(THREE,neonPipeline,{
   enabled:velocityCinemaEnabled,lowMemory:limitedMemory
  });
  velocityCinematography.resize?.(innerWidth,innerHeight,neonPipeline.internalPixelRatio);
@@ -4746,7 +4748,8 @@ function exportAudit(){
         openTrailingCenter:MANTA_IDENTITY.openTrailingCenter,
         visualBeamMeters:MANTA_IDENTITY.visualBeamMeters,
         extraDynamicLights:engineLights.length-1,
-        geometryBudgetTriangles:MANTA_IDENTITY.maxGeometryTriangles,
+        geometryBudgetTriangles:activeCraft?.spec?.maxGeometryTriangles??MANTA_IDENTITY.maxGeometryTriangles,
+        visualVersion:activeCraft?.spec?.version??MANTA_IDENTITY.version,
         unchangedHandling:!MANTA_IDENTITY.changesFlightPhysics},
       livingWake:{...LIVING_WAKE,...livingWake?.stats()},
       reactiveWingFlaps:{...REACTIVE_FLAPS,...reactiveWingFlaps?.stats()},
@@ -4878,7 +4881,7 @@ function syncSmartSettings(){
  $('frame-cap').value=String(smartPerformance.fps);$('graphics-quality').value=smartPerformance.quality;
  $('extended-diagnostics').checked=smartPerformance.diagnostics;$('section-culling').checked=smartPerformance.sections;
  if(advancedGpu){$('advanced-gpu-settings').classList.remove('hidden');$('bloom-resolution').value=advancedGpu.bloom;$('exterior-backdrop').checked=advancedGpu.exterior;$('distant-detail-lod').checked=advancedGpu.detailLod;$('tunnel-occlusion').checked=advancedGpu.occlusion;}
- if(velocityExperience){$('velocity-experience-settings').classList.remove('hidden');for(const option of $('motion-blur').options){if(option.value==='ultra'||option.value==='extreme'){option.hidden=!VAULT_EXTREME_BLUR_ACTIVE;option.disabled=!VAULT_EXTREME_BLUR_ACTIVE;}}$('motion-blur').value=velocityExperience.motionBlur;$('adaptive-velocity-camera').checked=velocityExperience.adaptiveCamera;if(VAULT_TRUE_BLUR_ACTIVE)$('motion-blur-hint').textContent='Depth-based camera motion blur. Zero at launch speed, progressively stronger at speed. Off bypasses the blur pass.';}
+ if(velocityExperience){$('velocity-experience-settings').classList.remove('hidden');for(const option of $('motion-blur').options){if(option.value==='ultra'||option.value==='extreme'){option.hidden=!VAULT_EXTREME_BLUR_ACTIVE;option.disabled=!VAULT_EXTREME_BLUR_ACTIVE;}}$('motion-blur').value=velocityExperience.motionBlur;$('adaptive-velocity-camera').checked=velocityExperience.adaptiveCamera;$('motion-blur-hint').textContent='Depth-based camera motion blur. Zero at launch speed, progressively stronger at speed. Off bypasses the blur pass.';}
 }
 function installControls(){
  if(smartPerformance){
@@ -4973,7 +4976,7 @@ try{
  // Wire the buttons before costly WebGL scene construction.
  installFullscreen();
  installControls();
- if(isVault()&&["0.29.0","0.29.1","0.29.2","0.29.3","0.29.3.1","0.29.4","0.29.4.1","0.29.4.2"].includes(new URLSearchParams(location.search).get("v"))&&new URLSearchParams(location.search).get("vaultJump")!=="0"&&
+ if(isVault()&&["0.29.0","0.29.1","0.29.2","0.29.3","0.29.3.1","0.29.4","0.29.4.1","0.29.4.2","0.29.5"].includes(new URLSearchParams(location.search).get("v"))&&new URLSearchParams(location.search).get("vaultJump")!=="0"&&
   (!VAULT_MEGA_JUMP_ACTIVE||!trueSharedVaultEnabled||!authoritativeDeck028911||GAPS.length!==1))
   throw Error("0.29.0 requested but physical Mega Jump unavailable");
  runtimeLifetime.bind(window,UI.canvas);
@@ -5049,51 +5052,40 @@ try{
    return {settings:{...smartPerformance},full:full.work,culled:culled.work,visibility:culled.visibility,pixelsEqual:full.pixels===culled.pixels,
     physicsHz:120,pacing:presentationGate.stats()};
   };
-  if(velocityExperience&&!VAULT_TRUE_BLUR_ACTIVE)window.__skyshiftVelocityExperienceProbe=()=>{
-   // Exact same actual scene/camera, isolated boost input to the visual
-   // controller only. Readback is QA; never part of normal game frames.
-   const canvas=document.createElement('canvas');canvas.width=renderer.domElement.width;canvas.height=renderer.domElement.height;
-   const ctx=canvas.getContext('2d',{willReadFrequently:true});
-   const prior=neonPipeline.bloomResolutionScale,original=neonPipeline.originalBloomResolutionScale;
-   const saved=velocityCinematography.stats(),speedMultiplier=flight.currentSpeed/TRIAL.startSpeed;
-   camera.updateMatrixWorld(true);ship.getWorldPosition(blurCraftProjection).project(camera);
-   const cx=blurCraftProjection.x*.5+.5,cy=blurCraftProjection.y*.5+.5;
-   const render=(mode,boost,scale)=>{
-    velocityCinematography.setMode(mode);
-    velocityCinematography.update({playing:true,speedMultiplier,boostMultiplier:boost,craftX:cx,craftY:cy,snap:true});
-    neonPipeline.setBloomResolutionScale(scale);
-    renderer.info.reset();
+  if(VAULT_MANTA_REBIRTH_ACTIVE)window.__skyshiftMantaVisualProbe=()=>{
+   if(activeShipId!=="manta")throw Error("Manta visual proof requires equipped Manta");
+   const pose={position:ship.position.clone(),quaternion:ship.quaternion.clone(),scale:ship.scale.clone()};
+   const lights=engineLights.map(l=>({color:l.color.clone(),intensity:l.intensity}));
+   const oldOverride=mantaQaOverride,playing=uiState.mode==="playing",priorMode=velocityCinematography.stats().mode;
+   const canvas=document.createElement("canvas");canvas.width=renderer.domElement.width;canvas.height=renderer.domElement.height;
+   const ctx=canvas.getContext("2d",{willReadFrequently:true});
+   const mount=rebirth=>{
+    mantaQaOverride=rebirth;makeShip("manta");
+    ship.position.copy(pose.position);ship.quaternion.copy(pose.quaternion);ship.scale.copy(pose.scale);
+    engineLights.forEach((l,i)=>{l.color.copy(lights[i].color);l.intensity=lights[i].intensity;});
+    ship.updateMatrixWorld(true);tunnelBlackout?.apply(flight.s);
+   };
+   const capture=rebirth=>{
+    mount(rebirth);renderer.info.reset();
     try{
-     trackVisibility.begin(camera,true);spaceBackdrop.setVisible(false);neonPipeline.render(0);
+     trackVisibility.begin(camera,playing);spaceBackdrop.setVisible(!playing||advancedGpu.exterior);neonPipeline.render(0);
      ctx.drawImage(renderer.domElement,0,0);
-     return {data:ctx.getImageData(0,0,canvas.width,canvas.height).data,png:canvas.toDataURL(),work:{...renderer.info.render},blur:velocityCinematography.stats(),bloom:neonPipeline.bloomResolution()};
+     let hullCalls=0,hullTriangles=0,pbr=0,pmrem=0;
+     for(const m of activeCraft.polishSurfaces??[]){if(m.material?.isMeshPhysicalMaterial||m.material?.isMeshStandardMaterial){pbr++;if(m.material.envMap)pmrem++;}}
+     for(const m of ship.children){if(!m.isMesh)continue;hullCalls++;hullTriangles+=(m.geometry.index?.count??m.geometry.attributes.position.count)/3;}
+     return {data:ctx.getImageData(0,0,canvas.width,canvas.height).data,png:canvas.toDataURL(),work:{...renderer.info.render},
+      spec:activeCraft.spec,polish:activeCraft.polishStats(),hullCalls,hullTriangles,pbr,pmrem,flaps:reactiveWingFlaps.stats(),sockets:activeCraft.engineSockets.map(s=>[s.x,s.y,s.z])};
     }finally{spaceBackdrop.setVisible(true);trackVisibility.end();}
    };
-   const summarize=(base,next)=>{
-    let changed=0,centerChanged=0,centerTotal=0,sum=0;
-    for(let i=0;i<base.data.length;i+=4){
-     const x=(i/4%canvas.width+.5)/canvas.width,y=1-(Math.floor(i/4/canvas.width)+.5)/canvas.height;
-     const d=Math.max(Math.abs(base.data[i]-next.data[i]),Math.abs(base.data[i+1]-next.data[i+1]),Math.abs(base.data[i+2]-next.data[i+2]));
-     sum+=d;changed+=Number(d>2);
-     if(Math.abs(x-.5)<.09&&y<.60){centerTotal++;centerChanged+=Number(d>2);}
-    }
-    const {data,...rest}=next;return {...rest,difference:{fractionOver2:changed/(base.data.length/4),centerFractionOver2:centerChanged/Math.max(1,centerTotal),meanMaxChannel:sum/(base.data.length/4)}};
-   };
    try{
-    const base=render('off',1,original),high=summarize(base,render('high',1,original)),
-     boost=summarize(base,render('high',1.4,original)),bloom65=summarize(base,render('high',1.4,.65));
-    const extra=VAULT_EXTREME_BLUR_ACTIVE?{
-     ultra:summarize(base,render('ultra',1,original)),
-     extreme:summarize(base,render('extreme',1,original)),
-     extremeBoost:summarize(base,render('extreme',1.4,original)),
-     extremeBloom65:summarize(base,render('extreme',1.4,.65))
-    }:{};
-    const {data,...off}=base;
-    return {off,high,boost,bloom65,...extra,speedMultiplier,settings:{...velocityExperience},camera:velocityExperienceAudit().camera,
-     referenceFov:{mobile:adaptiveVelocityFov(75,780/360,speedMultiplier),desktop:adaptiveVelocityFov(75,16/9,speedMultiplier)}};
+    velocityCinematography.setMode("off");
+    const before=capture(false),after=capture(true);
+    let changed=0;for(let i=0;i<before.data.length;i+=4)changed+=Number(Math.max(Math.abs(before.data[i]-after.data[i]),Math.abs(before.data[i+1]-after.data[i+1]),Math.abs(before.data[i+2]-after.data[i+2]))>2);
+    const strip=({data,...row})=>row;
+    return {mode:uiState.mode,before:strip(before),after:strip(after),fractionOver2:changed/(before.data.length/4)};
    }finally{
-    neonPipeline.setBloomResolutionScale(prior);velocityCinematography.setMode(saved.mode);
-    velocityCinematography.update({playing:uiState.mode==='playing',speedMultiplier,boostMultiplier:Math.max(flight.boostMultiplier,flight.landingBoostMultiplier),craftX:cx,craftY:cy,snap:true});
+    mantaQaOverride=oldOverride;
+    velocityCinematography.reset();velocityCinematography.setMode(priorMode);
    }
   };
   if(VAULT_TRUE_BLUR_ACTIVE)window.__skyshiftTrueVelocityProbe=()=>{

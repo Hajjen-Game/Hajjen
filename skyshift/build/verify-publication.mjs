@@ -31,7 +31,7 @@ async function verify(){
    cache.push({path:f.path,cacheControl:warm.cache,etag:warm.etag});
   }
  }
- for(const path of ['skyshift/','skyshift/?track=vault&v=0.28.9.7','skyshift/?track=vault&v=0.29.0&vaultJump=1','skyshift/?track=vault&v=0.29.1&vaultJump=1','skyshift/?track=vault&v=0.29.2&vaultJump=1','skyshift/?track=vault&v=0.29.3&vaultJump=1','skyshift/?track=vault&v=0.29.3.1&vaultJump=1','skyshift/?track=vault&v=0.29.4&vaultJump=1','skyshift/?track=vault&v=0.29.4.1&vaultJump=1','skyshift/?track=vault&v=0.29.4.2&vaultJump=1','skyshift/?track=aurora&v=0.26.5','skyshift/?v=0.26.5']){
+ for(const path of ['skyshift/','skyshift/?track=vault&v=0.28.9.7','skyshift/?track=vault&v=0.29.0&vaultJump=1','skyshift/?track=vault&v=0.29.1&vaultJump=1','skyshift/?track=vault&v=0.29.2&vaultJump=1','skyshift/?track=vault&v=0.29.3&vaultJump=1','skyshift/?track=vault&v=0.29.3.1&vaultJump=1','skyshift/?track=vault&v=0.29.4&vaultJump=1','skyshift/?track=vault&v=0.29.4.1&vaultJump=1','skyshift/?track=vault&v=0.29.4.2&vaultJump=1','skyshift/?track=vault&v=0.29.5&vaultJump=1','skyshift/?track=aurora&v=0.26.5','skyshift/?v=0.26.5']){
   assert.equal(sha((await get(path)).body),expected.production.find(f=>f.path==='skyshift/index.html').sha256,path+' route');
  }
  console.log('SKYSHIFT_EF03_PUBLICATION '+JSON.stringify({base:base.href,commit:actual.commit,verified:entries.length,cache}));

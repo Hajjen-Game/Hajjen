@@ -522,3 +522,36 @@ test('0.29.8.1 countdown uses visible wall time at 1 FPS and normal frame rates'
  assert.match(source,/if\(countdownFrameReady\)\{\s*tickRaceCountdown\(rawDt\);\s*if\(uiState.mode==="countdown"\)return;/);
  assert.match(source,/if\(uiState.mode==="countdown"&&!countdownFrameReady\)\{\s*countdownFrameReady=true;/);
 });
+
+import {createRaceHaptics,readHapticMode,saveHapticMode,HAPTIC_PATTERNS} from '../../core/race-haptics.mjs';
+test('haptics maps authoritative physics results to distinct prioritized patterns, with bounded wall pulses',()=>{
+ let time=0;const calls=[];const h=createRaceHaptics({mode:'standard',now:()=>time,vibrate:p=>{calls.push(p);return true;}});
+ h.observe({railContactStarted:true,railContact:true});
+ assert.deepEqual(calls,[HAPTIC_PATTERNS.wall]);
+ for(let i=0;i<48;i++){time+=1000/120;h.observe({railContact:true});}
+ assert.equal(calls.length,1);
+ time=451;h.observe({railContact:true});assert.deepEqual(calls.at(-1),HAPTIC_PATTERNS.wall);
+ time=460;h.observe({boostActivated:'main'});assert.deepEqual(calls.at(-1),HAPTIC_PATTERNS.pad);
+ time=470;h.observe({railContact:true});assert.equal(calls.length,3);
+ time=500;h.observe({landed:true,landingBoostAwarded:true});assert.deepEqual(calls.at(-1),HAPTIC_PATTERNS.trick);
+ time=510;h.observe({crashed:true,landed:true,landingBoostAwarded:true,boostActivated:'main'});assert.deepEqual(calls.at(-1),HAPTIC_PATTERNS.fall);
+ time=520;h.observe({boostActivated:'main'});assert.equal(calls.length,5,'fall has priority');
+ time=1000;h.observe({landed:true});assert.deepEqual(calls.at(-1),HAPTIC_PATTERNS.landing);
+ h.stop();assert.equal(calls.at(-1),0);
+ const count=calls.length;h.observe({crashed:true},false);assert.equal(calls.length,count);
+ h.setMode('off');h.observe({crashed:true});assert.equal(calls.length,count);
+ assert.equal(h.stats().accepted.fall,1);
+});
+test('haptics settings persist, patterns scale duration not hardware amplitude, unsupported or blocked vibration is safe',()=>{
+ const map=new Map(),storage={getItem:k=>map.get(k),setItem:(k,v)=>map.set(k,v)};
+ assert.equal(readHapticMode(storage),'standard');assert.equal(saveHapticMode(storage,'subtle'),'subtle');assert.equal(readHapticMode(storage),'subtle');
+ assert.equal(saveHapticMode(storage,'invalid'),'standard');
+ for(const [mode,factor] of [['subtle',.6],['intense',1.4]]){
+  const calls=[];const h=createRaceHaptics({mode,now:()=>0,vibrate:p=>{calls.push(p);return true;}});
+  h.observe({crashed:true});assert.deepEqual(calls[0],HAPTIC_PATTERNS.fall.map((v,i)=>i%2?v:Math.round(v*factor)));
+ }
+ const unsupported=createRaceHaptics({now:()=>0});assert.equal(unsupported.supported,false);assert.equal(unsupported.observe({crashed:true}),false);
+ const blocked=createRaceHaptics({now:()=>0,vibrate:()=>{throw Error('blocked');}});assert.equal(blocked.observe({crashed:true}),false);blocked.stop();
+ const source=readFileSync(new URL('../../game-v0210.mjs',import.meta.url),'utf8');
+ assert.match(source,/const result=stepFlight\(flight,dt,input\);\s*haptics\?\.observe\(result,!document.hidden\)/);
+});

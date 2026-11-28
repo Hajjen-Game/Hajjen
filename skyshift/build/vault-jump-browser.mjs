@@ -20,7 +20,11 @@ try{
  for(const memory of live?[8]:[8,4]){
   const context=await browser.newContext(memory===4?{viewport:{width:780,height:360},hasTouch:true,isMobile:true,deviceScaleFactor:2}:{viewport:{width:1280,height:720}});
   try{
-   await context.addInitScript(m=>Object.defineProperty(navigator,'deviceMemory',{configurable:true,get:()=>m}),memory);
+   await context.addInitScript(m=>{
+    Object.defineProperty(navigator,'deviceMemory',{configurable:true,get:()=>m});
+    // Browser integration tests validate API wiring, not a physical motor.
+    Object.defineProperty(navigator,'vibrate',{configurable:true,value:()=>true});
+   },memory);
    const page=await context.newPage(),errors=[];
    page.on('pageerror',e=>errors.push(e.message));page.on('crash',()=>errors.push('renderer crash'));
    page.on('console',m=>{if(m.type()==='error'&&/THREE.WebGLProgram|shader error|INVALID_OPERATION|context lost|startup failed/i.test(m.text()))errors.push(m.text());});
@@ -35,6 +39,8 @@ try{
    assert.equal(await page.evaluate(()=>performance.getEntriesByType('resource').some(x=>/\/(?:game-v0210|three-engine)-[^/]+\.js(?:\?|$)/.test(x.name))),false,'cold menu cannot fetch game or Three.js bundle');
    await page.locator('#menu-settings-btn').click();
    await page.locator('#frame-cap').selectOption('90');
+   assert.equal(await page.locator('#haptic-mode').inputValue(),'standard');
+   await page.locator('#haptic-mode').selectOption('subtle');
    await page.locator('#settings-back-btn').click();
    await page.locator('#hangar-btn').click();
    assert.equal(await page.locator('#fleet-preview-mode').textContent(),'SHIP SELECTION');
@@ -112,6 +118,8 @@ try{
    assert.equal(mantaHangar.mode,'hangar');
    await page.locator('#hangar-back').click();
    await page.locator('#menu-settings-btn').click();
+   assert.equal(await page.locator('#haptic-mode').inputValue(),'subtle');
+   await page.locator('#haptic-mode').selectOption('standard');
    await page.locator('#frame-cap').selectOption('90');
    await page.locator('#graphics-quality').selectOption('fixed');
    await page.locator('#extended-diagnostics').check();

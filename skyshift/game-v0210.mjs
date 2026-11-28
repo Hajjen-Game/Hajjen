@@ -12,6 +12,7 @@ import {VAULT_MEGA_JUMP,VAULT_MEGA_JUMP_ACTIVE,VAULT_JUMP_POLISH_ACTIVE,VAULT_CO
 import {createTunnelProfileSampler} from "./tunnel/profile-sampler.mjs";
 import {createRaceLifecycle} from "./core/race-lifecycle.mjs";
 import {createRaceCountdown} from "./core/race-countdown.mjs";
+import {createRaceHaptics,readHapticMode,saveHapticMode,syncHapticSettings} from "./core/race-haptics.mjs";
 import {createRuntimeLifetime} from "./core/runtime-lifetime.mjs";
 import {collectObjectResources,releaseResourceDifference} from "./core/resource-ownership.mjs";
 import {installFlightTuningPanel,installRaceQa} from "./qa/race-probes.mjs";
@@ -745,8 +746,9 @@ const runtimeLifetime=createRuntimeLifetime({
  requestFrame:callback=>requestAnimationFrame(callback),
  cancelFrame:id=>cancelAnimationFrame(id),frame:loop,
  resetClock:()=>{worldClock.last=performance.now();worldClock.accum=0;},
- onSuspend:()=>{if(uiState.mode==="playing")pause();},
+ onSuspend:()=>{haptics?.stop();if(uiState.mode==="playing")pause();},
  onContextLost:()=>{
+  haptics?.stop();
   if(uiState.mode==="playing")pause();
   sceneReady=false;shipArtController.dispose();
   UI.error.classList.remove("hidden");
@@ -756,6 +758,7 @@ const runtimeLifetime=createRuntimeLifetime({
  // the same boot path rather than reusing invalid GPU handles.
  onContextRestored:()=>location.reload(),
  onDispose:({contextLost})=>{
+  haptics?.stop();
   sceneReady=false;shipArtController.dispose();
   const cleanup=[()=>clearTimeout(uiState.bannerTimeout),()=>clearTimeout(uiState.toastTimeout),
    ()=>fullscreenController?.destroy(),()=>clearInput(),
@@ -856,6 +859,7 @@ let tunnelInside=false,tunnelEntries=0,tunnelExits=0,tunnelSeconds=0,tunnelMaxIn
 let waveSmokeHold=false;
 
 const countdownEnabled=VAULT_MEGA_JUMP_ACTIVE&&VAULT_JUMP_VERSION==="0.29.8.1";
+const haptics=countdownEnabled?createRaceHaptics({mode:window.__skyshiftBoot?.menuSnapshot?.haptics??readHapticMode(fleetStorage()),vibrate:typeof navigator.vibrate==="function"?pattern=>navigator.vibrate(pattern):null,now:()=>performance.now()}):null;
 const raceCountdown=createRaceCountdown();
 const countdownProofFrames=[];
 let countdownFrameReady=false;
@@ -1290,6 +1294,7 @@ function endChallengeRun(won){
   unlocked:update.newlyUnlocked});
 }
 function openHangar(){
+ haptics?.stop();
  if(!sceneReady||!["menu","ended"].includes(uiState.mode))return;
  previewShipId=fleetProgress.selected;
  if(activeShipId!==previewShipId)makeShip(previewShipId);
@@ -3854,6 +3859,7 @@ function startImmersiveTrial(challenge=null){
 }
 function clearInput(){clearRaceInput(UI,uiState);}
 function resetFlight(){
+ haptics?.reset();
  wakeSmokePath=null;completedSparkStats=null;
  hudBudget.reset();domWrites.reset();
  flight=newFlightState();previousSector=0;lastRailLog=0;
@@ -3955,8 +3961,8 @@ function tickRaceCountdown(dt){
   presentationGate.reset();
  }
 }
-function returnToMainMenu(){raceLifecycle.returnToMainMenu();}
-function pause(){raceLifecycle.pause();if(countdownEnabled&&uiState.mode==="paused"){raceCountdown.cancel();showRaceCountdown("");}}
+function returnToMainMenu(){haptics?.stop();raceLifecycle.returnToMainMenu();}
+function pause(){haptics?.stop();raceLifecycle.pause();if(countdownEnabled&&uiState.mode==="paused"){raceCountdown.cancel();showRaceCountdown("");}}
 function resume(){raceLifecycle.resume();}
 function endRun(won){
  if(currentChallenge){endChallengeRun(won);return;}
@@ -4040,6 +4046,7 @@ function integrate(dt){
  const input=readRaceInput(uiState);
  const {steer,grip:gripHeld}=input;
  const result=stepFlight(flight,dt,input);
+ haptics?.observe(result,!document.hidden);
  recordRealGhostPose();
  // One real 120Hz step. Read steering/GRIP/contact, never rewrite physics.
  const cleanFlow=observeRacingStep(racingExperience,flight,dt,result);
@@ -4206,7 +4213,7 @@ function integrate(dt){
  if(insideNow)tunnelSeconds+=dt;
  maybeShowCue();
  const outcome=raceOutcome(flight,result,currentChallenge);
- if(outcome!==null)endRun(outcome);
+ if(outcome!==null){if(!result.crashed)haptics?.stop();endRun(outcome);}
 }
 function updatePalette(dt){
  // Every visual material receives the same single-pass presentation view.
@@ -4569,6 +4576,7 @@ function exportAudit(){
    ...(endurance?{enduranceAudit:endurance.report()}:{}),
    fullscreen:{...fullscreenController?.audit(),bootHistory:window.__skyshiftBoot?.fullscreenHistory??[]},
    ...(velocityExperience?{velocityExperience:velocityExperienceAudit()}:{}),
+   ...(haptics?{haptics:haptics.stats()}:{}),
    ...(advancedGpu?{advancedGpu:{...advancedGpu,frame:lastAdvancedGpuFrame,originalBloomScale:neonPipeline.originalBloomResolutionScale}}:{}),
    ...(smartPerformance?{smartPerformance:{...smartPerformance,physicsHz:120,visibility:trackVisibility?.stats(),pacing:presentationGate.stats(),
     meanTrianglesPerRenderedFrame:renderSamples?triangleTotal/renderSamples:null,
@@ -4955,6 +4963,7 @@ function exportAudit(){
  downloadRaceAudit(data,perfSettings.preset,{Blob,URL,document,setTimeout});
 }
 function syncSmartSettings(){
+ if(haptics)syncHapticSettings(document,haptics.mode,haptics.supported);
  const root=$('smart-performance-settings');root.classList.remove('hidden');UI.settings.classList.add('smart-settings');
  $('frame-cap').value=String(smartPerformance.fps);$('graphics-quality').value=smartPerformance.quality;
  $('extended-diagnostics').checked=smartPerformance.diagnostics;$('section-culling').checked=smartPerformance.sections;
@@ -4962,6 +4971,14 @@ function syncSmartSettings(){
  if(velocityExperience){$('velocity-experience-settings').classList.remove('hidden');for(const option of $('motion-blur').options){if(option.value==='ultra'||option.value==='extreme'){option.hidden=!VAULT_EXTREME_BLUR_ACTIVE;option.disabled=!VAULT_EXTREME_BLUR_ACTIVE;}}$('motion-blur').value=velocityExperience.motionBlur;$('adaptive-velocity-camera').checked=velocityExperience.adaptiveCamera;$('motion-blur-hint').textContent='Depth-based camera motion blur. Zero at launch speed, progressively stronger at speed. Off bypasses the blur pass.';}
 }
 function installControls(){
+ if(haptics){
+  syncHapticSettings(document,haptics.mode,haptics.supported);
+  runtimeLifetime.listenActive($("haptic-mode"),"change",()=>{
+   if(uiState.mode!=="settings")return;
+   haptics.setMode(saveHapticMode(fleetStorage(),$("haptic-mode").value));
+   syncHapticSettings(document,haptics.mode,haptics.supported);
+  });
+ }
  if(smartPerformance){
   syncSmartSettings();
   const apply=()=>{
@@ -5059,11 +5076,12 @@ try{
   (!VAULT_MEGA_JUMP_ACTIVE||!trueSharedVaultEnabled||!authoritativeDeck028911||GAPS.length!==1))
   throw Error("0.29.0 requested but physical Mega Jump unavailable");
  runtimeLifetime.bind(window,UI.canvas);
- if(countdownEnabled)runtimeLifetime.listen(document,"visibilitychange",()=>{
-  if(uiState.mode==="countdown")worldClock.last=performance.now();
- });
  await initScene();
  assertStartupLifetime();
+ if(countdownEnabled)runtimeLifetime.listen(document,"visibilitychange",()=>{
+  if(document.hidden)haptics?.stop();
+  if(uiState.mode==="countdown")worldClock.last=performance.now();
+ });
  installFlightTuningPanel({document,location,flightTuning,cinematicTuning});
  resetFlight();
  installRaceQa({window,document,location,performance,ctx:{get flight(){return flight},

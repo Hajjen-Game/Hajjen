@@ -144,6 +144,12 @@
           <label class="performance-check"><input id="extended-diagnostics" type="checkbox"> Extended GPU diagnostics (if supported)</label>
           <label class="performance-check"><input id="section-culling" type="checkbox" checked> Intelligent section rendering</label>
           <p class="settings-hint">Same graphics and 120 Hz physics. Settings are saved on this device.</p>
+          <div id="haptic-settings" class="hidden">
+            <div class="settings-subhead">HAPTIC FEEDBACK</div>
+            <label for="haptic-mode">VIBRATION</label>
+            <select id="haptic-mode"><option value="off">Off</option><option value="subtle">Subtle</option><option value="standard" selected>Standard</option><option value="intense">Intense</option></select>
+            <p id="haptic-hint" class="settings-hint">Wall contact, falls, boost pads, landings and trick rewards.</p>
+          </div>
           <div id="advanced-gpu-settings" class="hidden">
             <div class="settings-subhead">ADVANCED GPU</div>
             <label for="bloom-resolution">BLOOM RESOLUTION</label>

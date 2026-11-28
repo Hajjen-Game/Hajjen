@@ -122,6 +122,33 @@ test('pinned archived ship source relocations preserve exact source identity',()
   // Undo only the exact reviewed additions, then verify both original hashes.
   // All other edits still fail the historic identity check.
   const approved={
+   // 0.29.5.2: reverse only the exact reviewed exhaust changes; retain the archived identity.
+   'skyshift/ships/engine-trails-v01346.mjs':[
+    [
+     "  emitterCount:ENGINE_TRAIL_SPEC.emitters};\n}\nexport function createTwinEngineFX(THREE,scene,ship,edgeMaterial=null){\n // 4 graduated quads per emitter, packed into a single reused BufferGeometry.\n const position=new Float32Array(ENGINE_TRAIL_SPEC.emitters*",
+     "  emitterCount:ENGINE_TRAIL_SPEC.emitters};\n}\n// A single camera-facing procedural mesh, with two independently rooted quads.\n// UV x spans the plume; UV y runs from the real nozzle to the fading tail.\nexport const ENERGY_PLUME_SPEC=Object.freeze({version:\"0.29.5.2\",emitters:2,triangles:4,drawCalls:1,extraLights:0,extraParticles:0,extraPasses:0});\nexport function energyPlumeGeometry(){\n const position=[],uv=[];\n for(const socket of ENGINE_SOCKETS)for(const [x,y] of [[0,0],[1,0],[1,1],[0,0],[1,1],[0,1]]){\n  position.push(socket.x,socket.y,socket.z+.04);uv.push(x,y);\n }\n return {position,uv};\n}\nexport function energyPlumeProfile(state){\n return {length:state.length,width:.34+.10*state.speedSignal+.12*state.flow,\n  strength:.72+.62*state.speedSignal+1.15*state.flow+.35*state.ignition};\n}\nconst plumeVertex=`\n uniform float uLength,uWidth,uBias;\n varying vec2 vPlume;\n void main(){\n  vPlume=uv;\n  float t=uv.y;\n  float signSide=sign(position.x);\n  vec3 center=position+vec3(-signSide*uBias*t*.7,0.,uLength*t*(1.-signSide*uBias));\n  vec3 p=(modelViewMatrix*vec4(center,1.)).xyz;\n  vec3 axis=normalize(mat3(modelViewMatrix)*vec3(0.,0.,1.));\n  vec3 right=cross(axis,normalize(-p));\n  float sideLength=length(right);\n  right=sideLength>.001?right/sideLength:vec3(1.,0.,0.);\n  float width=uWidth*(.72+.35*sin(t*3.14159265))*mix(1.,.32,t);\n  p+=right*(uv.x*2.-1.)*width*length(mat3(modelViewMatrix)*vec3(1.,0.,0.));\n  gl_Position=projectionMatrix*vec4(p,1.);\n }`;\nconst plumeFragment=`\n uniform vec3 uTint;\n uniform float uTime,uStrength,uOpacity,uFlow;\n varying vec2 vPlume;\n void main(){\n  float t=vPlume.y;\n  float ripple=sin(t*35.-uTime*(15.+8.*uFlow))*.045;\n  float x=abs(vPlume.x*2.-1.+ripple*t);\n  float tail=1.-smoothstep(.20,1.,t);\n  float edge=1.-smoothstep(.18,.98,x);\n  float core=(1.-smoothstep(.055,.29,x))*(1.-smoothstep(.08,.72,t));\n  float pulse=.88+.12*sin(t*39.-uTime*20.);\n  float cells=.89+.11*cos(t*25.-uTime*12.);\n  vec3 tint=mix(uTint,vec3(.17,.48,1.),.10);\n  vec3 energy=tint*(1.55*edge*pulse)+mix(tint,vec3(.90,.98,1.),.88)*core*3.3*cells;\n  float alpha=tail*edge*min(1.,uOpacity*1.65);\n  gl_FragColor=vec4(energy*uStrength,alpha);\n }`;\nexport function createTwinEngineFX(THREE,scene,ship,edgeMaterial=null,{energyPlumes=false}={}){\n // 4 graduated quads per emitter, packed into a single reused BufferGeometry.\n const position=new Float32Array(ENGINE_TRAIL_SPEC.emitters*"
+    ],
+    [
+     "  .setUsage(THREE.DynamicDrawUsage));\n geometry.boundingSphere=new THREE.Sphere(new THREE.Vector3(0,0,6),18);\n const material=new THREE.MeshBasicMaterial({\n  color:0xffffff,vertexColors:true,transparent:true,\n  opacity:ENGINE_TRAIL_SPEC.baseOpacity,",
+     "  .setUsage(THREE.DynamicDrawUsage));\n geometry.boundingSphere=new THREE.Sphere(new THREE.Vector3(0,0,6),18);\n let material=new THREE.MeshBasicMaterial({\n  color:0xffffff,vertexColors:true,transparent:true,\n  opacity:ENGINE_TRAIL_SPEC.baseOpacity,"
+    ],
+    [
+     "  blending:THREE.AdditiveBlending\n });\n const ribbons=new THREE.Mesh(geometry,material);\n ribbons.name=\"Two graduated chromatic + white-core wing-engine streaks\";\n ribbons.frustumCulled=false;ship.add(ribbons);\n const impactPositions=[];\n for(let i=0;i<8;i++){",
+     "  blending:THREE.AdditiveBlending\n });\n if(energyPlumes){\n  const plume=energyPlumeGeometry();\n  geometry.setAttribute(\"position\",new THREE.Float32BufferAttribute(plume.position,3));\n  geometry.deleteAttribute(\"color\");\n  geometry.setAttribute(\"uv\",new THREE.Float32BufferAttribute(plume.uv,2));\n  material.dispose();\n  material=new THREE.ShaderMaterial({\n   uniforms:{uLength:{value:2.55},uWidth:{value:.34},uBias:{value:0},\n    uTint:{value:new THREE.Color(0x43ddf0)},uTime:{value:0},uStrength:{value:.72},uOpacity:{value:.24},uFlow:{value:0}},\n   vertexShader:plumeVertex,fragmentShader:plumeFragment,\n   transparent:true,depthWrite:false,side:THREE.DoubleSide,forceSinglePass:true,\n   toneMapped:false,blending:THREE.AdditiveBlending\n  });\n }\n const ribbons=new THREE.Mesh(geometry,material);\n ribbons.name=\"Two graduated chromatic + white-core wing-engine streaks\";\n ribbons.frustumCulled=false;ribbons.visible=false;ship.add(ribbons);\n const impactPositions=[];\n for(let i=0;i<8;i++){"
+    ],
+    [
+     "   ribbons.visible=!!playing;\n   tint.setHex(sectorColor);\n   for(let i=0;i<ENGINE_SOCKETS.length;i++){\n    const emitter=ENGINE_SOCKETS[i];",
+     "   ribbons.visible=!!playing;\n   tint.setHex(sectorColor);\n   if(energyPlumes){\n    const p=energyPlumeProfile(state),u=material.uniforms;\n    u.uLength.value=p.length;u.uWidth.value=p.width;u.uBias.value=state.sideBias;\n    u.uTint.value.copy(tint);u.uTime.value=elapsed;u.uStrength.value=p.strength;\n    u.uOpacity.value=playing?state.opacity:0;u.uFlow.value=state.flow;\n   }else{\n   for(let i=0;i<ENGINE_SOCKETS.length;i++){\n    const emitter=ENGINE_SOCKETS[i];"
+    ],
+    [
+     "   geometry.attributes.color.needsUpdate=true;\n   material.opacity=playing?state.opacity:0;\n   if(edgeMaterial)edgeMaterial.opacity=.60+state.flow*.19+\n    Math.min(.035,Math.abs(state.sideBias)*.3);",
+     "   geometry.attributes.color.needsUpdate=true;\n   material.opacity=playing?state.opacity:0;\n   }\n   if(edgeMaterial)edgeMaterial.opacity=.60+state.flow*.19+\n    Math.min(.035,Math.abs(state.sideBias)*.3);"
+    ],
+    [
+     "   layersPerEmitter:ENGINE_TRAIL_SPEC.layersPerEmitter,\n   actualEmitters:ENGINE_SOCKETS.length,\n   lastLengthMeters:+lastState.length.toFixed(2),\n   scaleBaseline:{...baseScale},rootScaleOwnershipPreserved:true};},",
+     "   layersPerEmitter:ENGINE_TRAIL_SPEC.layersPerEmitter,\n   actualEmitters:ENGINE_SOCKETS.length,\n   energyPlumes,plumeDrawCalls:1,plumeTriangles:energyPlumes?4:16,visible:ribbons.visible,\n   plumeProfile:energyPlumes?energyPlumeProfile(lastState):null,\n   lastLengthMeters:+lastState.length.toFixed(2),\n   scaleBaseline:{...baseScale},rootScaleOwnershipPreserved:true};},"
+    ]
+   ],
    'skyshift/rendering/neon-v0111.mjs':[
     ['  bloomResolutionScale:bloomResolution.scale,','  get bloomResolutionScale(){return bloomResolution.scale;},\n  setBloomResolutionScale(scale){bloomResolution.setScale(scale);},\n  originalBloomResolutionScale:bloomScaleFor({lowMemory,forceFullBloom}),']
    ],
@@ -132,7 +159,7 @@ test('pinned archived ship source relocations preserve exact source identity',()
    ]
   };
   for(const [before,after] of [...(approved[f.newPath]??[])].reverse()){
-   assert.equal(destination.split(after).length-1,1,f.newPath+' exact approved 0.29.3.1 inverse anchor');
+   assert.equal(destination.split(after).length-1,1,f.newPath+' exact approved runtime extension inverse anchor');
    destination=destination.replace(after,before);
   }
   assert.equal(hash(destination),f.destinationSha,f.newPath+' recorded destination identity');

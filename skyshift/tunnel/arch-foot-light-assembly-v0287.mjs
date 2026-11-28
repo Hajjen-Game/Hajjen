@@ -68,7 +68,7 @@ export function buildArchFootAssembly0287(THREE,positionAt,{
 }={}){
  if(!THREE?.BufferGeometry||!THREE?.Float32BufferAttribute||
   typeof positionAt!=="function")throw Error("0.28.7 needs live source geometry and sampler");
- const lumP=[],lumC=[],mountP=[];
+ const lumP=[],lumC=[],mountP=[],arc=[];
  let fixtures=0,verticals=0,horizontals=0,glowCells=0;
  const p=(s,side,x,h)=>positionAt(clamp(s,.035,MAX),side*x,h);
  const floor=(s,side,x,up=.05)=>p(s,side,x,
@@ -82,7 +82,7 @@ export function buildArchFootAssembly0287(THREE,positionAt,{
  for(const portal of TUNNEL_PORTALS_0211){
   // Exactly the original portal phase: the source geometry and real
   // arch rib coincide, including modules near start/end boundaries.
-  const s=clamp(portal+1.08,.65,366.9);
+  const s=clamp(portal+1.08,.65,366.9),first=lumP.length/3;
   const wallX=Math.abs(tunnelProfilePoint0211(4,s,vaultHeightClassic)[0]);
   const rootX=wallX-.20;
   const tip=tunnelProfilePoint0211(5,s,vaultHeightClassic);
@@ -178,8 +178,11 @@ export function buildArchFootAssembly0287(THREE,positionAt,{
     glowCells++;
    }
   }
+  for(let i=first;i<lumP.length/3;i++)arc.push(s);
  }
- return {emitterGeometry:geometry(THREE,lumP,lumC),
+ const emitterGeometry=geometry(THREE,lumP,lumC);
+ emitterGeometry.setAttribute("colorWaveArc",new THREE.Float32BufferAttribute(arc,1));
+ return {emitterGeometry,
   mountGeometry:geometry(THREE,mountP,null),
   fixtures,verticals,horizontals,glowCells,
   emitterTriangles:lumP.length/9,mountTriangles:mountP.length/9,

@@ -1,3 +1,4 @@
+import {COLOR_WAVE_ACTIVE,COLOR_WAVE_PALETTES} from "./core/zone-wave.mjs";
 import {buildMantaVisualRebirth,MANTA_REBIRTH} from "./ships/manta-visual-rebirth.mjs";
 import {installTrueVelocityMotionBlur} from "./rendering/true-velocity-motion-blur.mjs";
 import {readVelocityExperience,saveVelocityExperience,adaptiveVelocityFov,horizontalFov} from "./core/velocity-experience-settings.mjs";
@@ -1096,7 +1097,7 @@ function makeShip(id=fleetProgress.selected){
  releaseShip();
  shipGlow=neonKit.ship;
  const craft=id==="stingray"?
-   buildStingrayEvo(THREE,shipGlow):(mantaQaOverride??VAULT_MANTA_REBIRTH_ACTIVE)?buildMantaVisualRebirth(THREE,shipGlow,{corrected:["0.29.5.1","0.29.5.2"].includes(mantaQaOverride??VAULT_JUMP_VERSION)}):buildPremiumMantaBlade(THREE,shipGlow);
+   buildStingrayEvo(THREE,shipGlow):(mantaQaOverride??VAULT_MANTA_REBIRTH_ACTIVE)?buildMantaVisualRebirth(THREE,shipGlow,{corrected:["0.29.5.1","0.29.5.2","0.29.6"].includes(mantaQaOverride??VAULT_JUMP_VERSION)}):buildPremiumMantaBlade(THREE,shipGlow);
  activeCraft=craft;activeShipId=id;ship=craft.ship;
  // A stable SINGLE transform for the full craft (including animated tail
  // and attached engine FX), never evaluated from wing-road intersections.
@@ -1120,7 +1121,7 @@ function makeShip(id=fleetProgress.selected){
  shipWhiteSpill?.attachShip(ship);
  sharedShipLight?.attachShip(ship);
  pmremPipeline?.attachShip(ship);
- premiumFX=createTwinEngineFX(THREE,scene,ship,craft.materials.cyan,{energyPlumes:id==="manta"&&(mantaQaOverride??VAULT_JUMP_VERSION)==="0.29.5.2"});
+ premiumFX=createTwinEngineFX(THREE,scene,ship,craft.materials.cyan,{energyPlumes:id==="manta"&&["0.29.5.2","0.29.6"].includes(mantaQaOverride??VAULT_JUMP_VERSION)});
  reactiveWingFlaps=installReactiveWingFlaps(THREE,ship,{variant:id});
  livingWake=createLivingWakeFX(THREE,scene,ship,{variant:id,
   lowMemory:claritySettings?.lowMemory??false});
@@ -1161,7 +1162,7 @@ function refreshHangar(){
   art.heroApplied?"HERO 4.0 · PANSARSVANS · STABIL SVÄNG":
   art.status==="loading"?"HERO-MODELL · LADDAR 3D-GEOMETRI":
   "Segmenterad mekanisk svans · reagerar på styrning, GRIP och boost":
-  VAULT_MANTA_REBIRTH_ACTIVE?(["0.29.5.1","0.29.5.2"].includes(VAULT_JUMP_VERSION)?"DARK GRAPHITE · CYAN WING INLAYS · DUBBLA MOTORER":"GRAPHITE REBIRTH · SKULPTERAT SKROV · DUBBLA MOTORER"):"Hårdskuren interceptor · dubbla motorer";
+  VAULT_MANTA_REBIRTH_ACTIVE?(["0.29.5.1","0.29.5.2","0.29.6"].includes(VAULT_JUMP_VERSION)?"DARK GRAPHITE · CYAN WING INLAYS · DUBBLA MOTORER":"GRAPHITE REBIRTH · SKULPTERAT SKROV · DUBBLA MOTORER"):"Hårdskuren interceptor · dubbla motorer";
  for(const item of FLEET){
   const card=document.querySelector('[data-fleet-card="'+item.id+'"]');
   const status=document.querySelector('[data-fleet-status="'+item.id+'"]');
@@ -4256,7 +4257,7 @@ function loop(now){
    const view=raceRenderPose(raceSimulation,flight,uiState.mode==="playing");
    whiteCoreContainment?.update(view.s,uiState.mode==="playing");
    shipWhiteSpill?.update(view.s,targetAccent,uiState.mode==="playing");
-   sharedShipLight?.update(view.s);
+   sharedShipLight?.update(view.s,COLOR_WAVE_ACTIVE?visualWaveView02899(zoneWave,flight.s):null);
    pmremPipeline?.updateStation(view.s);
    // Flight motion sees the same interpolated 120Hz simulation pose as FX.
    // Ship bank, signature effects, preview and kinetic camera share
@@ -4779,6 +4780,9 @@ function exportAudit(){
         passedStages:[...zoneWave.passedStages],
         stageTransitionSeconds:[...zoneWave.stageTransitionSeconds],
         paletteNames:ZONE_PALETTES.map(p=>p.name),
+        colorWaveVersion:COLOR_WAVE_ACTIVE?"1.0":"classic",
+        rolePalettes:COLOR_WAVE_ACTIVE?COLOR_WAVE_PALETTES.map(({name,primary,secondary,highlight})=>({name,primary,secondary,highlight})):null,
+        edgeAndFootWave: trueSharedVault?.colorWaveStats?.()??[],
         waveFeatherMeters:ZONE_WAVE.featherMeters,
         waveCrestMeters:ZONE_WAVE.crestMeters,
         whiteCoreMeters:ZONE_WAVE.whiteCoreMeters,
@@ -4976,7 +4980,7 @@ try{
  // Wire the buttons before costly WebGL scene construction.
  installFullscreen();
  installControls();
- if(isVault()&&["0.29.0","0.29.1","0.29.2","0.29.3","0.29.3.1","0.29.4","0.29.4.1","0.29.4.2","0.29.5","0.29.5.1","0.29.5.2"].includes(new URLSearchParams(location.search).get("v"))&&new URLSearchParams(location.search).get("vaultJump")!=="0"&&
+ if(isVault()&&["0.29.0","0.29.1","0.29.2","0.29.3","0.29.3.1","0.29.4","0.29.4.1","0.29.4.2","0.29.5","0.29.5.1","0.29.5.2","0.29.6"].includes(new URLSearchParams(location.search).get("v"))&&new URLSearchParams(location.search).get("vaultJump")!=="0"&&
   (!VAULT_MEGA_JUMP_ACTIVE||!trueSharedVaultEnabled||!authoritativeDeck028911||GAPS.length!==1))
   throw Error("0.29.0 requested but physical Mega Jump unavailable");
  runtimeLifetime.bind(window,UI.canvas);
@@ -5052,7 +5056,21 @@ try{
    return {settings:{...smartPerformance},full:full.work,culled:culled.work,visibility:culled.visibility,pixelsEqual:full.pixels===culled.pixels,
     physicsHz:120,pacing:presentationGate.stats()};
   };
-  if(VAULT_MANTA_REBIRTH_ACTIVE)window.__skyshiftMantaVisualProbe=()=>{
+  if(COLOR_WAVE_ACTIVE)window.__skyshiftColorWaveProof=()=>{
+    if(!trueSharedVault?.active||uiState.mode!=="playing")throw Error("Color wave proof needs live Vault race");
+    const result=[];
+    try{
+     for(let stage=0;stage<9;stage++){
+      const visual={activeCount:0,shaderBaseStage:stage,playerStage:stage,fronts:[-10000,-10000,-10000],lastStepSeconds:flight.elapsed};
+      sharedTunnelRuntime.updateWave(visual);premiumSurface.setWaveState(visual);identitySurface.setWaveState(visual);
+      archRoadReflections?.updateWave(visual);unifiedCeilingRoad?.updateWave(visual);roadSpill02895?.updateWave(visual);sharedShipLight?.update(flight.s,visual);
+      neonPipeline.render(0);
+      result.push({stage,palette:COLOR_WAVE_PALETTES[stage],emitters:trueSharedVault.colorWaveStats(),road:roadSpill02895.stats(),png:renderer.domElement.toDataURL("image/png")});
+     }
+     return result;
+    }finally{updatePalette(0);}
+   };
+   if(VAULT_MANTA_REBIRTH_ACTIVE)window.__skyshiftMantaVisualProbe=()=>{
    if(activeShipId!=="manta")throw Error("Manta visual proof requires equipped Manta");
    const pose={position:ship.position.clone(),quaternion:ship.quaternion.clone(),scale:ship.scale.clone()};
    const lights=engineLights.map(l=>({color:l.color.clone(),intensity:l.intensity}));
@@ -5081,7 +5099,7 @@ try{
    };
    try{
     velocityCinematography.setMode("off");
-    const plumeRelease=VAULT_JUMP_VERSION==="0.29.5.2";
+    const plumeRelease=["0.29.5.2","0.29.6"].includes(VAULT_JUMP_VERSION);
     const corrected=plumeRelease||VAULT_JUMP_VERSION==="0.29.5.1";
     const before=capture(corrected?"0.29.5":false);
     const exhaustBefore=plumeRelease&&playing?capture("0.29.5.1"):null;

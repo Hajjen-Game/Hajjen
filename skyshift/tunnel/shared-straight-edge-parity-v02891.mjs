@@ -71,7 +71,7 @@ export function buildVaultStraightEmitters02891(THREE,localPositionAt,
   !Number.isFinite(module?.start)||!(module?.scale>0)||
   !(module?.sourceMeters>0))
   throw Error("0.28.9.1 requires true shared banked section");
- const positions=[],colors=[];
+ const positions=[],colors=[],arc=[];
  let segments=0,quads=0,litMeters=0;const step=lowMemory?1.6:.82;
  for(let start=4.5;start<Math.min(367.65,module.sourceMeters);start+=24){
   const stop=Math.min(start+6.5,367.65,module.sourceMeters);
@@ -96,14 +96,16 @@ export function buildVaultStraightEmitters02891(THREE,localPositionAt,
      const intensity=.24+.76*railBayWeight02632((local+end)*.5);
      for(const index of [0,1,2,0,2,3]){
       const p=points[index];positions.push(p.x,p.y,p.z);
-      colors.push(.06*intensity,.71*intensity,.90*intensity);
+      colors.push(.06*intensity,.71*intensity,.90*intensity);arc.push(index<2?local:end);
      }
      quads++;
     }
    }
   }
  }
- return {geometry:geometry(THREE,positions,colors),
+ const g=geometry(THREE,positions,colors);
+ g.setAttribute("colorWaveArc",new THREE.Float32BufferAttribute(arc,1));
+ return {geometry:g,
   segments,quads,litMeters,sourceModule:module.index};
 }
 export function buildVaultRoadStraightMask02891(geo,ranges=vaultStraightRanges02891(),trackLength=CIRCUIT.lapLength){

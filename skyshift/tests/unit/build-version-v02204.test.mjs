@@ -46,11 +46,28 @@ test("Neon Vault menu resolves the live production catalog while source QA keeps
 test("0.29.2 explicit endurance route retains correct version and rollback",async()=>{
  const {productionRouteUrl,PRODUCTION_TRACK}=await import("../../tracks/shared/production-catalog.mjs");
  const base="https://example.test/skyshift/";
- for(const version of ["0.29.0","0.29.1","0.29.2","0.29.3","0.29.3.1","0.29.4","0.29.4.1","0.29.4.2","0.29.5","0.29.5.1","0.29.5.2"]){
+ for(const version of ["0.29.0","0.29.1","0.29.2","0.29.3","0.29.3.1","0.29.4","0.29.4.1","0.29.4.2","0.29.5","0.29.5.1","0.29.5.2","0.29.6"]){
   const route=new URL(productionRouteUrl(base+"?track=vault&v="+version));
   assert.equal(route.searchParams.get("v"),version);
   assert.equal(route.searchParams.get("vaultJump"),"1");
  }
  const rollback=new URL(productionRouteUrl(base+"?track=vault&v=0.29.2&vaultJump=0"));
  assert.equal(rollback.searchParams.get("v"),PRODUCTION_TRACK.version);
+});
+
+import {COLOR_WAVE_PALETTES,LEGACY_ZONE_PALETTES,colorWaveEnabled,zoneRolePair,roleWaveMix} from '../../core/zone-wave.mjs';
+test('Color Wave 1.0: nine distinct aligned roles and explicit rollback',()=>{
+ assert.equal(COLOR_WAVE_PALETTES.length,9);
+ assert.deepEqual(COLOR_WAVE_PALETTES.map(p=>p.id),LEGACY_ZONE_PALETTES.map(p=>p.id));
+ for(const role of ['primary','secondary','highlight']){
+  assert.equal(new Set(COLOR_WAVE_PALETTES.map(p=>p[role])).size,9);
+  for(let i=0;i<9;i++){
+   const w={shaderBaseStage:i,activeCount:1,fronts:[3400]};
+   assert.equal(zoneRolePair(w,role,true).from,COLOR_WAVE_PALETTES[i][role]);
+   assert.equal(roleWaveMix(0,w),.5);assert.equal(roleWaveMix(3300,w),1);assert.equal(roleWaveMix(100,w),0);
+  }
+ }
+ assert.equal(colorWaveEnabled('?track=vault&v=0.29.6'),true);
+ assert.equal(colorWaveEnabled('?track=vault&v=0.29.6&colorWave=classic'),false);
+ assert.equal(colorWaveEnabled('?track=vault&v=0.29.5.2'),false);
 });

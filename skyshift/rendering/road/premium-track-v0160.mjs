@@ -1,3 +1,4 @@
+import {COLOR_WAVE_ACTIVE} from "../../core/zone-wave.mjs";
 // SKYSHIFT 0.8.4 — terrain-following Skyline Circuit spectral road in the SAME PBR road shader, zero extra meshes.
 // Replaces 0.4.8's floating violet overlays and orange rectangle meshes.
 // The same indexed physical road drives shader coordinates; NO new colliders,
@@ -129,7 +130,7 @@ const vaultBoostVisualGLSL=VAULT_BOOST_0283_ACTIVE?`
     vaultHalo0283*.23+vaultRim0283*.58,0.0,1.0));`:
  "float vaultHalo0283=0.0; float vaultRim0283=0.0;";
 const vaultBoostEmissionGLSL=VAULT_BOOST_0283_ACTIVE?
- " + zoneBoost*(boostArrows*1.55+vaultHalo0283*.46+vaultRim0283*.21+padCoverage*.035)":"";
+ (COLOR_WAVE_ACTIVE?" + zoneBoost*(boostArrows*.90+vaultHalo0283*.46+vaultRim0283*.21+padCoverage*.035) + vec3(.91,.97,1.)*pow(boostArrows,4.0)*.65":" + zoneBoost*(boostArrows*1.55+vaultHalo0283*.46+vaultRim0283*.21+padCoverage*.035)"):"";
 
 const safePadAggregation=shaderMax(BOOST_PADS.filter(p=>p.kind!=="risk")
  .map(p=>`boost_${p.id.replace(/-/g,"_")}`));

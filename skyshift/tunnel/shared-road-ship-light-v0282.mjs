@@ -1,3 +1,4 @@
+import {COLOR_WAVE_ACTIVE,zoneRolePair,roleWaveMix} from "../core/zone-wave.mjs";
 // SKYSHIFT 0.28.2 — Shared Road Reflections & Ship Light Response.
 // The actual Skyline 0.26.3 GGX shader/fixture positions are reused on
 // the unchanged NEON VAULT deck; source-local 368 m art travels across
@@ -177,10 +178,12 @@ export function patchSharedShipHull0282(fragment){
  const decl=[
   "uniform vec3 u282CyanLeft,u282CyanRight,u282AmberLeft,u282AmberRight;",
   "uniform vec2 u282SourceWeight;",
+  ...(COLOR_WAVE_ACTIVE?["uniform vec3 u282CoolTint,u282WarmTint;"]:[]),
   "uniform float u282HullStrength;"
  ].join("\n");
  const one=(name,kind,scale)=>{
-  const col=kind==="cyan"?"vec3(0.030,0.51,0.77)":"vec3(0.88,0.29,0.064)";
+  const col=COLOR_WAVE_ACTIVE?(kind==="cyan"?"u282CoolTint*.77":"u282WarmTint*.88"):
+   kind==="cyan"?"vec3(0.030,0.51,0.77)":"vec3(0.88,0.29,0.064)";
   const weight=kind==="cyan"?"u282SourceWeight.x":"u282SourceWeight.y";
   return [
    "{",
@@ -205,8 +208,8 @@ export function patchSharedShipHull0282(fragment){
   one("AmberRight","amber","0.66"),
   // Tiny source-limited colored outline response; no flat gray/white fill.
   " totalEmissiveRadiance+=",
-  "  (vec3(0.013,0.095,0.135)*u282SourceWeight.x+",
-  "   vec3(0.080,0.023,0.003)*u282SourceWeight.y)*",
+  COLOR_WAVE_ACTIVE?"  (u282CoolTint*.135*u282SourceWeight.x+":"  (vec3(0.013,0.095,0.135)*u282SourceWeight.x+",
+  COLOR_WAVE_ACTIVE?"   u282WarmTint*.080*u282SourceWeight.y)*":"   vec3(0.080,0.023,0.003)*u282SourceWeight.y)*",
   "  (0.32*u282HullStrength);",
   "}"
  ].join("\n");
@@ -226,7 +229,9 @@ export function installSharedShipLight0282(THREE,{
   weights={value:new THREE.Vector2(0,0)},strength={value:1};
  const uniforms={u282CyanLeft:cyanLeft,u282CyanRight:cyanRight,
   u282AmberLeft:amberLeft,u282AmberRight:amberRight,
-  u282SourceWeight:weights,u282HullStrength:strength};
+  u282SourceWeight:weights,u282HullStrength:strength,
+  u282CoolTint:{value:new THREE.Color(zoneRolePair(null,"secondary").from)},u282WarmTint:{value:new THREE.Color(zoneRolePair(null,"highlight").from)}};
+ const nextTint=new THREE.Color();
  const wrapped=new WeakSet(),undo=[];let attached=0,updates=0,lastS=0;
  function detachShip(){
   for(const entry of undo.splice(0).reverse()){entry.restore();wrapped.delete(entry.material);}
@@ -260,9 +265,13 @@ export function installSharedShipLight0282(THREE,{
   });
   return count;
  }
- function update(distance){
+ function update(distance,wave){
   const s=((Number.isFinite(distance)?distance:0)%trackLength+trackLength)%trackLength;
   const sample=sampler.nearest(s);
+  if(COLOR_WAVE_ACTIVE&&wave){for(const [uniform,role,fixture] of [[uniforms.u282CoolTint,"secondary",sample.fixtures.cyan],[uniforms.u282WarmTint,"highlight",sample.fixtures.amber]]){
+   const pair=zoneRolePair(wave,role),arc=fixture&&sample.local?.module?sample.local.module.start+fixture.s*sample.local.module.scale:s;
+   uniform.value.setHex(pair.from).lerp(nextTint.setHex(pair.to),roleWaveMix(arc,wave,trackLength));
+  }}
   for(const [uniform,p] of [
    [cyanLeft,sample.cyanLeft],[cyanRight,sample.cyanRight],
    [amberLeft,sample.amberLeft],[amberRight,sample.amberRight]

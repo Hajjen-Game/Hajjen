@@ -1,3 +1,4 @@
+import {COLOR_WAVE_ACTIVE} from "../../core/zone-wave.mjs";
 import {isAurora} from "../shared/track-selection-v0160.mjs";
 // SKYSHIFT 0.8.4 — terrain-following rails with a real missing launch-gap span
 // Material layers and inlaid graphics share the 0.4.6 track geometry/collider.
@@ -420,7 +421,7 @@ export function installAeroBarriers(THREE,world,{shoulderMarks=true}={}){
    // the original narrow neutral-white crest and chevron mask untouched.
    // Rebase the complete lap to the latest completed color.
    // A narrow crest (not a half-track color seam) wraps at s=0.
-   const base=Math.min(ZONE_PALETTES.length-1,state.playerStage??0);
+   const base=Math.min(ZONE_PALETTES.length-1,(COLOR_WAVE_ACTIVE?state.shaderBaseStage:state.playerStage)??0);
    railUniforms.uRailBase.value.set(ZONE_PALETTES[base].accent);
    for(let k=1;k<=3;k++){
     const f=state.fronts[k-1];

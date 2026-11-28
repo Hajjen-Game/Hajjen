@@ -25,17 +25,17 @@ try{
    page.on('pageerror',e=>errors.push(e.message));page.on('crash',()=>errors.push('renderer crash'));
    page.on('console',m=>{if(m.type()==='error'&&/THREE.WebGLProgram|shader error|INVALID_OPERATION|context lost|startup failed/i.test(m.text()))errors.push(m.text());});
    const url=new URL(live||'http://127.0.0.1:8926/skyshift/');
-   url.search=memory===8?'track=vault&v=0.29.5.2&vaultJump=1':'track=vault&v=0.29.5.2';
+   url.search=memory===8?'track=vault&v=0.29.6&vaultJump=1':'track=vault&v=0.29.6';
    url.searchParams.set('vaultJumpSmoke','1');url.searchParams.set('release','0290-public-proof-'+Date.now());
    await page.goto(url.href,{waitUntil:'domcontentloaded',timeout:80000});
    await page.waitForFunction(()=>['ready','failed'].includes(window.__skyshiftBoot?.phase),null,{timeout:220000});
    assert.equal(await page.evaluate(()=>window.__skyshiftBoot.phase),'ready',JSON.stringify(await page.evaluate(()=>window.__skyshiftBoot)));
    const probe=await page.evaluate(()=>window.__skyshiftVaultJumpProbe());
-   assert.equal(probe.active,true,JSON.stringify(probe));assert.equal(probe.version,'0.29.5.2');assert.equal(new URLSearchParams(probe.query).get('v'),'0.29.5.2');
+   assert.equal(probe.active,true,JSON.stringify(probe));assert.equal(probe.version,'0.29.6');assert.equal(new URLSearchParams(probe.query).get('v'),'0.29.6');
    assert.equal(probe.polish,true);assert.equal(probe.rampRise,7.5);
    assert.equal(probe.mounted,true);assert.equal(probe.pmrem,true);assert.equal(probe.gaps.length,1);assert.equal(probe.gaps[0].id,'vault-mega-jump');
    assert.equal(probe.inside,0);assert.ok(probe.before>0&&probe.after>0);assert.equal(probe.roadBefore,true);assert.equal(probe.roadGap,false);assert.equal(probe.roadAfter,true);
-   assert.match(await page.locator('#menu-track-name').textContent(),/MEGA JUMP.*0\.29\.5\.2/);
+   assert.match(await page.locator('#menu-track-name').textContent(),/MEGA JUMP.*0\.29\.6/);
    const verifyManta=async(label)=>{
     const p=await page.evaluate(()=>window.__skyshiftMantaVisualProbe());
     for(const k of ['before','after']){
@@ -108,6 +108,15 @@ try{
     // Keep the expensive full-browser proof in the existing job.
     if(phase==='approach'){
      mantaRace=await verifyManta('race');assert.equal(mantaRace.mode,'playing');
+     const wave=await page.evaluate(()=>window.__skyshiftColorWaveProof());
+     assert.equal(wave.length,9);assert.equal(new Set(wave.map(x=>x.png)).size,9,'real palette frames must differ');
+     for(const row of wave){
+      assert.ok(row.emitters.some(x=>x.role==='secondary'&&x.vertices>0));
+      assert.ok(row.emitters.some(x=>x.role==='highlight'&&x.vertices>0));
+      for(const e of row.emitters)assert.equal(e.from,row.palette[e.role]);
+      assert.equal(row.road.waveColors[0],row.palette.secondary);
+      writeFileSync(join(out,'color-wave-'+memory+'GB-zone-'+(row.stage+1)+'.png'),Buffer.from(row.png.split(',')[1],'base64'));
+     }
      advanced=await page.evaluate(()=>window.__skyshiftAdvancedGpuProbe({capture:true}));
      for(const name of ['baseline','occlusion','exterior','lod','bloom78','bloom65','bloom50']){
       const row=advanced[name];assert.ok(row.work.triangles>0);

@@ -1,3 +1,4 @@
+import {installColorWaveEmitter} from "./color-wave-emitter.mjs";
 // SKYSHIFT 0.28.1 — True Shared Tunnel Renderer.
 // Reuse the ACTUAL approved Skyline material/geometry/light installer on
 // banked sections of any course. No separately sculpted Vault look-alike.
@@ -421,11 +422,16 @@ export function installConfiguredSharedTunnel(THREE,world,{
     index:module.index,ms:Math.round((performance.now()-startedAt)*10)/10,
     sampler:fastFrames02897?frameSampler.stats():null
    });
+   item.colorWave=[
+    installColorWaveEmitter(THREE,section.children.find(x=>x.name.includes("native straight ONLY cyan edge inlays")),module,"secondary",trackLength),
+    installColorWaveEmitter(THREE,section.children.find(x=>x.name==="SKYSHIFT 0.28.1 / original joined amber arch feet"),module,"highlight",trackLength)
+   ].filter(Boolean);
    frameSampler.clear?.();
   }
   world.add(root);
  }catch(error){
   for(const item of installed.reverse()){
+   item.colorWave?.forEach(x=>x.dispose());
    item.waveCove?.dispose?.();
    item.archOptics?.dispose?.();
    item.ceiling?.dispose?.();
@@ -447,10 +453,12 @@ export function installConfiguredSharedTunnel(THREE,world,{
  let disposed=false;
  return Object.freeze({
   active:true,modules,policy:style,root,
+  colorWaveStats:()=>installed.flatMap(x=>(x.colorWave??[]).map(y=>y.stats())),
   updateWave(wave){for(const item of installed){
    item.source.updateWave?.(wave);
    item.ceiling?.updateWave?.(wave);
    item.waveCove?.updateWave?.(wave);
+   item.colorWave?.forEach(x=>x.updateWave(wave));
   }},
   setReflectionComparison(value){
    for(const item of installed)item.stability?.setComparison?.(value);
@@ -604,7 +612,8 @@ export function installConfiguredSharedTunnel(THREE,world,{
   dispose(){
    if(disposed)return;disposed=true;
    for(const item of installed.reverse()){
-    item.waveCove?.dispose?.();
+    item.colorWave?.forEach(x=>x.dispose());
+   item.waveCove?.dispose?.();
     item.archOptics?.dispose?.();
     item.ceiling?.dispose?.();
     item.cinematic?.dispose?.();

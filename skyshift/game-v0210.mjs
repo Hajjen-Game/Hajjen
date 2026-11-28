@@ -1096,7 +1096,7 @@ function makeShip(id=fleetProgress.selected){
  releaseShip();
  shipGlow=neonKit.ship;
  const craft=id==="stingray"?
-   buildStingrayEvo(THREE,shipGlow):(mantaQaOverride??VAULT_MANTA_REBIRTH_ACTIVE)?buildMantaVisualRebirth(THREE,shipGlow):buildPremiumMantaBlade(THREE,shipGlow);
+   buildStingrayEvo(THREE,shipGlow):(mantaQaOverride??VAULT_MANTA_REBIRTH_ACTIVE)?buildMantaVisualRebirth(THREE,shipGlow,{corrected:mantaQaOverride==="0.29.5.1"||(mantaQaOverride!=="0.29.5"&&VAULT_JUMP_VERSION==="0.29.5.1")}):buildPremiumMantaBlade(THREE,shipGlow);
  activeCraft=craft;activeShipId=id;ship=craft.ship;
  // A stable SINGLE transform for the full craft (including animated tail
  // and attached engine FX), never evaluated from wing-road intersections.
@@ -1161,7 +1161,7 @@ function refreshHangar(){
   art.heroApplied?"HERO 4.0 · PANSARSVANS · STABIL SVÄNG":
   art.status==="loading"?"HERO-MODELL · LADDAR 3D-GEOMETRI":
   "Segmenterad mekanisk svans · reagerar på styrning, GRIP och boost":
-  VAULT_MANTA_REBIRTH_ACTIVE?"GRAPHITE REBIRTH · SKULPTERAT SKROV · DUBBLA MOTORER":"Hårdskuren interceptor · dubbla motorer";
+  VAULT_MANTA_REBIRTH_ACTIVE?(VAULT_JUMP_VERSION==="0.29.5.1"?"DARK GRAPHITE · CYAN WING INLAYS · DUBBLA MOTORER":"GRAPHITE REBIRTH · SKULPTERAT SKROV · DUBBLA MOTORER"):"Hårdskuren interceptor · dubbla motorer";
  for(const item of FLEET){
   const card=document.querySelector('[data-fleet-card="'+item.id+'"]');
   const status=document.querySelector('[data-fleet-status="'+item.id+'"]');
@@ -4976,7 +4976,7 @@ try{
  // Wire the buttons before costly WebGL scene construction.
  installFullscreen();
  installControls();
- if(isVault()&&["0.29.0","0.29.1","0.29.2","0.29.3","0.29.3.1","0.29.4","0.29.4.1","0.29.4.2","0.29.5"].includes(new URLSearchParams(location.search).get("v"))&&new URLSearchParams(location.search).get("vaultJump")!=="0"&&
+ if(isVault()&&["0.29.0","0.29.1","0.29.2","0.29.3","0.29.3.1","0.29.4","0.29.4.1","0.29.4.2","0.29.5","0.29.5.1"].includes(new URLSearchParams(location.search).get("v"))&&new URLSearchParams(location.search).get("vaultJump")!=="0"&&
   (!VAULT_MEGA_JUMP_ACTIVE||!trueSharedVaultEnabled||!authoritativeDeck028911||GAPS.length!==1))
   throw Error("0.29.0 requested but physical Mega Jump unavailable");
  runtimeLifetime.bind(window,UI.canvas);
@@ -5079,7 +5079,8 @@ try{
    };
    try{
     velocityCinematography.setMode("off");
-    const before=capture(false),after=capture(true);
+    const corrected=VAULT_JUMP_VERSION==="0.29.5.1";
+    const before=capture(corrected?"0.29.5":false),after=capture(corrected?"0.29.5.1":"0.29.5");
     let changed=0;for(let i=0;i<before.data.length;i+=4)changed+=Number(Math.max(Math.abs(before.data[i]-after.data[i]),Math.abs(before.data[i+1]-after.data[i+1]),Math.abs(before.data[i+2]-after.data[i+2]))>2);
     const strip=({data,...row})=>row;
     return {mode:uiState.mode,before:strip(before),after:strip(after),fractionOver2:changed/(before.data.length/4)};

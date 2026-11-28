@@ -25,23 +25,23 @@ try{
    page.on('pageerror',e=>errors.push(e.message));page.on('crash',()=>errors.push('renderer crash'));
    page.on('console',m=>{if(m.type()==='error'&&/THREE.WebGLProgram|shader error|INVALID_OPERATION|context lost|startup failed/i.test(m.text()))errors.push(m.text());});
    const url=new URL(live||'http://127.0.0.1:8926/skyshift/');
-   url.search=memory===8?'track=vault&v=0.29.5&vaultJump=1':'track=vault&v=0.29.5';
+   url.search=memory===8?'track=vault&v=0.29.5.1&vaultJump=1':'track=vault&v=0.29.5.1';
    url.searchParams.set('vaultJumpSmoke','1');url.searchParams.set('release','0290-public-proof-'+Date.now());
    await page.goto(url.href,{waitUntil:'domcontentloaded',timeout:80000});
    await page.waitForFunction(()=>['ready','failed'].includes(window.__skyshiftBoot?.phase),null,{timeout:220000});
    assert.equal(await page.evaluate(()=>window.__skyshiftBoot.phase),'ready',JSON.stringify(await page.evaluate(()=>window.__skyshiftBoot)));
    const probe=await page.evaluate(()=>window.__skyshiftVaultJumpProbe());
-   assert.equal(probe.active,true,JSON.stringify(probe));assert.equal(probe.version,'0.29.5');assert.equal(new URLSearchParams(probe.query).get('v'),'0.29.5');
+   assert.equal(probe.active,true,JSON.stringify(probe));assert.equal(probe.version,'0.29.5.1');assert.equal(new URLSearchParams(probe.query).get('v'),'0.29.5.1');
    assert.equal(probe.polish,true);assert.equal(probe.rampRise,7.5);
    assert.equal(probe.mounted,true);assert.equal(probe.pmrem,true);assert.equal(probe.gaps.length,1);assert.equal(probe.gaps[0].id,'vault-mega-jump');
    assert.equal(probe.inside,0);assert.ok(probe.before>0&&probe.after>0);assert.equal(probe.roadBefore,true);assert.equal(probe.roadGap,false);assert.equal(probe.roadAfter,true);
-   assert.match(await page.locator('#menu-track-name').textContent(),/MEGA JUMP.*0\.29\.5/);
+   assert.match(await page.locator('#menu-track-name').textContent(),/MEGA JUMP.*0\.29\.5\.1/);
    const verifyManta=async(label)=>{
     const p=await page.evaluate(()=>window.__skyshiftMantaVisualProbe());
     for(const k of ['before','after']){
      writeFileSync(join(out,'manta-'+memory+'GB-'+label+'-'+k+'.png'),Buffer.from(p[k].png.split(',')[1],'base64'));delete p[k].png;
     }
-    assert.equal(p.after.spec.version,'0.29.5');assert.equal(p.after.spec.visualBeamMeters,5.8);
+    assert.equal(p.before.spec.version,'0.29.5');assert.equal(p.after.spec.version,'0.29.5.1');assert.equal(p.after.spec.visualBeamMeters,5.8);
     assert.deepEqual(p.after.sockets,p.before.sockets);
     assert.equal(p.after.flaps.wingCount,2);assert.equal(p.after.spec.physicsChanged,false);
     assert.equal(p.after.spec.addedLights,0);assert.equal(p.after.spec.addedTextures,0);

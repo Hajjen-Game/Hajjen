@@ -4,6 +4,13 @@ import {MANTA_IDENTITY,MANTA_WING_OUTLINE,ENGINE_SOCKETS,buildMantaSpine,buildMa
 export const MANTA_REBIRTH=Object.freeze({...MANTA_IDENTITY,version:"0.29.5",maxGeometryTriangles:1800,
  materials:"graphite ceramic-metal, titanium chamfers, smoked canopy, precision cyan inlays",
  sculptedWings:true,recessedChannels:true,engineHousings:2,addedLights:0,addedTextures:0,addedPasses:0,physicsChanged:false});
+export const MANTA_MATERIAL_CORRECTION=Object.freeze({...MANTA_REBIRTH,version:"0.29.5.1",
+ materials:"dark satin graphite metal, restrained gunmetal chamfers, smoked canopy, HDR cyan wing inlays"});
+// Move along the actual wing's forward contour, inset inside its shoulder.
+// The geometry and material batches are shared by both release profiles.
+export function mantaLeadingInlayPath(side){
+ return MANTA_WING_OUTLINE.slice(0,5).map(([x,z])=>[side*(1.58+(x-1.58)*.83),.12+(z-.12)*.83]);
+}
 const quad=(out,a,b,c,d)=>out.push(...a,...b,...c,...a,...c,...d);
 const tri=(out,a,b,c)=>out.push(...a,...b,...c);
 function triangleData(data,shape=(x,y,z)=>[x,y,z]){
@@ -69,15 +76,21 @@ function ring(out,socket,r0,z0,r1,z1,n=14){
   quad(out,at(r0,z0,a),at(r0,z0,b),at(r1,z1,b),at(r1,z1,a));
  }
 }
-export function buildMantaRebirthData(){
+export function buildMantaRebirthData(corrected=true){
  const wings=mantaWingSurfaces(),armor=[...wings.top],bevel=[...wings.bevel],dark=[...wings.underside],inlay=[],portTip=[],starboardTip=[],nozzle=[],glass=triangleData(buildMantaCanopy(),(x,y,z)=>[x*.98,y+.018,z]);
  armor.push(...triangleData(buildMantaSpine(),(x,y,z)=>[x*(z>-.5?1.06:1),y>0?y+.065*Math.max(0,1-Math.abs(z-.35)/1.7):y,z]));
  for(const side of [-1,1]){
   const path=p=>p.map(([x,z])=>[side*x,z]);
   // Dark channel bed then fine luminous line slightly inside the edge.
-  const leading=path([[.79,-1.92],[1.35,-1.71],[2.01,-1.25],[2.58,-.80],[2.77,-.50]]);
-  strip(dark,wings.topFaces,leading,.105,.004);
-  strip(inlay,wings.topFaces,leading,.028,.009);
+  const leading=corrected?mantaLeadingInlayPath(side):path([[.79,-1.92],[1.35,-1.71],[2.01,-1.25],[2.58,-.80],[2.77,-.50]]);
+  strip(dark,wings.topFaces,leading,corrected?.125:.105,.004);
+  strip(inlay,wings.topFaces,leading,corrected?.075:.028,corrected?.018:.009);
+  // A rear-readable return along the upper outer shoulder, away from elevons.
+  if(corrected){
+   const shoulder=path([[2.58,-.45],[2.49,-.13],[2.39,.23]]);
+   strip(dark,wings.topFaces,shoulder,.11,.004);
+   strip(inlay,wings.topFaces,shoulder,.055,.017);
+  }
   const channel=path([[.94,-1.15],[1.42,-.75],[1.67,-.26],[1.90,.17]]);
   strip(dark,wings.topFaces,channel,.13,.004);
   // Three short restrained vents leave the mechanical elevon unobstructed.
@@ -105,20 +118,22 @@ function mesh(THREE,ship,name,data,material){
  geometry.computeVertexNormals();geometry.computeBoundingSphere();
  const m=new THREE.Mesh(geometry,material);m.name=name;ship.add(m);return m;
 }
-export function buildMantaVisualRebirth(THREE,shipGlow){
+export function buildMantaVisualRebirth(THREE,shipGlow,{corrected=true}={}){
+ const spec=corrected?MANTA_MATERIAL_CORRECTION:MANTA_REBIRTH;
  const ship=new THREE.Group();ship.name="Manta Blade · graphite visual rebirth";
  const phys=(color,metalness,roughness,clearcoat,emissive=0x000000,emissiveIntensity=0)=>new THREE.MeshPhysicalMaterial({
   color,metalness,roughness,clearcoat,clearcoatRoughness:.23,emissive,emissiveIntensity,flatShading:true,side:THREE.DoubleSide});
- const titanium=phys(0x465764,.79,.32,.38,0x263542,.055);
- const wings=titanium,graphite=phys(0x18232e,.68,.44,.18,0x14222a,.06);
- const chamfer=phys(0x8597a1,.82,.26,.45,0x34414b,.035);
+ const titanium=corrected?phys(0x172129,.88,.48,.035):phys(0x465764,.79,.32,.38,0x263542,.055);
+ const wings=titanium,graphite=corrected?phys(0x0d141b,.84,.59,.015):phys(0x18232e,.68,.44,.18,0x14222a,.06);
+ const chamfer=corrected?phys(0x34424b,.92,.43,.045):phys(0x8597a1,.82,.26,.45,0x34414b,.035);
  const glass=phys(0x092331,.36,.15,.82,0x0b3542,.12);
- const turbine=phys(0x64717e,.88,.25,.32);
+ const turbine=corrected?phys(0x39454f,.92,.39,.04):phys(0x64717e,.88,.25,.32);
  // Legacy edge FX owns the translucent tip material; the precision inlays
  // use their own opaque material and stay readable inside the sealed tunnel.
  const cyan=new THREE.MeshBasicMaterial({color:0x82ced7,transparent:true,opacity:.63,toneMapped:true,side:THREE.DoubleSide});
- const inlayMaterial=new THREE.MeshBasicMaterial({color:0xb8f7ff,toneMapped:false,side:THREE.DoubleSide});
- const d=buildMantaRebirthData();
+ const inlayMaterial=new THREE.MeshBasicMaterial({color:corrected?0x62e6ff:0xb8f7ff,toneMapped:false,side:THREE.DoubleSide});
+ if(corrected)inlayMaterial.color.multiplyScalar(2.2);
+ const d=buildMantaRebirthData(corrected);
  const surfaces=[
   mesh(THREE,ship,"Two broad scalloped manta wings",d.armor,titanium),
   mesh(THREE,ship,"Sculpted titanium chamfers",d.bevel,chamfer),
@@ -139,14 +154,14 @@ export function buildMantaVisualRebirth(THREE,shipGlow){
  engineCore.position.set(0,-.10,1.14);engineCore.name="Recessed central ion keel";ship.add(engineCore);
  const geometryTriangles=Object.values(d).reduce((n,a)=>n+a.length/9,0)+enginePlumes.reduce((n,m)=>n+m.geometry.index.count/3,0)+12;
  const base=inlayMaterial.color.clone();let updates=0,peakGlow=0;
- return {ship,enginePlumes,engineCore,engineSockets:ENGINE_SOCKETS,spec:MANTA_REBIRTH,
+ return {ship,enginePlumes,engineCore,engineSockets:ENGINE_SOCKETS,spec,
   materials:{titanium,wings,graphite,glass,cyan,turbine,chamfer},triangles:geometryTriangles,
   polishSurfaces:surfaces,
   framePolish(dt,view={}){if(dt<=0)return;const boost=Math.max(0,Math.min(1,((view.boostMultiplier||1)-1)/.4));
    const gain=1+.16*boost+.035*Math.max(0,Math.min(1,((view.speed||44)-44)/100));
    inlayMaterial.color.copy(base).multiplyScalar(gain);updates++;peakGlow=Math.max(peakGlow,gain);},
   resetPolish(){updates=peakGlow=0;inlayMaterial.color.copy(base);},
-  polishStats(){return {version:MANTA_REBIRTH.version,variant:"manta",geometryTriangles,baseHullDrawCalls:surfaces.length+enginePlumes.length+1,
+  polishStats(){return {version:spec.version,variant:"manta",geometryTriangles,baseHullDrawCalls:surfaces.length+enginePlumes.length+1,
    sculptedWings:true,engineHousings:2,additionalLights:0,additionalTextures:0,peakGlow,updates,physicsChanged:false};}
  };
 }

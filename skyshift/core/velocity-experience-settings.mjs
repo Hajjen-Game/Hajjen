@@ -1,16 +1,18 @@
 // SKYSHIFT 0.29.4 — independently persisted visual options.
 export const VELOCITY_EXPERIENCE_KEY="skyshift-velocity-experience-0294";
 export const BLUR_MODES=Object.freeze(["off","low","medium","high"]);
-export function normalizeVelocityExperience(value={}){
- return {motionBlur:BLUR_MODES.includes(value?.motionBlur)?value.motionBlur:"high",
+export const EXTREME_BLUR_MODES=Object.freeze([...BLUR_MODES,"ultra","extreme"]);
+export function normalizeVelocityExperience(value={},extremeEnabled=false){
+ const modes=extremeEnabled?EXTREME_BLUR_MODES:BLUR_MODES;
+ return {motionBlur:modes.includes(value?.motionBlur)?value.motionBlur:"high",
   adaptiveCamera:value?.adaptiveCamera!==false};
 }
-export function readVelocityExperience(storage){
+export function readVelocityExperience(storage,extremeEnabled=false){
  let value={};try{value=JSON.parse(storage?.getItem(VELOCITY_EXPERIENCE_KEY)||"{}");}catch{}
- return normalizeVelocityExperience(value);
+ return normalizeVelocityExperience(value,extremeEnabled);
 }
-export function saveVelocityExperience(storage,value){
- try{storage?.setItem(VELOCITY_EXPERIENCE_KEY,JSON.stringify(normalizeVelocityExperience(value)));}catch{}
+export function saveVelocityExperience(storage,value,extremeEnabled=false){
+ try{storage?.setItem(VELOCITY_EXPERIENCE_KEY,JSON.stringify(normalizeVelocityExperience(value,extremeEnabled)));}catch{}
 }
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const rad=Math.PI/180;

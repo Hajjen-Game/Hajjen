@@ -152,3 +152,38 @@ test("0.29.4 one HDR pass, idle bypass, projected craft and restoration",()=>{
  c.setMode("high");c.update({playing:false});assert.equal(c.stats().renderPasses,0);
  c.dispose();assert.equal(composer.passes.length,3);
 });
+
+test("0.29.4.1 stronger modes start earlier, retain original modes exactly and respect caps",()=>{
+ for(const speedMultiplier of [1,1.4,2,2.5,4])for(const boostMultiplier of [1,1.2,1.4])for(const adaptiveLevel of [0,1,2]){
+  const frame={playing:true,speedMultiplier,boostMultiplier,adaptiveLevel};
+  for(const mode of ["off","low","medium","high"])
+   assert.equal(velocityBlurTarget({...frame,mode,extremeEnabled:true}),velocityBlurTarget({...frame,mode}));
+  const high=velocityBlurTarget({...frame,mode:"high"});
+  const ultra=velocityBlurTarget({...frame,mode:"ultra",extremeEnabled:true});
+  const extreme=velocityBlurTarget({...frame,mode:"extreme",extremeEnabled:true});
+  assert.ok(extreme>ultra&&ultra>high);
+  assert.ok(ultra<=.13&&extreme<=.18);
+ }
+ const f={playing:true,speedMultiplier:4,boostMultiplier:1.4,extremeEnabled:true};
+ assert.equal(velocityBlurTarget({...f,mode:"ultra"}),.13);
+ assert.equal(velocityBlurTarget({...f,mode:"extreme"}),.18);
+ assert.ok(velocityBlurTarget({...f,mode:"extreme",adaptiveLevel:2})<.18);
+ assert.equal(velocityBlurTarget({...f,mode:"extreme",playing:false}),0);
+ assert.equal(velocityBlurTarget({...f,mode:"extreme",extremeEnabled:false}),0);
+ const map=new Map(),storage={getItem:k=>map.get(k),setItem:(k,v)=>map.set(k,v)};
+ saveVelocityExperience(storage,{motionBlur:"extreme",adaptiveCamera:true},true);
+ assert.equal(readVelocityExperience(storage,true).motionBlur,"extreme");
+ assert.equal(readVelocityExperience(storage,false).motionBlur,"high");
+});
+test("0.29.4.1 one five-tap pass; new mask resets to original on High and Off",()=>{
+ class V2{constructor(x,y){this.set(x,y)}set(x,y){this.x=x;this.y=y;}}
+ const output={},composer={passes:[{},output],insertPass(p,i){this.passes.splice(i,0,p)},removePass(p){this.passes.splice(this.passes.indexOf(p),1)}};
+ const c=installAdaptiveVelocityBlur({Vector2:V2},{composer,output,makeShaderPass:s=>({uniforms:s.uniforms,enabled:true,dispose(){}})},{mode:"extreme",extremeEnabled:true});
+ c.update({playing:true,speedMultiplier:2,boostMultiplier:1.4,snap:true});
+ assert.equal(c.stats().version,"0.29.4.1");assert.equal(c.stats().samples,5);
+ assert.equal(c.stats().renderPasses,1);assert.equal(c.stats().peripheralExpansion,1);
+ c.setMode("ultra");assert.equal(c.stats().peripheralExpansion,.65);
+ c.setMode("high");assert.equal(c.stats().peripheralExpansion,0);
+ c.setMode("off");assert.equal(c.stats().renderPasses,0);
+ c.dispose();assert.equal(composer.passes.length,2);
+});

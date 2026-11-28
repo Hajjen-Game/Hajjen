@@ -6,7 +6,7 @@ import {createDistantDetailLod} from "./rendering/distant-detail-lod.mjs";
 import {readPerformance,savePerformance,createPresentationGate} from "./core/smart-performance.mjs";
 import {createTrackSectionVisibility} from "./rendering/track-section-visibility.mjs";
 import * as THREE from "three";
-import {VAULT_MEGA_JUMP,VAULT_MEGA_JUMP_ACTIVE,VAULT_JUMP_POLISH_ACTIVE,VAULT_COMPACT_ACTIVE,VAULT_SMART_ACTIVE,VAULT_ADVANCED_GPU_ACTIVE,VAULT_VELOCITY_ACTIVE,VAULT_JUMP_VERSION,chamberProfileAt} from "./tracks/vault/vault-mega-jump.mjs";
+import {VAULT_MEGA_JUMP,VAULT_MEGA_JUMP_ACTIVE,VAULT_JUMP_POLISH_ACTIVE,VAULT_COMPACT_ACTIVE,VAULT_SMART_ACTIVE,VAULT_ADVANCED_GPU_ACTIVE,VAULT_VELOCITY_ACTIVE,VAULT_EXTREME_BLUR_ACTIVE,VAULT_JUMP_VERSION,chamberProfileAt} from "./tracks/vault/vault-mega-jump.mjs";
 import {createTunnelProfileSampler} from "./tunnel/profile-sampler.mjs";
 import {createRaceLifecycle} from "./core/race-lifecycle.mjs";
 import {createRuntimeLifetime} from "./core/runtime-lifetime.mjs";
@@ -788,7 +788,7 @@ const smartPerformance=VAULT_SMART_ACTIVE?readPerformance(fleetStorage(),matchMe
 const presentationGate=createPresentationGate();
 let trackVisibility=null,detailLod=null;
 const advancedGpu=VAULT_ADVANCED_GPU_ACTIVE?readAdvancedGpu(fleetStorage()):null;
-const velocityExperience=VAULT_VELOCITY_ACTIVE?readVelocityExperience(fleetStorage()):null;
+const velocityExperience=VAULT_VELOCITY_ACTIVE?readVelocityExperience(fleetStorage(),VAULT_EXTREME_BLUR_ACTIVE):null;
 const blurCraftProjection=new THREE.Vector3();
 function velocityExperienceAudit(){return velocityExperience?{...velocityExperience,blur:velocityCinematography?.stats?.(),camera:{aspect:camera?.aspect,verticalFov:camera?.fov,horizontalFov:camera?horizontalFov(camera.fov,camera.aspect):null,peakVerticalFov:chaseCameraController.maxKineticFov}}:null;}
 let lastAdvancedGpuFrame=null;
@@ -1640,7 +1640,7 @@ function initScene(){
  });
  neonPipeline.resize(innerWidth,innerHeight);
  // Selective HDR velocity pass between SMAA and OutputPass; off when idle.
- velocityCinematography=velocityExperience?installAdaptiveVelocityBlur(THREE,neonPipeline,{mode:velocityExperience.motionBlur}):installVelocityCinematography(THREE,neonPipeline,{
+ velocityCinematography=velocityExperience?installAdaptiveVelocityBlur(THREE,neonPipeline,{mode:velocityExperience.motionBlur,extremeEnabled:VAULT_EXTREME_BLUR_ACTIVE}):installVelocityCinematography(THREE,neonPipeline,{
   enabled:velocityCinemaEnabled,lowMemory:limitedMemory
  });
  velocityCinematography.resize?.(innerWidth,innerHeight,neonPipeline.internalPixelRatio);
@@ -4877,7 +4877,7 @@ function syncSmartSettings(){
  $('frame-cap').value=String(smartPerformance.fps);$('graphics-quality').value=smartPerformance.quality;
  $('extended-diagnostics').checked=smartPerformance.diagnostics;$('section-culling').checked=smartPerformance.sections;
  if(advancedGpu){$('advanced-gpu-settings').classList.remove('hidden');$('bloom-resolution').value=advancedGpu.bloom;$('exterior-backdrop').checked=advancedGpu.exterior;$('distant-detail-lod').checked=advancedGpu.detailLod;$('tunnel-occlusion').checked=advancedGpu.occlusion;}
- if(velocityExperience){$('velocity-experience-settings').classList.remove('hidden');$('motion-blur').value=velocityExperience.motionBlur;$('adaptive-velocity-camera').checked=velocityExperience.adaptiveCamera;}
+ if(velocityExperience){$('velocity-experience-settings').classList.remove('hidden');for(const option of $('motion-blur').options){if(option.value==='ultra'||option.value==='extreme'){option.hidden=!VAULT_EXTREME_BLUR_ACTIVE;option.disabled=!VAULT_EXTREME_BLUR_ACTIVE;}}$('motion-blur').value=velocityExperience.motionBlur;$('adaptive-velocity-camera').checked=velocityExperience.adaptiveCamera;}
 }
 function installControls(){
  if(smartPerformance){
@@ -4905,7 +4905,7 @@ function installControls(){
   if(velocityExperience){const applyVelocity=()=>{
    if(uiState.mode!=='settings')return;
    velocityExperience.motionBlur=$('motion-blur').value;velocityExperience.adaptiveCamera=$('adaptive-velocity-camera').checked;
-   saveVelocityExperience(fleetStorage(),velocityExperience);velocityCinematography?.setMode?.(velocityExperience.motionBlur);
+   saveVelocityExperience(fleetStorage(),velocityExperience,VAULT_EXTREME_BLUR_ACTIVE);velocityCinematography?.setMode?.(velocityExperience.motionBlur);
   };for(const id of ['motion-blur','adaptive-velocity-camera'])runtimeLifetime.listenActive($(id),'change',applyVelocity);}
  }
  runtimeLifetime.listenActive(UI.trackPicker,"change",()=>{
@@ -4972,7 +4972,7 @@ try{
  // Wire the buttons before costly WebGL scene construction.
  installFullscreen();
  installControls();
- if(isVault()&&["0.29.0","0.29.1","0.29.2","0.29.3","0.29.3.1","0.29.4"].includes(new URLSearchParams(location.search).get("v"))&&new URLSearchParams(location.search).get("vaultJump")!=="0"&&
+ if(isVault()&&["0.29.0","0.29.1","0.29.2","0.29.3","0.29.3.1","0.29.4","0.29.4.1"].includes(new URLSearchParams(location.search).get("v"))&&new URLSearchParams(location.search).get("vaultJump")!=="0"&&
   (!VAULT_MEGA_JUMP_ACTIVE||!trueSharedVaultEnabled||!authoritativeDeck028911||GAPS.length!==1))
   throw Error("0.29.0 requested but physical Mega Jump unavailable");
  runtimeLifetime.bind(window,UI.canvas);
@@ -5081,8 +5081,14 @@ try{
    try{
     const base=render('off',1,original),high=summarize(base,render('high',1,original)),
      boost=summarize(base,render('high',1.4,original)),bloom65=summarize(base,render('high',1.4,.65));
+    const extra=VAULT_EXTREME_BLUR_ACTIVE?{
+     ultra:summarize(base,render('ultra',1,original)),
+     extreme:summarize(base,render('extreme',1,original)),
+     extremeBoost:summarize(base,render('extreme',1.4,original)),
+     extremeBloom65:summarize(base,render('extreme',1.4,.65))
+    }:{};
     const {data,...off}=base;
-    return {off,high,boost,bloom65,speedMultiplier,settings:{...velocityExperience},camera:velocityExperienceAudit().camera,
+    return {off,high,boost,bloom65,...extra,speedMultiplier,settings:{...velocityExperience},camera:velocityExperienceAudit().camera,
      referenceFov:{mobile:adaptiveVelocityFov(75,780/360,speedMultiplier),desktop:adaptiveVelocityFov(75,16/9,speedMultiplier)}};
    }finally{
     neonPipeline.setBloomResolutionScale(prior);velocityCinematography.setMode(saved.mode);

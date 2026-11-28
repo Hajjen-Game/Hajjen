@@ -70,7 +70,7 @@ function ring(out,socket,r0,z0,r1,z1,n=14){
  }
 }
 export function buildMantaRebirthData(){
- const wings=mantaWingSurfaces(),armor=[...wings.top],bevel=[...wings.bevel],dark=[...wings.underside],inlay=[],nozzle=[],glass=triangleData(buildMantaCanopy(),(x,y,z)=>[x*.98,y+.018,z]);
+ const wings=mantaWingSurfaces(),armor=[...wings.top],bevel=[...wings.bevel],dark=[...wings.underside],inlay=[],portTip=[],starboardTip=[],nozzle=[],glass=triangleData(buildMantaCanopy(),(x,y,z)=>[x*.98,y+.018,z]);
  armor.push(...triangleData(buildMantaSpine(),(x,y,z)=>[x*(z>-.5?1.06:1),y>0?y+.065*Math.max(0,1-Math.abs(z-.35)/1.7):y,z]));
  for(const side of [-1,1]){
   const path=p=>p.map(([x,z])=>[side*x,z]);
@@ -82,7 +82,8 @@ export function buildMantaRebirthData(){
   strip(dark,wings.topFaces,channel,.13,.004);
   // Three short restrained vents leave the mechanical elevon unobstructed.
   for(let i=0;i<3;i++)strip(dark,wings.topFaces,path([[1.25+i*.18,-.34+i*.12],[1.47+i*.18,-.26+i*.12]]),.055,.006);
-  strip(inlay,wings.topFaces,path([[2.53,-.18],[2.46,.13],[2.36,.40]]),.032,.009);
+  // Keep the two existing tip-light owners separate from structural inlays.
+  strip(side<0?portTip:starboardTip,wings.topFaces,path([[2.53,-.18],[2.46,.13],[2.36,.40]]),.032,.009);
   const s=ENGINE_SOCKETS.find(v=>Math.sign(v.x)===side);
   // A sculpted venturi with a real recessed bore, chamfer, ring and dark
   // inner wall. No extra light: the existing animated exhaust is inside.
@@ -97,7 +98,7 @@ export function buildMantaRebirthData(){
  // thruster. Coordinates follow the raised original spine.
  quad(bevel,[-.17,.392,.39],[.17,.392,.39],[.105,.257,1.30],[-.105,.257,1.30]);
  quad(inlay,[-.020,.398,.42],[.020,.398,.42],[.016,.266,1.26],[-.016,.266,1.26]);
- return {armor,bevel,dark,inlay,nozzle,glass};
+ return {armor,bevel,dark,inlay,portTip,starboardTip,nozzle,glass};
 }
 function mesh(THREE,ship,name,data,material){
  const geometry=new THREE.BufferGeometry();geometry.setAttribute("position",new THREE.Float32BufferAttribute(data,3));
@@ -113,13 +114,18 @@ export function buildMantaVisualRebirth(THREE,shipGlow){
  const chamfer=phys(0x8597a1,.82,.26,.45,0x34414b,.035);
  const glass=phys(0x092331,.36,.15,.82,0x0b3542,.12);
  const turbine=phys(0x64717e,.88,.25,.32);
- const cyan=new THREE.MeshBasicMaterial({color:0xb8f7ff,toneMapped:false,side:THREE.DoubleSide});
+ // Legacy edge FX owns the translucent tip material; the precision inlays
+ // use their own opaque material and stay readable inside the sealed tunnel.
+ const cyan=new THREE.MeshBasicMaterial({color:0x82ced7,transparent:true,opacity:.63,toneMapped:true,side:THREE.DoubleSide});
+ const inlayMaterial=new THREE.MeshBasicMaterial({color:0xb8f7ff,toneMapped:false,side:THREE.DoubleSide});
  const d=buildMantaRebirthData();
  const surfaces=[
   mesh(THREE,ship,"Two broad scalloped manta wings",d.armor,titanium),
   mesh(THREE,ship,"Sculpted titanium chamfers",d.bevel,chamfer),
   mesh(THREE,ship,"Graphite underside, aero channels and venturi recess",d.dark,graphite),
-  mesh(THREE,ship,"Precision cyan inlays and twin nozzle rims",d.inlay,cyan),
+  mesh(THREE,ship,"Precision cyan inlays and twin nozzle rims",d.inlay,inlayMaterial),
+  mesh(THREE,ship,"Manta blade tip luminescence",d.portTip,cyan),
+  mesh(THREE,ship,"Manta blade tip luminescence",d.starboardTip,cyan),
   mesh(THREE,ship,"Twin machined exhaust bezels",d.nozzle,turbine),
   mesh(THREE,ship,"Smoked faceted teardrop canopy",d.glass,glass)
  ];
@@ -132,15 +138,15 @@ export function buildMantaVisualRebirth(THREE,shipGlow){
  const engineCore=new THREE.Mesh(new THREE.BoxGeometry(.06,.022,.18),shipGlow);
  engineCore.position.set(0,-.10,1.14);engineCore.name="Recessed central ion keel";ship.add(engineCore);
  const geometryTriangles=Object.values(d).reduce((n,a)=>n+a.length/9,0)+enginePlumes.reduce((n,m)=>n+m.geometry.index.count/3,0)+12;
- const base=cyan.color.clone();let updates=0,peakGlow=0;
+ const base=inlayMaterial.color.clone();let updates=0,peakGlow=0;
  return {ship,enginePlumes,engineCore,engineSockets:ENGINE_SOCKETS,spec:MANTA_REBIRTH,
   materials:{titanium,wings,graphite,glass,cyan,turbine,chamfer},triangles:geometryTriangles,
   polishSurfaces:surfaces,
   framePolish(dt,view={}){if(dt<=0)return;const boost=Math.max(0,Math.min(1,((view.boostMultiplier||1)-1)/.4));
    const gain=1+.16*boost+.035*Math.max(0,Math.min(1,((view.speed||44)-44)/100));
-   cyan.color.copy(base).multiplyScalar(gain);updates++;peakGlow=Math.max(peakGlow,gain);},
-  resetPolish(){updates=peakGlow=0;cyan.color.copy(base);},
-  polishStats(){return {version:MANTA_REBIRTH.version,variant:"manta",geometryTriangles,baseHullDrawCalls:9,
+   inlayMaterial.color.copy(base).multiplyScalar(gain);updates++;peakGlow=Math.max(peakGlow,gain);},
+  resetPolish(){updates=peakGlow=0;inlayMaterial.color.copy(base);},
+  polishStats(){return {version:MANTA_REBIRTH.version,variant:"manta",geometryTriangles,baseHullDrawCalls:surfaces.length+enginePlumes.length+1,
    sculptedWings:true,engineHousings:2,additionalLights:0,additionalTextures:0,peakGlow,updates,physicsChanged:false};}
  };
 }

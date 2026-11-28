@@ -46,7 +46,7 @@ test("Neon Vault menu resolves the live production catalog while source QA keeps
 test("0.29.2 explicit endurance route retains correct version and rollback",async()=>{
  const {productionRouteUrl,PRODUCTION_TRACK}=await import("../../tracks/shared/production-catalog.mjs");
  const base="https://example.test/skyshift/";
- for(const version of ["0.29.0","0.29.1","0.29.2","0.29.3","0.29.3.1","0.29.4","0.29.4.1","0.29.4.2","0.29.5","0.29.5.1","0.29.5.2","0.29.6","0.29.7","0.29.8","0.29.8.1"]){
+ for(const version of ["0.29.0","0.29.1","0.29.2","0.29.3","0.29.3.1","0.29.4","0.29.4.1","0.29.4.2","0.29.5","0.29.5.1","0.29.5.2","0.29.6","0.29.7","0.29.8","0.29.8.1","0.29.8.2"]){
   const route=new URL(productionRouteUrl(base+"?track=vault&v="+version));
   assert.equal(route.searchParams.get("v"),version);
   assert.equal(route.searchParams.get("vaultJump"),"1");
@@ -71,6 +71,7 @@ test('Color Wave 1.0: nine distinct aligned roles and explicit rollback',()=>{
  assert.equal(colorWaveEnabled('?track=vault&v=0.29.7'),true);
  assert.equal(colorWaveEnabled('?track=vault&v=0.29.8'),true);
  assert.equal(colorWaveEnabled('?track=vault&v=0.29.8.1'),true);
+ assert.equal(colorWaveEnabled('?track=vault&v=0.29.8.2'),true);
  assert.equal(colorWaveEnabled('?track=vault&v=0.29.7&colorWave=classic'),false);
  assert.equal(colorWaveEnabled('?track=vault&v=0.29.6&colorWave=classic'),false);
  assert.equal(colorWaveEnabled('?track=vault&v=0.29.5.2'),false);

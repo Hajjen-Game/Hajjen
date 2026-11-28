@@ -9,7 +9,7 @@
  const status=document.getElementById("boot-state");
  if(!app||!start||!fullscreen||!status)return;
  const q=new URLSearchParams(location.search);
- const deferred=q.get("track")==="vault"&&["0.29.8","0.29.8.1"].includes(q.get("v"))&&q.get("vaultJump")!=="0"&&q.get("instantBoot")!=="classic";
+ const deferred=q.get("track")==="vault"&&["0.29.8","0.29.8.1","0.29.8.2"].includes(q.get("v"))&&q.get("vaultJump")!=="0"&&q.get("instantBoot")!=="classic";
  const boot={deferred,phase:deferred?"menu":"loading",pendingStart:false,pendingMode:"time-trial",fullscreenRequested:false,
   moduleReady:false,error:"",startedAt:performance.now(),readyAfterMs:null};
  window.__skyshiftBoot=boot;

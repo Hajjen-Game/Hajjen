@@ -1,11 +1,13 @@
 // Vehicle presentation owns hull, engine and contact-shadow transforms.
  // It receives authoritative flight and interpolated pose without writing to either.
+import {createGroundClearance} from "./ground-clearance.mjs";
 export function createShipPresentation({
  Vector3,onRoad,surfaceNormalAt,positionAt,bankAt,pitchAt,TRIAL,BOOST_CONFIG,
  NEON_TUNING,SPECTRAL_WHITE,waveResonanceStrength,spectralChargeStrength,
- engineLightFactor,clamp
+ engineLightFactor,clamp,groundClearanceEnabled=false
 }){
  const SHADOW_NORMAL=new Vector3(),SHADOW_PLANE_NORMAL=new Vector3(0,0,1);
+ const groundClearance=groundClearanceEnabled?createGroundClearance({onRoad,positionAt,surfaceNormalAt}):null;
  function frame(time,view,flight,motion,cinematic,motionRig,signatureFlight,
   velocityState,velocityPresence,racingExperience,zoneWave,ship,sideThrusters,
   engineLights,engineCore,enginePlumes,shadowMesh){
@@ -105,5 +107,9 @@ export function createShipPresentation({
    }
  }
  }
- return Object.freeze({frame});
+ return Object.freeze({frame,
+  bindGroundClearance:ship=>groundClearance?.bind(ship),
+  resetGroundClearance:()=>groundClearance?.reset(),
+  applyGroundClearance:(ship,view,dt,active)=>groundClearance?.apply(ship,view,dt,active),
+  clearanceStats:()=>groundClearance?.stats()??null});
 }

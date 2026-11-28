@@ -841,10 +841,11 @@ const chaseCameraController=createChaseCameraController({
  CLASSIC_BOOST_FOV,BOOST_SPRING,clamp,lerp,
  adjustFov:velocityExperience?(base,aspect,speed)=>adaptiveVelocityFov(base,aspect,speed,velocityExperience.adaptiveCamera):null
 });
+const dynamicGroundClearance=VAULT_MEGA_JUMP_ACTIVE&&VAULT_JUMP_VERSION==="0.29.8.2";
 const shipPresentation=createShipPresentation({
  Vector3:THREE.Vector3,onRoad,surfaceNormalAt,positionAt,bankAt,pitchAt,
  TRIAL,BOOST_CONFIG,NEON_TUNING,SPECTRAL_WHITE,waveResonanceStrength,
- spectralChargeStrength,engineLightFactor,clamp
+ spectralChargeStrength,engineLightFactor,clamp,groundClearanceEnabled:dynamicGroundClearance
 });
 const raceTelemetry=createRaceTelemetry();
 let previousSector=0,sceneReady=false,fullscreenController=null,lastRailLog=0;
@@ -858,8 +859,8 @@ const visualWaveView02899=createSinglePassWaveView02899();
 let tunnelInside=false,tunnelEntries=0,tunnelExits=0,tunnelSeconds=0,tunnelMaxIntensity=0;
 let waveSmokeHold=false;
 
-const countdownEnabled=VAULT_MEGA_JUMP_ACTIVE&&VAULT_JUMP_VERSION==="0.29.8.1";
-const haptics=countdownEnabled?createRaceHaptics({mode:window.__skyshiftBoot?.menuSnapshot?.haptics??readHapticMode(fleetStorage()),vibrate:typeof navigator.vibrate==="function"?pattern=>navigator.vibrate(pattern):null,now:()=>performance.now()}):null;
+const countdownEnabled=VAULT_MEGA_JUMP_ACTIVE&&["0.29.8.1","0.29.8.2"].includes(VAULT_JUMP_VERSION);
+const haptics=countdownEnabled?createRaceHaptics({refined:dynamicGroundClearance,mode:window.__skyshiftBoot?.menuSnapshot?.haptics??readHapticMode(fleetStorage()),vibrate:typeof navigator.vibrate==="function"?pattern=>navigator.vibrate(pattern):null,now:()=>performance.now()}):null;
 const raceCountdown=createRaceCountdown();
 const countdownProofFrames=[];
 let countdownFrameReady=false;
@@ -1077,6 +1078,7 @@ function releaseRemainingScene(){
  scene?.clear?.();
 }
 function releaseShip(){
+ shipPresentation.bindGroundClearance(null);
  // Dispose ship-local FX before removing their craft. Shared neon and PMREM
  // remain owned by their respective pipelines, not this vehicle.
  tunnelBlackout?.reset();
@@ -1109,7 +1111,7 @@ function makeShip(id=fleetProgress.selected){
  releaseShip();
  shipGlow=neonKit.ship;
  const craft=id==="stingray"?
-   buildStingrayEvo(THREE,shipGlow):(mantaQaOverride??VAULT_MANTA_REBIRTH_ACTIVE)?buildMantaVisualRebirth(THREE,shipGlow,{corrected:["0.29.5.1","0.29.5.2","0.29.6","0.29.7","0.29.8","0.29.8.1"].includes(mantaQaOverride??VAULT_JUMP_VERSION)}):buildPremiumMantaBlade(THREE,shipGlow);
+   buildStingrayEvo(THREE,shipGlow):(mantaQaOverride??VAULT_MANTA_REBIRTH_ACTIVE)?buildMantaVisualRebirth(THREE,shipGlow,{corrected:["0.29.5.1","0.29.5.2","0.29.6","0.29.7","0.29.8","0.29.8.1","0.29.8.2"].includes(mantaQaOverride??VAULT_JUMP_VERSION)}):buildPremiumMantaBlade(THREE,shipGlow);
  activeCraft=craft;activeShipId=id;ship=craft.ship;
  // A stable SINGLE transform for the full craft (including animated tail
  // and attached engine FX), never evaluated from wing-road intersections.
@@ -1133,13 +1135,14 @@ function makeShip(id=fleetProgress.selected){
  shipWhiteSpill?.attachShip(ship);
  sharedShipLight?.attachShip(ship);
  pmremPipeline?.attachShip(ship);
- premiumFX=createTwinEngineFX(THREE,scene,ship,craft.materials.cyan,{energyPlumes:id==="manta"&&["0.29.5.2","0.29.6","0.29.7","0.29.8","0.29.8.1"].includes(mantaQaOverride??VAULT_JUMP_VERSION)});
+ premiumFX=createTwinEngineFX(THREE,scene,ship,craft.materials.cyan,{energyPlumes:id==="manta"&&["0.29.5.2","0.29.6","0.29.7","0.29.8","0.29.8.1","0.29.8.2"].includes(mantaQaOverride??VAULT_JUMP_VERSION)});
  reactiveWingFlaps=installReactiveWingFlaps(THREE,ship,{variant:id});
  livingWake=createLivingWakeFX(THREE,scene,ship,{variant:id,
   lowMemory:claritySettings?.lowMemory??false});
  railSparks=createRailScrapeSparks(THREE,scene,{
   lowMemory:claritySettings?.lowMemory??false});
  sideThrusters=createSideThrusters(THREE,ship);
+ shipPresentation.bindGroundClearance(ship);
  if(spaceBackdrop)
   tunnelBlackout=(unifiedTunnelLightingEnabled?
     createUnifiedTunnelLightingController:createTunnelBlackoutController)({
@@ -1155,6 +1158,7 @@ function makeShip(id=fleetProgress.selected){
  void shipArtController.onCraftBuilt(craft,id).then(()=>{
   if(runtimeLifetime.disposed||runtimeLifetime.contextLost)return;
   if(activeCraft===craft){
+   shipPresentation.bindGroundClearance(ship);
    whiteCoreContainment?.attachShip(ship);
    shipWhiteSpill?.attachShip(ship);
    sharedShipLight?.attachShip(ship);
@@ -1174,7 +1178,7 @@ function refreshHangar(){
   art.heroApplied?"HERO 4.0 · PANSARSVANS · STABIL SVÄNG":
   art.status==="loading"?"HERO-MODELL · LADDAR 3D-GEOMETRI":
   "Segmenterad mekanisk svans · reagerar på styrning, GRIP och boost":
-  VAULT_MANTA_REBIRTH_ACTIVE?(["0.29.5.1","0.29.5.2","0.29.6","0.29.7","0.29.8","0.29.8.1"].includes(VAULT_JUMP_VERSION)?"DARK GRAPHITE · CYAN WING INLAYS · DUBBLA MOTORER":"GRAPHITE REBIRTH · SKULPTERAT SKROV · DUBBLA MOTORER"):"Hårdskuren interceptor · dubbla motorer";
+  VAULT_MANTA_REBIRTH_ACTIVE?(["0.29.5.1","0.29.5.2","0.29.6","0.29.7","0.29.8","0.29.8.1","0.29.8.2"].includes(VAULT_JUMP_VERSION)?"DARK GRAPHITE · CYAN WING INLAYS · DUBBLA MOTORER":"GRAPHITE REBIRTH · SKULPTERAT SKROV · DUBBLA MOTORER"):"Hårdskuren interceptor · dubbla motorer";
  for(const item of FLEET){
   const card=document.querySelector('[data-fleet-card="'+item.id+'"]');
   const status=document.querySelector('[data-fleet-status="'+item.id+'"]');
@@ -3859,6 +3863,7 @@ function startImmersiveTrial(challenge=null){
 }
 function clearInput(){clearRaceInput(UI,uiState);}
 function resetFlight(){
+ shipPresentation.resetGroundClearance();
  haptics?.reset();
  wakeSmokePath=null;completedSparkStats=null;
  hudBudget.reset();domWrites.reset();
@@ -4213,7 +4218,12 @@ function integrate(dt){
  if(insideNow)tunnelSeconds+=dt;
  maybeShowCue();
  const outcome=raceOutcome(flight,result,currentChallenge);
- if(outcome!==null){if(!result.crashed)haptics?.stop();endRun(outcome);}
+ if(outcome!==null){
+  // In 0.29.8.2 a terminal failure is already emitted by the actual step
+  // as kind=failed. Do not cancel that pulse when the result screen opens.
+  if(!result.crashed&&!(dynamicGroundClearance&&result.kind==="failed"))haptics?.stop();
+  endRun(outcome);
+ }
 }
 function updatePalette(dt){
  // Every visual material receives the same single-pass presentation view.
@@ -4439,6 +4449,11 @@ function loop(now){
     engineFxFrame.presence=velocityPresence;
     premiumFX.frame(engineFxFrame);
    }
+   // After the final hull/flap/nozzle scale and procedural exhaust update,
+   // lift only the visual root above the local road plane. Camera and flight
+   // remain unchanged; world-space wake samples the corrected sockets.
+   if(dynamicGroundClearance)shipPresentation.applyGroundClearance(ship,view,dt,
+    uiState.mode==="playing"||uiState.mode==="countdown"||uiState.mode==="paused");
    // Physical WORLD history is sampled after the final ship scale and pose.
    // This wake lives in the scene, not parented to the moving/turning hull.
    if(perfSettings.preset!=="no-wake-sparks")livingWake?.frame(presentationDt,{
@@ -4577,6 +4592,7 @@ function exportAudit(){
    fullscreen:{...fullscreenController?.audit(),bootHistory:window.__skyshiftBoot?.fullscreenHistory??[]},
    ...(velocityExperience?{velocityExperience:velocityExperienceAudit()}:{}),
    ...(haptics?{haptics:haptics.stats()}:{}),
+   ...(dynamicGroundClearance?{groundClearance:shipPresentation.clearanceStats()}:{}),
    ...(advancedGpu?{advancedGpu:{...advancedGpu,frame:lastAdvancedGpuFrame,originalBloomScale:neonPipeline.originalBloomResolutionScale}}:{}),
    ...(smartPerformance?{smartPerformance:{...smartPerformance,physicsHz:120,visibility:trackVisibility?.stats(),pacing:presentationGate.stats(),
     meanTrianglesPerRenderedFrame:renderSamples?triangleTotal/renderSamples:null,
@@ -4963,7 +4979,7 @@ function exportAudit(){
  downloadRaceAudit(data,perfSettings.preset,{Blob,URL,document,setTimeout});
 }
 function syncSmartSettings(){
- if(haptics)syncHapticSettings(document,haptics.mode,haptics.supported);
+ if(haptics)syncHapticSettings(document,haptics.mode,haptics.supported,dynamicGroundClearance);
  const root=$('smart-performance-settings');root.classList.remove('hidden');UI.settings.classList.add('smart-settings');
  $('frame-cap').value=String(smartPerformance.fps);$('graphics-quality').value=smartPerformance.quality;
  $('extended-diagnostics').checked=smartPerformance.diagnostics;$('section-culling').checked=smartPerformance.sections;
@@ -4972,11 +4988,11 @@ function syncSmartSettings(){
 }
 function installControls(){
  if(haptics){
-  syncHapticSettings(document,haptics.mode,haptics.supported);
+  syncHapticSettings(document,haptics.mode,haptics.supported,dynamicGroundClearance);
   runtimeLifetime.listenActive($("haptic-mode"),"change",()=>{
    if(uiState.mode!=="settings")return;
    haptics.setMode(saveHapticMode(fleetStorage(),$("haptic-mode").value));
-   syncHapticSettings(document,haptics.mode,haptics.supported);
+   syncHapticSettings(document,haptics.mode,haptics.supported,dynamicGroundClearance);
   });
  }
  if(smartPerformance){
@@ -5072,7 +5088,7 @@ try{
  // Wire the buttons before costly WebGL scene construction.
  installFullscreen();
  installControls();
- if(isVault()&&["0.29.0","0.29.1","0.29.2","0.29.3","0.29.3.1","0.29.4","0.29.4.1","0.29.4.2","0.29.5","0.29.5.1","0.29.5.2","0.29.6","0.29.7","0.29.8","0.29.8.1"].includes(new URLSearchParams(location.search).get("v"))&&new URLSearchParams(location.search).get("vaultJump")!=="0"&&
+ if(isVault()&&["0.29.0","0.29.1","0.29.2","0.29.3","0.29.3.1","0.29.4","0.29.4.1","0.29.4.2","0.29.5","0.29.5.1","0.29.5.2","0.29.6","0.29.7","0.29.8","0.29.8.1","0.29.8.2"].includes(new URLSearchParams(location.search).get("v"))&&new URLSearchParams(location.search).get("vaultJump")!=="0"&&
   (!VAULT_MEGA_JUMP_ACTIVE||!trueSharedVaultEnabled||!authoritativeDeck028911||GAPS.length!==1))
   throw Error("0.29.0 requested but physical Mega Jump unavailable");
  runtimeLifetime.bind(window,UI.canvas);
@@ -5140,6 +5156,37 @@ try{
   UI,uiState,ZONE_WAVE,ZONE_PALETTES,updateZoneWave,setZoneSpeedStage,announceSector,refreshHud,waveResonanceStrength,clamp,SHADOW_TUNNEL,positionAt,surfaceHeightAt,TRIAL,headingAt,createFlightMotionState,createCinematicState,createKineticCameraState,snapRacePose,raceSimulation,chaseCameraController,inShadowTunnel,tunnelIntensityAt,bankAt,CAMERA_MODE,speedAt,widthAt,cameraBankAt,railContactPoint,ACTIVE_TRACK_0160,CIRCUIT,isVault,placeShip,saveFleet,fleetStorage,recordFleetClear,refreshHangar,fleetStatus,STINGRAY_PRESENTATION_01347,VAULT_BOOST_0283_ACTIVE,TRACK_ID_0160,BOOST_PADS,RHYTHM_GATES_0160,timeTrialState,challengeSummary,endRun,RISK_REWARD_0160,newFlightState,stepFlight,THREE,buildMantaWings,motionRig,perfSettings,perfSummary,frameProfiler,unifiedFlightAudit,fidelityAudit,racingExperienceAudit,ghostAudit,hudBudget,domWrites});
  // Verify the exact mounted deck and fly its real physics only on explicit QA URLs.
  if(new URLSearchParams(location.search).get("vaultJumpSmoke")==="1"){
+  if(dynamicGroundClearance)window.__skyshiftGroundClearanceProof=()=>{
+   if(uiState.mode!=="playing"||activeShipId!=="manta")throw Error("Clearance QA requires the live Manta");
+   // Use actual installed hull, flaps, nozzles, side jets and shader uniforms
+   // at deterministic heavy-bank poses on the real road. Do not mutate flight.
+   const saved={position:ship.position.clone(),quaternion:ship.quaternion.clone(),scale:ship.scale.clone()};
+   const priorMode=velocityCinematography.stats().mode;
+   const rows=[],s=flight.s,p=positionAt(s,flight.lateral,0),n=surfaceNormalAt(s);
+   const sample={...flight,grounded:true};
+   try{
+    velocityCinematography.setMode("off");
+    for(const direction of [-1,1]){
+     shipPresentation.resetGroundClearance();
+     ship.position.set(p.x+n.x*(TRIAL.hoverHeight-.09),p.y+n.y*(TRIAL.hoverHeight-.09),p.z+n.z*(TRIAL.hoverHeight-.09));
+     ship.rotation.set(pitchAt(s)-.075,-flight.heading,direction*.60-bankAt(s));
+     sideThrusters.frame(1,direction,0);reactiveWingFlaps.frame(1/30,{steering:direction,gripIntensity:1,yawRate:direction});
+     premiumFX.frame({dt:1/60,playing:true,flight:{forwardSpeed:105,boostMultiplier:1.4},ship,sectorColor:COLOR[zoneWave.playerStage].color,motionWeight:cinematicState,velocity:velocityState,presence:velocityPresence});
+     const before=ship.position.clone(),roll=ship.rotation.z;
+     const capture=()=>{trackVisibility.begin(camera,true);try{neonPipeline.render(0);return renderer.domElement.toDataURL("image/png");}finally{trackVisibility.end();}};
+     const beforePng=capture();
+     const clearance=shipPresentation.applyGroundClearance(ship,sample,1/60,true);
+     const afterPng=capture();
+     rows.push({direction,clearance,unchangedRoll:ship.rotation.z===roll,translation:ship.position.distanceTo(before),beforePng,afterPng});
+    }
+    shipPresentation.resetGroundClearance();
+    const airborne=shipPresentation.applyGroundClearance(ship,{...sample,grounded:false},1/60,true);
+    return {rows,airborne,physical:{s:flight.s,y:flight.y,heading:flight.heading,elapsed:flight.elapsed}};
+   }finally{
+    ship.position.copy(saved.position);ship.quaternion.copy(saved.quaternion);ship.scale.copy(saved.scale);ship.updateMatrixWorld(true);
+    sideThrusters.frame(0,0,0);shipPresentation.resetGroundClearance();velocityCinematography.setMode(priorMode);
+   }
+  };
   window.__skyshiftCountdownProbe=()=>({mode:uiState.mode,label:raceCountdown.label,elapsed:flight.elapsed,distance:flight.s,history:raceCountdown.history(),frameReady:countdownFrameReady,documentHidden:document.hidden,frames:countdownProofFrames.map(row=>({...row})),visible:!$("race-countdown").classList.contains("hidden")});
   if(endurance)window.__skyshiftEnduranceProbe=()=>{endurance.sample(frameProfiler,readEnduranceSnapshot,true);return endurance.report();};
   if(smartPerformance)window.__skyshiftSmartPerformanceProbe=()=>{
@@ -5202,7 +5249,7 @@ try{
    };
    try{
     velocityCinematography.setMode("off");
-    const plumeRelease=["0.29.5.2","0.29.6","0.29.7","0.29.8","0.29.8.1"].includes(VAULT_JUMP_VERSION);
+    const plumeRelease=["0.29.5.2","0.29.6","0.29.7","0.29.8","0.29.8.1","0.29.8.2"].includes(VAULT_JUMP_VERSION);
     const corrected=plumeRelease||VAULT_JUMP_VERSION==="0.29.5.1";
     const before=capture(corrected?"0.29.5":false);
     const exhaustBefore=plumeRelease&&playing?capture("0.29.5.1"):null;

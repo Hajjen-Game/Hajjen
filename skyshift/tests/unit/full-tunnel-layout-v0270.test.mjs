@@ -123,7 +123,7 @@ test("Vault third bend: live deck shares full 23.2m width and every vertex with 
  assert.match(cmd.stdout,/14m -> 23.2m/);
 });
 
-for(const release of ["0.28.9.11","0.29.1","0.29.6","0.29.7","0.29.8","0.29.8.1"])test("Vault jump chamber and real ballistic flight "+release,()=>{
+for(const release of ["0.28.9.11","0.29.1","0.29.6","0.29.7","0.29.8","0.29.8.1","0.29.8.2"])test("Vault jump chamber and real ballistic flight "+release,()=>{
  const code=`
  globalThis.location={search:'?track=vault&v='+${JSON.stringify(release)}+'&vaultJump=1'};
  const assert=(await import('node:assert/strict')).default;
@@ -132,7 +132,7 @@ for(const release of ["0.28.9.11","0.29.1","0.29.6","0.29.7","0.29.8","0.29.8.1"
  const {createTunnelProfileSampler}=await import('./skyshift/tunnel/profile-sampler.mjs');
  const {premiumTrackCoordinates}=await import('./skyshift/rendering/road/premium-track-v0160.mjs');
  assert.equal(VAULT_MEGA_JUMP_ACTIVE,true);
- const hyper=${['0.29.7','0.29.8','0.29.8.1'].includes(release)};
+ const hyper=${['0.29.7','0.29.8','0.29.8.1','0.29.8.2'].includes(release)};
  assert.equal(route.TRIAL.startSpeed,hyper?60:44);
  assert.equal(Boolean(route.TRIAL.surfaceRelativeLandingImpact),hyper);
  assert.equal(route.TRIAL.endSpeed,hyper?105:44*1.11**8);

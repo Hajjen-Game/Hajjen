@@ -12,7 +12,7 @@ export function productionRouteUrl(href){
  url.searchParams.set('track',PRODUCTION_TRACK.id);
  const requested=url.searchParams.get('vaultJump');
  const version=url.searchParams.get('v');
- const polish=version===VAULT_POLISH_RELEASE||version===VAULT_COMPACT_RELEASE||version==='0.29.3'||version==='0.29.3.1'||version==='0.29.4'||version==='0.29.4.1'||version==='0.29.4.2'||version==='0.29.5'||version==='0.29.5.1'||version==='0.29.5.2'||version==='0.29.6'||version==='0.29.7'||version==='0.29.8'||version==='0.29.8.1';
+ const polish=version===VAULT_POLISH_RELEASE||version===VAULT_COMPACT_RELEASE||version==='0.29.3'||version==='0.29.3.1'||version==='0.29.4'||version==='0.29.4.1'||version==='0.29.4.2'||version==='0.29.5'||version==='0.29.5.1'||version==='0.29.5.2'||version==='0.29.6'||version==='0.29.7'||version==='0.29.8'||version==='0.29.8.1'||version==='0.29.8.2';
  const jump=requested==='1'||(requested!=='0'&&(version===VAULT_JUMP_RELEASE||polish));
  url.searchParams.set('v',jump?(polish?version:VAULT_JUMP_RELEASE):PRODUCTION_TRACK.version);
  if(jump){

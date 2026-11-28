@@ -159,6 +159,7 @@ test("Color Wave 1.0 rail chevrons retain their destination behind the real fron
   ["?track=vault&v=0.29.6",true],
   ["?track=vault&v=0.29.7",true],
   ["?track=vault&v=0.29.8.1",true],
+  ["?track=vault&v=0.29.8.2",true],
   ["?track=vault&v=0.29.7&colorWave=classic",false],
   ["?track=vault&v=0.29.5.2",false],
   ["?track=skyline&v=0.29.7",false]
@@ -212,6 +213,7 @@ test("0.29.8.1 lifts only the first secondary/alias, preserving the previous rel
  const code=`globalThis.location={search:process.argv[1]};const m=await import('./skyshift/core/zone-wave.mjs');console.log(JSON.stringify({palettes:m.COLOR_WAVE_PALETTES,pair:m.zoneRolePair({shaderBaseStage:0,activeCount:1,fronts:[100]},'secondary')}));`;
  const load=v=>{const r=spawnSync(process.execPath,["--input-type=module","-e",code,"?track=vault&v="+v],{cwd:new URL("../../../",import.meta.url).pathname,encoding:"utf8",timeout:25000});assert.equal(r.status,0,r.stderr);return JSON.parse(r.stdout);};
  const old=load("0.29.8"),next=load("0.29.8.1");
+ assert.deepEqual(load("0.29.8.2"),next,"approved palette preserved");
  assert.equal(old.palettes[0].secondary,0x356bff);assert.equal(next.palettes[0].secondary,0x70c9ff);assert.equal(next.pair.from,0x70c9ff);assert.equal(next.pair.to,old.pair.to);
  assert.deepEqual(next.palettes,[{...old.palettes[0],secondary:0x70c9ff,accent:0x70c9ff},...old.palettes.slice(1)]);
 });

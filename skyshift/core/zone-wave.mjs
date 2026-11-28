@@ -42,11 +42,11 @@ export const LEGACY_ZONE_PALETTES=Object.freeze([
 
 export function colorWaveEnabled(search=typeof location==="undefined"?"":location.search){
  const q=new URLSearchParams(search||"");
- return q.get("track")==="vault"&&["0.29.6","0.29.7","0.29.8","0.29.8.1"].includes(q.get("v"))&&q.get("vaultJump")!=="0"&&q.get("colorWave")!=="classic";
+ return q.get("track")==="vault"&&["0.29.6","0.29.7","0.29.8","0.29.8.1","0.29.8.2"].includes(q.get("v"))&&q.get("vaultJump")!=="0"&&q.get("colorWave")!=="classic";
 }
 export const COLOR_WAVE_ACTIVE=colorWaveEnabled();
 export const ZONE_ONE_ICE_BLUE=0x70c9ff;
-export const ZONE_ONE_PALETTE_LIFT=COLOR_WAVE_ACTIVE&&typeof location!=="undefined"&&new URLSearchParams(location.search).get("v")==="0.29.8.1";
+export const ZONE_ONE_PALETTE_LIFT=COLOR_WAVE_ACTIVE&&typeof location!=="undefined"&&["0.29.8.1","0.29.8.2"].includes(new URLSearchParams(location.search).get("v"));
 export const COLOR_WAVE_PALETTES=Object.freeze([
  ["Arctic Cyan",0x00e5ff,ZONE_ONE_PALETTE_LIFT?ZONE_ONE_ICE_BLUE:0x356bff,0xffb55a,0x09212d],
  ["Electric Violet",0x8a4dff,0xff4fd8,0x3eebff,0x1c1035],

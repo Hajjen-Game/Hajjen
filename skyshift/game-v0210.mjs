@@ -25,7 +25,7 @@ import {perfConfig as readPerfConfig,newPerfMonitor,resetPerfMonitor,recordPerfF
 import {
  TRIAL,COURSE_SEGMENTS,GAPS,ISLANDS,SPLITS,RISK_CUTS,GEOMETRY_BREAKS,ARCHES,CHECKPOINTS,SECTORS,ROAD_CUES,poseAt,positionAt,createStaticPositionSampler,headingAt,curvatureAt,bankAt,bankDegreesAt,surfaceHeightAt,surfaceNormalAt,
  heightAt,widthAt,gapAt,roadIntervals,onRoad,sectorAt,speedAt,nextGap,gradeAt,pitchAt,TRACK_3D,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW,AIR_TRICKS,GRIP_APEX,PROJECTION_083,STEERING_AUTHORITY,steeringBalanceAt,normalYawFactorAt,elevationAudit,
- newFlightState,stepFlight,setZoneSpeedStage,CIRCUIT,circuitPlanSummary,clamp,lerp
+ newFlightState,stepFlight,setZoneSpeedStage,CIRCUIT,circuitPlanSummary,clamp,lerp,SPEED_PROFILE,velocityPresentationRatio
 } from "./tracks/trials/trial-v0165.mjs";
 import { BOOST_PADS,BOOST_CONFIG } from "./flight/boost/boost-v0160.mjs";
 import {RISK_REWARD_0160,RHYTHM_GATES_0160,riskCueAt,
@@ -247,7 +247,10 @@ import {RACING_0121,createRacingExperience,resetRacingExperience,
 import {FIDELITY_0121,readFidelityChoice,saveFidelityChoice,chooseFidelity0121}
  from "./core/fidelity-settings-v0121.mjs";
 import * as timeTrialAPI from "./core/time-trial-v0160.mjs";
-import {formatTrialTime,formatTrialDelta,updateGhostDelta,ghostAudit} from "./core/time-trial-v0160.mjs";
+import {createTimeTrialAPI} from "./core/time-trial.mjs";
+const raceTimeTrialAPI=SPEED_PROFILE.id==="hyper-0297"?createTimeTrialAPI({...timeTrialAPI.TIME_TRIAL_0160,storageKey:"skyshift-time-trial-ghost-vault-hyper-0297",trackRevision:timeTrialAPI.TIME_TRIAL_0160.trackRevision+"|hyper-0297"}):timeTrialAPI;
+const {formatTrialTime,formatTrialDelta,updateGhostDelta,ghostAudit}=raceTimeTrialAPI;
+const raceBestKey=SPEED_PROFILE.id==="hyper-0297"?"skyshift-zone-wave-best-vault-hyper-0297":undefined;
 import {createRaceSession,readLegacyRaceBest,updateLegacyRaceBest} from "./core/race-session.mjs";
 import {GHOST_VISUAL_0130,createPersonalGhostVisual}
  from "./ui/ghost-visual-v0130.mjs";
@@ -775,7 +778,7 @@ let stationWorld=null,whiteCoreContainment=null,shipWhiteSpill=null,roadSolarSpi
 let shadowMesh,premiumFX,sideThrusters,reactiveWingFlaps,livingWake,railSparks;
 let sectorLandmarks=null,ghostVisual=null,hangarHeroRig=null;
 const racingExperience=createRacingExperience();
-const raceSession=createRaceSession({api:timeTrialAPI,
+const raceSession=createRaceSession({api:raceTimeTrialAPI,
  sampleIntervalSeconds:timeTrialAPI.TIME_TRIAL_0160.sampleIntervalSeconds,
  storage:fleetStorage,bankAt,pitchAt});
 const timeTrialState=raceSession.trial;
@@ -852,7 +855,7 @@ let tunnelInside=false,tunnelEntries=0,tunnelExits=0,tunnelSeconds=0,tunnelMaxIn
 let waveSmokeHold=false;
 
 const raceLifecycle=createRaceLifecycle({UI,uiState,raceSession,timeTrialState,resetFlight,refreshHud,hudBudget,clearInput,refreshTrialMenu,worldClock,event,now:()=>performance.now(),clearTimeout,ctx:{get sceneReady(){return sceneReady},get currentChallenge(){return currentChallenge},get world(){return world},setChallenge(challenge){currentChallenge=challenge;lastChallengeGrading=null},app:()=>$("app"),hideGhost:()=>ghostVisual?.hide()}});
-function bestForTrial(){return readLegacyRaceBest(fleetStorage());}
+function bestForTrial(){return readLegacyRaceBest(fleetStorage(),raceBestKey);}
 // A best Time Trial is separate from the historic normal-circuit record.
 function refreshTrialMenu(){
  const best=raceSession.personalBest();
@@ -1097,7 +1100,7 @@ function makeShip(id=fleetProgress.selected){
  releaseShip();
  shipGlow=neonKit.ship;
  const craft=id==="stingray"?
-   buildStingrayEvo(THREE,shipGlow):(mantaQaOverride??VAULT_MANTA_REBIRTH_ACTIVE)?buildMantaVisualRebirth(THREE,shipGlow,{corrected:["0.29.5.1","0.29.5.2","0.29.6"].includes(mantaQaOverride??VAULT_JUMP_VERSION)}):buildPremiumMantaBlade(THREE,shipGlow);
+   buildStingrayEvo(THREE,shipGlow):(mantaQaOverride??VAULT_MANTA_REBIRTH_ACTIVE)?buildMantaVisualRebirth(THREE,shipGlow,{corrected:["0.29.5.1","0.29.5.2","0.29.6","0.29.7"].includes(mantaQaOverride??VAULT_JUMP_VERSION)}):buildPremiumMantaBlade(THREE,shipGlow);
  activeCraft=craft;activeShipId=id;ship=craft.ship;
  // A stable SINGLE transform for the full craft (including animated tail
  // and attached engine FX), never evaluated from wing-road intersections.
@@ -1121,7 +1124,7 @@ function makeShip(id=fleetProgress.selected){
  shipWhiteSpill?.attachShip(ship);
  sharedShipLight?.attachShip(ship);
  pmremPipeline?.attachShip(ship);
- premiumFX=createTwinEngineFX(THREE,scene,ship,craft.materials.cyan,{energyPlumes:id==="manta"&&["0.29.5.2","0.29.6"].includes(mantaQaOverride??VAULT_JUMP_VERSION)});
+ premiumFX=createTwinEngineFX(THREE,scene,ship,craft.materials.cyan,{energyPlumes:id==="manta"&&["0.29.5.2","0.29.6","0.29.7"].includes(mantaQaOverride??VAULT_JUMP_VERSION)});
  reactiveWingFlaps=installReactiveWingFlaps(THREE,ship,{variant:id});
  livingWake=createLivingWakeFX(THREE,scene,ship,{variant:id,
   lowMemory:claritySettings?.lowMemory??false});
@@ -1162,7 +1165,7 @@ function refreshHangar(){
   art.heroApplied?"HERO 4.0 · PANSARSVANS · STABIL SVÄNG":
   art.status==="loading"?"HERO-MODELL · LADDAR 3D-GEOMETRI":
   "Segmenterad mekanisk svans · reagerar på styrning, GRIP och boost":
-  VAULT_MANTA_REBIRTH_ACTIVE?(["0.29.5.1","0.29.5.2","0.29.6"].includes(VAULT_JUMP_VERSION)?"DARK GRAPHITE · CYAN WING INLAYS · DUBBLA MOTORER":"GRAPHITE REBIRTH · SKULPTERAT SKROV · DUBBLA MOTORER"):"Hårdskuren interceptor · dubbla motorer";
+  VAULT_MANTA_REBIRTH_ACTIVE?(["0.29.5.1","0.29.5.2","0.29.6","0.29.7"].includes(VAULT_JUMP_VERSION)?"DARK GRAPHITE · CYAN WING INLAYS · DUBBLA MOTORER":"GRAPHITE REBIRTH · SKULPTERAT SKROV · DUBBLA MOTORER"):"Hårdskuren interceptor · dubbla motorer";
  for(const item of FLEET){
   const card=document.querySelector('[data-fleet-card="'+item.id+'"]');
   const status=document.querySelector('[data-fleet-status="'+item.id+'"]');
@@ -2521,7 +2524,7 @@ function initScene(){
    }finally{
     unifiedCinematicGrade.setQualityLevel(before.qualityLevel);
     unifiedCinematicGrade.update({playing:uiState.mode==="playing",
-     speedMultiplier:(flight?.currentSpeed??TRIAL.startSpeed)/TRIAL.startSpeed,
+     speedMultiplier:velocityPresentationRatio(flight?.currentSpeed??TRIAL.startSpeed),
      boostMultiplier:Math.max(flight?.boostMultiplier??1,
       flight?.landingBoostMultiplier??1)});
     unifiedCinematicGrade.setComparison(before.comparison);
@@ -2556,7 +2559,7 @@ function initScene(){
    }finally{
     velocityCinematography.setQualityLevel(before.qualityLevel);
     velocityCinematography.update({playing:uiState.mode==="playing",
-     speedMultiplier:(flight?.currentSpeed??TRIAL.startSpeed)/TRIAL.startSpeed,
+     speedMultiplier:velocityPresentationRatio(flight?.currentSpeed??TRIAL.startSpeed),
      boostMultiplier:Math.max(flight?.boostMultiplier??1,
       flight?.landingBoostMultiplier??1)});
     velocityCinematography.setComparison(before.comparison);
@@ -3923,7 +3926,7 @@ function endRun(won){
    String(Math.floor(flight.elapsed%60)).padStart(2,"0");
  UI.finalJumps.textContent=flight.peakYawRateDeg.toFixed(1)+"°/S";
  UI.finalStyle.textContent=flight.offRoadSeconds.toFixed(1)+" S";
- const best=updateLegacyRaceBest(fleetStorage(),won,flight.elapsed);
+ const best=updateLegacyRaceBest(fleetStorage(),won,flight.elapsed,raceBestKey);
  const reward=recordFleetClear(fleetProgress,won);
  fleetProgress=saveFleet(fleetStorage(),reward.state);
  UI.unlockToast.classList.toggle("hidden",
@@ -4131,10 +4134,11 @@ function integrate(dt){
   event("zone_wave_emitted",{stage,originMeters:+zoneWave.waves[stage-1].startS.toFixed(1)});
  if(wave.changed){
   previousSector=wave.stage;
+  const priorCruiseTarget=speedAt(flight.s,flight.zoneSpeedStage);
   setZoneSpeedStage(flight,wave.stage);
   event("zone_speed_increase",{
    stage:wave.stage,cruiseTargetMetersPerSecond:+speedAt(flight.s,wave.stage).toFixed(2),
-   speedStepPercent:+((TRIAL.zoneSpeedStep-1)*100).toFixed(1)});
+   speedStepPercent:+((speedAt(flight.s,wave.stage)/priorCruiseTarget-1)*100).toFixed(1)});
   announceSector(wave.stage);
  }
  const insideNow=!isVault()&&inShadowTunnel(flight.s);
@@ -4400,14 +4404,14 @@ function loop(now){
  velocityCinematography?.update?.({
   dt,craftX:blurCraftProjection.x*.5+.5,craftY:blurCraftProjection.y*.5+.5,craftZ:blurCraftProjection.z,
   playing:uiState.mode==="playing",
-  speedMultiplier:(flight?.currentSpeed??0)/Math.max(1,TRIAL.startSpeed),
+  speedMultiplier:velocityPresentationRatio(flight?.currentSpeed??0),
   boostMultiplier:Math.max(flight?.boostMultiplier??1,
    flight?.landingBoostMultiplier??1)
  });
  // 0.22.0 P4 visual-only grade combines existing materials and speed.
  unifiedCinematicGrade?.update?.({
   playing:uiState.mode==="playing",
-  speedMultiplier:(flight?.currentSpeed??0)/Math.max(1,TRIAL.startSpeed),
+  speedMultiplier:velocityPresentationRatio(flight?.currentSpeed??0),
   boostMultiplier:Math.max(flight?.boostMultiplier??1,
    flight?.landingBoostMultiplier??1)
  });
@@ -4781,6 +4785,7 @@ function exportAudit(){
         stageTransitionSeconds:[...zoneWave.stageTransitionSeconds],
         paletteNames:ZONE_PALETTES.map(p=>p.name),
         colorWaveVersion:COLOR_WAVE_ACTIVE?"1.0":"classic",
+        speedProfile:{...SPEED_PROFILE,cruiseTargets:Array.from({length:9},(_,i)=>speedAt(0,i)),presentationRatio:velocityPresentationRatio(flight.currentSpeed)},
         rolePalettes:COLOR_WAVE_ACTIVE?COLOR_WAVE_PALETTES.map(({name,primary,secondary,highlight})=>({name,primary,secondary,highlight})):null,
         edgeAndFootWave: sharedTunnelRuntime?.colorWaveStats?.()??[],
         waveFeatherMeters:ZONE_WAVE.featherMeters,
@@ -4980,7 +4985,7 @@ try{
  // Wire the buttons before costly WebGL scene construction.
  installFullscreen();
  installControls();
- if(isVault()&&["0.29.0","0.29.1","0.29.2","0.29.3","0.29.3.1","0.29.4","0.29.4.1","0.29.4.2","0.29.5","0.29.5.1","0.29.5.2","0.29.6"].includes(new URLSearchParams(location.search).get("v"))&&new URLSearchParams(location.search).get("vaultJump")!=="0"&&
+ if(isVault()&&["0.29.0","0.29.1","0.29.2","0.29.3","0.29.3.1","0.29.4","0.29.4.1","0.29.4.2","0.29.5","0.29.5.1","0.29.5.2","0.29.6","0.29.7"].includes(new URLSearchParams(location.search).get("v"))&&new URLSearchParams(location.search).get("vaultJump")!=="0"&&
   (!VAULT_MEGA_JUMP_ACTIVE||!trueSharedVaultEnabled||!authoritativeDeck028911||GAPS.length!==1))
   throw Error("0.29.0 requested but physical Mega Jump unavailable");
  runtimeLifetime.bind(window,UI.canvas);
@@ -5104,7 +5109,7 @@ try{
    };
    try{
     velocityCinematography.setMode("off");
-    const plumeRelease=["0.29.5.2","0.29.6"].includes(VAULT_JUMP_VERSION);
+    const plumeRelease=["0.29.5.2","0.29.6","0.29.7"].includes(VAULT_JUMP_VERSION);
     const corrected=plumeRelease||VAULT_JUMP_VERSION==="0.29.5.1";
     const before=capture(corrected?"0.29.5":false);
     const exhaustBefore=plumeRelease&&playing?capture("0.29.5.1"):null;
@@ -5129,7 +5134,7 @@ try{
    const dt=1/60;
    const frame=()=>{
     camera.updateMatrixWorld(true);ship.getWorldPosition(blurCraftProjection).project(camera);
-    return {dt,playing:true,speedMultiplier:flight.currentSpeed/TRIAL.startSpeed,boostMultiplier:1,
+    return {dt,playing:true,speedMultiplier:velocityPresentationRatio(flight.currentSpeed),boostMultiplier:1,
      craftX:blurCraftProjection.x*.5+.5,craftY:blurCraftProjection.y*.5+.5,craftZ:blurCraftProjection.z,snap:true};
    };
    const advance=()=>{
@@ -5239,6 +5244,7 @@ try{
     gaps:GAPS.map(g=>({id:g.id,start:g.start,end:g.end})),inside,before,after,
     mounted:Boolean(c&&idx),pmrem:pmremPipeline?.active??false,
     rampRise:j.rampRise,polish:VAULT_JUMP_POLISH_ACTIVE,
+    speedProfile:{...SPEED_PROFILE,cruiseTargets:Array.from({length:9},(_,i)=>speedAt(0,i)),launchPresentationRatio:velocityPresentationRatio(TRIAL.startSpeed)},
     roadBefore:onRoad(j.start-2,0),roadGap:onRoad(j.start+2,0),roadAfter:onRoad(j.end+2,0)};
   };
   window.__skyshiftVaultJumpCapture=(phase,stage=0)=>{

@@ -1,0 +1,7 @@
+# 0.29.7 — Hyper Velocity Progression
+
+Approved design: increase actual initial cruise from 44 to 60 m/s (158.4 to 216 km/h). Each existing passed stage still requests +11%, capped at 105 m/s (378 km/h) without boosts. Physical speed uses the existing 120 Hz flight solver and .85 second acceleration response. Existing boost, GRIP, rail collision, track geometry, jump, color scheduler (all eight triggers / nine palettes) and Manta retained. Color timing and palette order unchanged; a faster finish may show fewer themes. Numeric stage is separate from palette definition; no shuffle introduced. No artificial speedometer inflation.
+
+Explicit Vault 0.29.7 route only, 0.29.6 remains the previous speed and Color Wave 1.0. Legacy releases remain unchanged. Preserve no-blur launch and the former maximum-cruise visual response by normalizing the actual velocity signal between the new endpoints. No new render passes or shader changes. Separate local time-trial/ghost record and legacy best key, preserving old records.
+
+Audit includes actual speed profile and cruise targets, and reports the true percentage increment after cap. Browser proof checks correct route, speed profile and existing WebGL evidence. Actual 120Hz jump test exercises all nine speed stages. The initial proposed lap duration of 115–125 s is an estimate, not a measured result. Human corner handling, boost jumps, mobile thermals and full race time need real player validation. Main merge gated by CI and user approval.

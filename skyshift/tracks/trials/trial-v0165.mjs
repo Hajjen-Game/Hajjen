@@ -3,7 +3,7 @@ const isFlowTrack=()=>isAurora()||isVault();
 // SKYSHIFT 0.16.4 — SAME physics for all circuits; geometry only changes course.
 import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState} from "../../flight/boost/boost-v0160.mjs";
 import {createFlightPhysics} from "../../flight/flight-physics.mjs";
-import {VAULT_JUMP_POLISH_ACTIVE,VAULT_RAIL_SHIELD_DAMAGE} from "../vault/vault-mega-jump.mjs";
+import {VAULT_JUMP_POLISH_ACTIVE,VAULT_RAIL_SHIELD_DAMAGE,VAULT_HYPER_VELOCITY_ACTIVE} from "../vault/vault-mega-jump.mjs";
 import {createTrackSampler} from "../shared/track-sampler.mjs";
 import {STEERING_AUTHORITY,normalYawFactorAt,yawAuthorityAt,steeringBalanceAt} from "../../flight/steering-authority-v01348.mjs";
 import {AIR_TRICKS} from "../../flight/air-tricks-v083.mjs";
@@ -18,6 +18,22 @@ export const clamp=(x,min,max)=>Math.max(min,Math.min(max,x));
 export const lerp=(a,b,t)=>a+(b-a)*t;
 export const smooth=x=>{const t=clamp(x,0,1);return t*t*(3-2*t);};
 
+// Physical cruise rules are independent of palette data and use the existing stage clock.
+export const LEGACY_SPEED_PROFILE=Object.freeze({id:"classic",startSpeed:44,endSpeed:44*1.11**8,zoneSpeedStep:1.11,targetDurationSeconds:155});
+export const HYPER_SPEED_PROFILE=Object.freeze({id:"hyper-0297",startSpeed:60,endSpeed:105,zoneSpeedStep:1.11,targetDurationSeconds:120});
+export const SPEED_PROFILE=VAULT_HYPER_VELOCITY_ACTIVE?HYPER_SPEED_PROFILE:LEGACY_SPEED_PROFILE;
+export function cruiseSpeedAtStage(zoneStage=0,profile=SPEED_PROFILE){
+ return Math.min(profile.endSpeed,profile.startSpeed*Math.pow(profile.zoneSpeedStep,
+  Math.max(0,Math.min(8,Math.floor(zoneStage)))));
+}
+// Preserve the approved no-blur launch and full-speed visual calibration while
+// changing physical speed. No changes to camera history or real speed readings.
+export function velocityPresentationRatio(speed){
+ if(!VAULT_HYPER_VELOCITY_ACTIVE)return speed/LEGACY_SPEED_PROFILE.startSpeed;
+ return Math.max(0,1+(speed-SPEED_PROFILE.startSpeed)*
+  (LEGACY_SPEED_PROFILE.endSpeed/LEGACY_SPEED_PROFILE.startSpeed-1)/
+  (SPEED_PROFILE.endSpeed-SPEED_PROFILE.startSpeed));
+}
 export const TRIAL=Object.freeze({
  id:isVault()?"neon-vault-full-tunnel-0270":
   ACTIVE_TRACK_0160.id==="aurora"?"aurora-flow-v0160":"skyline-grip-first-v0901",
@@ -25,8 +41,8 @@ export const TRIAL=Object.freeze({
  raceLength:CIRCUIT.totalDistance,laps:CIRCUIT.laps,
  hoverHeight:1.05,gravity:22,fallDepth:8.5,shieldPenalty:20,
  ...(VAULT_JUMP_POLISH_ACTIVE?{railShieldDamage:VAULT_RAIL_SHIELD_DAMAGE}:{}),
- startSpeed:44,endSpeed:44*1.11**8,
- zoneSpeedStep:1.11,zoneAccelerationSeconds:.85,targetDurationSeconds:155,
+ startSpeed:SPEED_PROFILE.startSpeed,endSpeed:SPEED_PROFILE.endSpeed,
+ zoneSpeedStep:SPEED_PROFILE.zoneSpeedStep,zoneAccelerationSeconds:.85,targetDurationSeconds:SPEED_PROFILE.targetDurationSeconds,
  // 0.8.4: original reference yaw preserved, but ordinary steering turns
  // progressively wider as speed rises; GRIP has separate strong authority.
  // Pilot yaw and release response remain instantaneous/unchanged.
@@ -133,9 +149,8 @@ export function widthAt(s){
 }
 export function speedAt(s,zoneStage=0){
  // This is real physics speed (m/s), not a speedometer multiplier.
- // Every authentic color-front crossing gives +11% physical cruise speed.
- return TRIAL.startSpeed*Math.pow(TRIAL.zoneSpeedStep,
-  Math.max(0,Math.min(8,Math.floor(zoneStage))));
+ // Each front advances the physical speed stage up to its configured cruise cap.
+ return cruiseSpeedAtStage(zoneStage);
 }
 export function setZoneSpeedStage(state,stage){
  const next=Math.max(0,Math.min(8,Math.floor(stage)));

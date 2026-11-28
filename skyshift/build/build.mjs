@@ -80,7 +80,7 @@ for(const query of ['?track=vault&v=0.29.1','?track=vault&v=0.29.1&vaultJump=1']
  const canonical=new URL(productionRouteUrl('https://example.invalid/skyshift/'+query));
  assert.equal(canonical.searchParams.get('v'),'0.29.1');assert.equal(canonical.searchParams.get('vaultJump'),'1');
 }
-for(const version of ['0.29.5','0.29.5.1','0.29.5.2','0.29.6','0.29.7'])for(const query of ['?track=vault&v='+version,'?track=vault&v='+version+'&vaultJump=1']){
+for(const version of ['0.29.5','0.29.5.1','0.29.5.2','0.29.6','0.29.7','0.29.8'])for(const query of ['?track=vault&v='+version,'?track=vault&v='+version+'&vaultJump=1']){
  const canonical=new URL(productionRouteUrl('https://example.invalid/skyshift/'+query));
  assert.equal(canonical.searchParams.get('v'),version);assert.equal(canonical.searchParams.get('vaultJump'),'1');
 }
@@ -130,6 +130,14 @@ let graph;
 const auditPlugin={name:'skyshift-production-graph',generateBundle(_options,bundle){
  const files=Object.values(bundle).filter(x=>x.type==='chunk');
  const modules=[...new Set(files.flatMap(x=>Object.keys(x.modules)))].sort();
+ // Verify the *static* dependency closure of the menu dynamic entry.
+ const menu=files.find(x=>Object.keys(x.modules).some(m=>m.endsWith('/ui/instant-menu.mjs')));
+ assert.ok(menu,'independent instant menu chunk');
+ const chunkMap=new Map(files.map(x=>[x.fileName,x]));
+ const visited=new Set(),menuModules=[];
+ function visitMenu(chunk){if(!chunk||visited.has(chunk.fileName))return;visited.add(chunk.fileName);menuModules.push(...Object.keys(chunk.modules));for(const name of chunk.imports)visitMenu(chunkMap.get(name));}
+ visitMenu(menu);
+ assert.ok(!menuModules.some(m=>/\/node_modules\/three\/|\/game-v0210\.mjs|\/tracks\/trials\/|\/tunnel\//.test(m)),'Cold menu must not load 3D engine or race geometry');
  assert.ok(modules.some(x=>x.includes('game-v0210.mjs')),'live game included');
  assert.ok(!modules.some(x=>/\/(?:tests|docs|previews)\/|\/game-v0203\.mjs|\/material-grade-v0203\.html/.test(x)),'no historical QA entrypoint in production bundle');
  graph={modules:modules.map(x=>x.replaceAll('\\','/').replace(stage.replaceAll('\\','/')+'/','source/').replace(here.replaceAll('\\','/')+'/','build/')),chunks:files.map(x=>({file:x.fileName,imports:x.imports,dynamicImports:x.dynamicImports,bytes:Buffer.byteLength(x.code)}))};

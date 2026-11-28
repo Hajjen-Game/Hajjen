@@ -50,8 +50,12 @@ test('EF06 context loss stops all rendering and requests one clean recovery, no 
 });
 test('EF06 actual game uses the single frame owner and protects pending ship load callbacks',()=>{
  const source=readFileSync(new URL('../../game-v0210.mjs',import.meta.url),'utf8');
- assert.match(source,/runtimeLifetime\.bind\(window,UI\.canvas\);\s*initScene\(\);/);
- assert.match(source,/runtimeLifetime\.start\(\);\s*\}catch\(error\)\{\s*runtimeLifetime\.dispose\(\);/);
+ assert.match(source,/runtimeLifetime\.bind\(window,UI\.canvas\);\s*await initScene\(\);\s*assertStartupLifetime\(\);/);
+ assert.match(source,/async function raceLoadingStage\(label,step\)\{\s*await window\.__skyshiftLoadingStage\(label,step\);\s*assertStartupLifetime\(\);/);
+ assert.match(source,/function assertStartupLifetime\(\)\{\s*if\(runtimeLifetime\.disposed\|\|runtimeLifetime\.contextLost\)\s*throw Error/);
+ assert.match(source,/await renderer\.compileAsync\(scene,camera\);\s*assertStartupLifetime\(\);/);
+ assert.match(source,/assertStartupLifetime\(\);\s*markStartup\("bootReady"\);\s*window\.__skyshiftBootReady/);
+ assert.match(source,/runtimeLifetime\.start\(\);\s*\}catch\(error\)\{\s*if\(runtimeLifetime\.disposed\)return;[^\n]*\n\s*runtimeLifetime\.dispose\(\);/);
  assert.doesNotMatch(source,/requestAnimationFrame\(loop\)/);
  assert.match(source,/runtimeLifetime\.listen\(window,"resize",resize\)/);
  assert.match(source,/runtimeLifetime\.disposed\|\|runtimeLifetime\.contextLost/);
@@ -85,7 +89,7 @@ test('EF06 transferred model ownership releases detached source geometry but nev
 });
 test('EF06 live game owns control listeners, fullscreen destroy and ship cleanup',()=>{
  const s=readFileSync(new URL('../../game-v0210.mjs',import.meta.url),'utf8');
- const block=s.slice(s.indexOf('function installControls(){'),s.indexOf('\ntry{\n // Wire the buttons'));
+ const block=s.slice(s.indexOf('function installControls(){'),s.indexOf('\nasync function initializeGame(){'));
  assert.doesNotMatch(block,/\.addEventListener\(/);
  assert.match(block,/listen:runtimeLifetime\.listenActive/);
  assert.match(s,/fullscreenController\?\.destroy\(\)/);
@@ -101,4 +105,12 @@ test('EF06 live permanent exit releases specialist scene owners before remaining
  const tunnel=readFileSync(new URL('../../tunnel/true-shared-tunnel-renderer-v0281.mjs',import.meta.url),'utf8');
  const teardown=tunnel.slice(tunnel.lastIndexOf('  dispose(){'));
  assert.match(teardown,/item\.waveCove\?\.dispose\?\.\(\);[\s\S]*?item\.archOptics\?\.dispose\?\.\(\);[\s\S]*?item\.source\?\.dispose\?\.\(\);/);
+});
+
+test('EF06 permanent exit during asynchronous race preparation cannot restart frame ownership',async()=>{
+ const f=fixture();let complete;
+ const work=new Promise(resolve=>{complete=resolve;});
+ const loading=(async()=>{await work;if(f.life.disposed||f.life.contextLost)return;f.life.start();})();
+ f.event(f.page,'pagehide',false);complete();await loading;
+ assert.equal(f.life.disposed,true);assert.equal(f.life.audit().started,false);assert.equal(f.frames.size,0);
 });

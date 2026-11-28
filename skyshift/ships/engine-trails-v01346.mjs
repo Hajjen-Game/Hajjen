@@ -32,7 +32,56 @@ export function trailMotionState(speed=44,boost=1,energy=0,bank=0,clock=0,veloci
  return {length,opacity,boosted,speedSignal,presenceLoad,flow,ignition,sideBias,
   emitterCount:ENGINE_TRAIL_SPEC.emitters};
 }
-export function createTwinEngineFX(THREE,scene,ship,edgeMaterial=null){
+// A single camera-facing procedural mesh, with two independently rooted quads.
+// UV x spans the plume; UV y runs from the real nozzle to the fading tail.
+export const ENERGY_PLUME_SPEC=Object.freeze({version:"0.29.5.2",emitters:2,triangles:4,drawCalls:1,extraLights:0,extraParticles:0,extraPasses:0});
+export function energyPlumeGeometry(){
+ const position=[],uv=[];
+ for(const socket of ENGINE_SOCKETS)for(const [x,y] of [[0,0],[1,0],[1,1],[0,0],[1,1],[0,1]]){
+  position.push(socket.x,socket.y,socket.z+.04);uv.push(x,y);
+ }
+ return {position,uv};
+}
+export function energyPlumeProfile(state){
+ return {length:state.length,width:.34+.10*state.speedSignal+.12*state.flow,
+  strength:.72+.62*state.speedSignal+1.15*state.flow+.35*state.ignition};
+}
+const plumeVertex=`
+ uniform float uLength,uWidth,uBias;
+ varying vec2 vPlume;
+ void main(){
+  vPlume=uv;
+  float t=uv.y;
+  float signSide=sign(position.x);
+  vec3 center=position+vec3(-signSide*uBias*t*.7,0.,uLength*t*(1.-signSide*uBias));
+  vec3 p=(modelViewMatrix*vec4(center,1.)).xyz;
+  vec3 axis=normalize(mat3(modelViewMatrix)*vec3(0.,0.,1.));
+  vec3 right=cross(axis,normalize(-p));
+  float sideLength=length(right);
+  right=sideLength>.001?right/sideLength:vec3(1.,0.,0.);
+  float width=uWidth*(.72+.35*sin(t*3.14159265))*mix(1.,.32,t);
+  p+=right*(uv.x*2.-1.)*width*length(mat3(modelViewMatrix)*vec3(1.,0.,0.));
+  gl_Position=projectionMatrix*vec4(p,1.);
+ }`;
+const plumeFragment=`
+ uniform vec3 uTint;
+ uniform float uTime,uStrength,uOpacity,uFlow;
+ varying vec2 vPlume;
+ void main(){
+  float t=vPlume.y;
+  float ripple=sin(t*35.-uTime*(15.+8.*uFlow))*.045;
+  float x=abs(vPlume.x*2.-1.+ripple*t);
+  float tail=1.-smoothstep(.20,1.,t);
+  float edge=1.-smoothstep(.18,.98,x);
+  float core=(1.-smoothstep(.055,.29,x))*(1.-smoothstep(.08,.72,t));
+  float pulse=.88+.12*sin(t*39.-uTime*20.);
+  float cells=.89+.11*cos(t*25.-uTime*12.);
+  vec3 tint=mix(uTint,vec3(.17,.48,1.),.10);
+  vec3 energy=tint*(1.55*edge*pulse)+mix(tint,vec3(.90,.98,1.),.88)*core*3.3*cells;
+  float alpha=tail*edge*min(1.,uOpacity*1.65);
+  gl_FragColor=vec4(energy*uStrength,alpha);
+ }`;
+export function createTwinEngineFX(THREE,scene,ship,edgeMaterial=null,{energyPlumes=false}={}){
  // 4 graduated quads per emitter, packed into a single reused BufferGeometry.
  const position=new Float32Array(ENGINE_TRAIL_SPEC.emitters*
   ENGINE_TRAIL_SPEC.segmentsPerEmitter*6*3);
@@ -43,15 +92,29 @@ export function createTwinEngineFX(THREE,scene,ship,edgeMaterial=null){
  geometry.setAttribute("color",new THREE.BufferAttribute(rgb,3)
   .setUsage(THREE.DynamicDrawUsage));
  geometry.boundingSphere=new THREE.Sphere(new THREE.Vector3(0,0,6),18);
- const material=new THREE.MeshBasicMaterial({
+ let material=new THREE.MeshBasicMaterial({
   color:0xffffff,vertexColors:true,transparent:true,
   opacity:ENGINE_TRAIL_SPEC.baseOpacity,
   depthWrite:false,side:THREE.DoubleSide,toneMapped:false,
   blending:THREE.AdditiveBlending
  });
+ if(energyPlumes){
+  const plume=energyPlumeGeometry();
+  geometry.setAttribute("position",new THREE.Float32BufferAttribute(plume.position,3));
+  geometry.deleteAttribute("color");
+  geometry.setAttribute("uv",new THREE.Float32BufferAttribute(plume.uv,2));
+  material.dispose();
+  material=new THREE.ShaderMaterial({
+   uniforms:{uLength:{value:2.55},uWidth:{value:.34},uBias:{value:0},
+    uTint:{value:new THREE.Color(0x43ddf0)},uTime:{value:0},uStrength:{value:.72},uOpacity:{value:.24},uFlow:{value:0}},
+   vertexShader:plumeVertex,fragmentShader:plumeFragment,
+   transparent:true,depthWrite:false,side:THREE.DoubleSide,forceSinglePass:true,
+   toneMapped:false,blending:THREE.AdditiveBlending
+  });
+ }
  const ribbons=new THREE.Mesh(geometry,material);
  ribbons.name="Two graduated chromatic + white-core wing-engine streaks";
- ribbons.frustumCulled=false;ship.add(ribbons);
+ ribbons.frustumCulled=false;ribbons.visible=false;ship.add(ribbons);
  const impactPositions=[];
  for(let i=0;i<8;i++){
   const a=i*Math.PI/4,dx=Math.cos(a),dz=Math.sin(a);
@@ -132,6 +195,12 @@ export function createTwinEngineFX(THREE,scene,ship,edgeMaterial=null){
    peakFlow=Math.max(peakFlow,state.flow);
    ribbons.visible=!!playing;
    tint.setHex(sectorColor);
+   if(energyPlumes){
+    const p=energyPlumeProfile(state),u=material.uniforms;
+    u.uLength.value=p.length;u.uWidth.value=p.width;u.uBias.value=state.sideBias;
+    u.uTint.value.copy(tint);u.uTime.value=elapsed;u.uStrength.value=p.strength;
+    u.uOpacity.value=playing?state.opacity:0;u.uFlow.value=state.flow;
+   }else{
    for(let i=0;i<ENGINE_SOCKETS.length;i++){
     const emitter=ENGINE_SOCKETS[i];
     const skew=(i===0?1:-1)*state.sideBias;
@@ -142,6 +211,7 @@ export function createTwinEngineFX(THREE,scene,ship,edgeMaterial=null){
    geometry.attributes.position.needsUpdate=true;
    geometry.attributes.color.needsUpdate=true;
    material.opacity=playing?state.opacity:0;
+   }
    if(edgeMaterial)edgeMaterial.opacity=.60+state.flow*.19+
     Math.min(.035,Math.abs(state.sideBias)*.3);
    jumpAmount=Math.max(0,jumpAmount-dt*3.6);
@@ -163,6 +233,8 @@ export function createTwinEngineFX(THREE,scene,ship,edgeMaterial=null){
    peakEngineFlow:+peakFlow.toFixed(3),
    layersPerEmitter:ENGINE_TRAIL_SPEC.layersPerEmitter,
    actualEmitters:ENGINE_SOCKETS.length,
+   energyPlumes,plumeDrawCalls:1,plumeTriangles:energyPlumes?4:16,visible:ribbons.visible,
+   plumeProfile:energyPlumes?energyPlumeProfile(lastState):null,
    lastLengthMeters:+lastState.length.toFixed(2),
    scaleBaseline:{...baseScale},rootScaleOwnershipPreserved:true};},
   dispose(){

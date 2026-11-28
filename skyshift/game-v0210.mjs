@@ -1096,7 +1096,7 @@ function makeShip(id=fleetProgress.selected){
  releaseShip();
  shipGlow=neonKit.ship;
  const craft=id==="stingray"?
-   buildStingrayEvo(THREE,shipGlow):(mantaQaOverride??VAULT_MANTA_REBIRTH_ACTIVE)?buildMantaVisualRebirth(THREE,shipGlow,{corrected:mantaQaOverride==="0.29.5.1"||(mantaQaOverride!=="0.29.5"&&VAULT_JUMP_VERSION==="0.29.5.1")}):buildPremiumMantaBlade(THREE,shipGlow);
+   buildStingrayEvo(THREE,shipGlow):(mantaQaOverride??VAULT_MANTA_REBIRTH_ACTIVE)?buildMantaVisualRebirth(THREE,shipGlow,{corrected:["0.29.5.1","0.29.5.2"].includes(mantaQaOverride??VAULT_JUMP_VERSION)}):buildPremiumMantaBlade(THREE,shipGlow);
  activeCraft=craft;activeShipId=id;ship=craft.ship;
  // A stable SINGLE transform for the full craft (including animated tail
  // and attached engine FX), never evaluated from wing-road intersections.
@@ -1120,7 +1120,7 @@ function makeShip(id=fleetProgress.selected){
  shipWhiteSpill?.attachShip(ship);
  sharedShipLight?.attachShip(ship);
  pmremPipeline?.attachShip(ship);
- premiumFX=createTwinEngineFX(THREE,scene,ship,craft.materials.cyan);
+ premiumFX=createTwinEngineFX(THREE,scene,ship,craft.materials.cyan,{energyPlumes:id==="manta"&&(mantaQaOverride??VAULT_JUMP_VERSION)==="0.29.5.2"});
  reactiveWingFlaps=installReactiveWingFlaps(THREE,ship,{variant:id});
  livingWake=createLivingWakeFX(THREE,scene,ship,{variant:id,
   lowMemory:claritySettings?.lowMemory??false});
@@ -1161,7 +1161,7 @@ function refreshHangar(){
   art.heroApplied?"HERO 4.0 · PANSARSVANS · STABIL SVÄNG":
   art.status==="loading"?"HERO-MODELL · LADDAR 3D-GEOMETRI":
   "Segmenterad mekanisk svans · reagerar på styrning, GRIP och boost":
-  VAULT_MANTA_REBIRTH_ACTIVE?(VAULT_JUMP_VERSION==="0.29.5.1"?"DARK GRAPHITE · CYAN WING INLAYS · DUBBLA MOTORER":"GRAPHITE REBIRTH · SKULPTERAT SKROV · DUBBLA MOTORER"):"Hårdskuren interceptor · dubbla motorer";
+  VAULT_MANTA_REBIRTH_ACTIVE?(["0.29.5.1","0.29.5.2"].includes(VAULT_JUMP_VERSION)?"DARK GRAPHITE · CYAN WING INLAYS · DUBBLA MOTORER":"GRAPHITE REBIRTH · SKULPTERAT SKROV · DUBBLA MOTORER"):"Hårdskuren interceptor · dubbla motorer";
  for(const item of FLEET){
   const card=document.querySelector('[data-fleet-card="'+item.id+'"]');
   const status=document.querySelector('[data-fleet-status="'+item.id+'"]');
@@ -4976,7 +4976,7 @@ try{
  // Wire the buttons before costly WebGL scene construction.
  installFullscreen();
  installControls();
- if(isVault()&&["0.29.0","0.29.1","0.29.2","0.29.3","0.29.3.1","0.29.4","0.29.4.1","0.29.4.2","0.29.5","0.29.5.1"].includes(new URLSearchParams(location.search).get("v"))&&new URLSearchParams(location.search).get("vaultJump")!=="0"&&
+ if(isVault()&&["0.29.0","0.29.1","0.29.2","0.29.3","0.29.3.1","0.29.4","0.29.4.1","0.29.4.2","0.29.5","0.29.5.1","0.29.5.2"].includes(new URLSearchParams(location.search).get("v"))&&new URLSearchParams(location.search).get("vaultJump")!=="0"&&
   (!VAULT_MEGA_JUMP_ACTIVE||!trueSharedVaultEnabled||!authoritativeDeck028911||GAPS.length!==1))
   throw Error("0.29.0 requested but physical Mega Jump unavailable");
  runtimeLifetime.bind(window,UI.canvas);
@@ -5066,7 +5066,9 @@ try{
     ship.updateMatrixWorld(true);tunnelBlackout?.apply(flight.s);
    };
    const capture=rebirth=>{
-    mount(rebirth);renderer.info.reset();
+    mount(rebirth);
+     if(playing){premiumFX.frame({dt:1/60,playing,flight:{forwardSpeed:flight.currentSpeed,boostMultiplier:flight.boostMultiplier},ship,sectorColor:COLOR[zoneWave.playerStage].color,motionWeight:cinematicState,velocity:velocityState,presence:velocityPresence});ship.scale.copy(pose.scale);ship.updateMatrixWorld(true);}
+     renderer.info.reset();
     try{
      trackVisibility.begin(camera,playing);spaceBackdrop.setVisible(!playing||advancedGpu.exterior);neonPipeline.render(0);
      ctx.drawImage(renderer.domElement,0,0);
@@ -5074,16 +5076,21 @@ try{
      for(const m of activeCraft.polishSurfaces??[]){if(m.material?.isMeshPhysicalMaterial||m.material?.isMeshStandardMaterial){pbr++;if(m.material.envMap)pmrem++;}}
      for(const m of ship.children){if(!m.isMesh)continue;hullCalls++;hullTriangles+=(m.geometry.index?.count??m.geometry.attributes.position.count)/3;}
      return {data:ctx.getImageData(0,0,canvas.width,canvas.height).data,png:canvas.toDataURL(),work:{...renderer.info.render},
-      spec:activeCraft.spec,polish:activeCraft.polishStats(),hullCalls,hullTriangles,pbr,pmrem,flaps:reactiveWingFlaps.stats(),sockets:activeCraft.engineSockets.map(s=>[s.x,s.y,s.z])};
+      spec:activeCraft.spec,exhaust:premiumFX.stats(),polish:activeCraft.polishStats(),hullCalls,hullTriangles,pbr,pmrem,flaps:reactiveWingFlaps.stats(),sockets:activeCraft.engineSockets.map(s=>[s.x,s.y,s.z])};
     }finally{spaceBackdrop.setVisible(true);trackVisibility.end();}
    };
    try{
     velocityCinematography.setMode("off");
-    const corrected=VAULT_JUMP_VERSION==="0.29.5.1";
-    const before=capture(corrected?"0.29.5":false),after=capture(corrected?"0.29.5.1":"0.29.5");
+    const plumeRelease=VAULT_JUMP_VERSION==="0.29.5.2";
+    const corrected=plumeRelease||VAULT_JUMP_VERSION==="0.29.5.1";
+    const before=capture(corrected?"0.29.5":false);
+    const exhaustBefore=plumeRelease&&playing?capture("0.29.5.1"):null;
+    const after=capture(plumeRelease?"0.29.5.2":corrected?"0.29.5.1":"0.29.5");
     let changed=0;for(let i=0;i<before.data.length;i+=4)changed+=Number(Math.max(Math.abs(before.data[i]-after.data[i]),Math.abs(before.data[i+1]-after.data[i+1]),Math.abs(before.data[i+2]-after.data[i+2]))>2);
     const strip=({data,...row})=>row;
-    return {mode:uiState.mode,before:strip(before),after:strip(after),fractionOver2:changed/(before.data.length/4)};
+    let exhaustChanged=0;
+    if(exhaustBefore)for(let i=0;i<after.data.length;i+=4)exhaustChanged+=Number(Math.max(Math.abs(exhaustBefore.data[i]-after.data[i]),Math.abs(exhaustBefore.data[i+1]-after.data[i+1]),Math.abs(exhaustBefore.data[i+2]-after.data[i+2]))>2);
+    return {mode:uiState.mode,before:strip(before),after:strip(after),exhaustBefore:exhaustBefore?strip(exhaustBefore):null,exhaustChangedPixels:exhaustChanged,fractionOver2:changed/(before.data.length/4)};
    }finally{
     mantaQaOverride=oldOverride;
     velocityCinematography.reset();velocityCinematography.setMode(priorMode);

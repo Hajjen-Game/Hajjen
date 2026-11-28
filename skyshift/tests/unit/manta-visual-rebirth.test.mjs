@@ -59,3 +59,18 @@ test('corrected forward wing inlays are mirrored and have substantially more lum
  for(const k of ['armor','bevel','nozzle','glass','portTip','starboardTip'])assert.deepEqual(now[k],old[k]);
  assert.ok(Object.values(now).reduce((n,a)=>n+a.length/9,124)<=MANTA_MATERIAL_CORRECTION.maxGeometryTriangles);
 });
+
+import {ENERGY_PLUME_SPEC,energyPlumeGeometry,energyPlumeProfile,trailMotionState} from '../../ships/engine-trails-v01346.mjs';
+test('energy exhaust preserves real twin sockets, bounded single mesh and progressive speed and boost response',()=>{
+ const g=energyPlumeGeometry();
+ assert.equal(g.position.length/9,4);assert.equal(g.uv.length,24);
+ for(let i=0;i<2;i++)for(let j=0;j<6;j++){
+  const n=(i*6+j)*3;
+  assert.deepEqual(g.position.slice(n,n+3),[ENGINE_SOCKETS[i].x,ENGINE_SOCKETS[i].y,ENGINE_SOCKETS[i].z+.04]);
+ }
+ const idle=energyPlumeProfile(trailMotionState(44,1)),fast=energyPlumeProfile(trailMotionState(90,1)),boost=energyPlumeProfile(trailMotionState(90,1.4));
+ assert.ok(fast.length>idle.length&&fast.strength>idle.strength);
+ assert.ok(boost.length>fast.length&&boost.width>fast.width&&boost.strength>fast.strength);
+ assert.equal(ENERGY_PLUME_SPEC.drawCalls,1);assert.equal(ENERGY_PLUME_SPEC.extraLights,0);
+ assert.equal(ENERGY_PLUME_SPEC.extraParticles,0);assert.equal(ENERGY_PLUME_SPEC.extraPasses,0);
+});

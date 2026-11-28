@@ -38,13 +38,13 @@ export function createRaceSession({api,sampleIntervalSeconds,storage,bankAt,pitc
   personalBest:()=>api.loadPersonalGhost(storage())});
 }
 const LEGACY_BEST_KEY="skyshift-zone-wave-best-v049";
-export function readLegacyRaceBest(storage){
- try{return Number(storage?.getItem(LEGACY_BEST_KEY))||0;}catch{return 0;}
+export function readLegacyRaceBest(storage,key=LEGACY_BEST_KEY){
+ try{return Number(storage?.getItem(key))||0;}catch{return 0;}
 }
-export function updateLegacyRaceBest(storage,won,time){
- let best=readLegacyRaceBest(storage);
+export function updateLegacyRaceBest(storage,won,time,key=LEGACY_BEST_KEY){
+ let best=readLegacyRaceBest(storage,key);
  if(won&&(!best||time<best)){
-  try{storage?.setItem(LEGACY_BEST_KEY,String(time));}catch{}
+  try{storage?.setItem(key,String(time));}catch{}
   best=time;
  }
  return best;

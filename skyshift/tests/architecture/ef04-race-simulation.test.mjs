@@ -64,7 +64,7 @@ function applyApprovedDelta(source,before,after){
  assert.equal(source.split(before).length-1,1,'approved delta must match exactly once: '+before);
  return source.replace(before,after);
 }
-test('EF04 flight body retains original formulas plus explicit 0.29.1 rail damage',()=>{
+test('EF04 flight body retains original formulas plus explicit rail damage and 0.29.7 surface-relative impact',()=>{
  const original=readHistoricalTrialMigrationSource();
  const engine=readFileSync(new URL('../../flight/flight-physics.mjs',import.meta.url),'utf8');
  const start=original.indexOf('export function newFlightState(){');
@@ -86,6 +86,15 @@ test('EF04 flight body retains original formulas plus explicit 0.29.1 rail damag
   }
  }
  st.railContacting=contacted;`);
+ expected=applyApprovedDelta(expected,"   landImpact=-st.vy;",`   landImpact=-st.vy;
+   // Optional surface-relative impact: the contact plane, not world Y,
+   // determines normal closing speed on a descending or ascending deck.
+   // Preserve the same 18 m/s trick criterion and all ballistic integration.
+   if(TRIAL.surfaceRelativeLandingImpact){
+    const previousGround=surfaceHeightAt(beforeS,beforeLateral);
+    const groundRate=(ground-previousGround)/dt;
+    landImpact=Math.max(0,(groundRate-st.vy)*groundNormalY);
+   }`);
  assert.ok(engine.includes(expected),'Unapproved change to original physics body');
  const adapter=readFileSync(new URL('../../tracks/trials/trial-v0165.mjs',import.meta.url),'utf8');
  assert.match(adapter,/export const \{newFlightState,stepFlight\}=createFlightPhysics\(/);

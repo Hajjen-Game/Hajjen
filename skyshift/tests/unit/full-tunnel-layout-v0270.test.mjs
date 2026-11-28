@@ -123,7 +123,7 @@ test("Vault third bend: live deck shares full 23.2m width and every vertex with 
  assert.match(cmd.stdout,/14m -> 23.2m/);
 });
 
-for(const release of ["0.28.9.11","0.29.1"])test("Vault jump chamber and real ballistic flight "+release,()=>{
+for(const release of ["0.28.9.11","0.29.1","0.29.6","0.29.7"])test("Vault jump chamber and real ballistic flight "+release,()=>{
  const code=`
  globalThis.location={search:'?track=vault&v='+${JSON.stringify(release)}+'&vaultJump=1'};
  const assert=(await import('node:assert/strict')).default;
@@ -132,7 +132,26 @@ for(const release of ["0.28.9.11","0.29.1"])test("Vault jump chamber and real ba
  const {createTunnelProfileSampler}=await import('./skyshift/tunnel/profile-sampler.mjs');
  const {premiumTrackCoordinates}=await import('./skyshift/rendering/road/premium-track-v0160.mjs');
  assert.equal(VAULT_MEGA_JUMP_ACTIVE,true);
- assert.equal(j.rampRise,${release==="0.29.1"?7.5:3});
+ const hyper=${release==='0.29.7'};
+ assert.equal(route.TRIAL.startSpeed,hyper?60:44);
+ assert.equal(Boolean(route.TRIAL.surfaceRelativeLandingImpact),hyper);
+ assert.equal(route.TRIAL.endSpeed,hyper?105:44*1.11**8);
+ assert.equal(route.newFlightState().currentSpeed,route.TRIAL.startSpeed);
+ for(let stage=0;stage<9;stage++){
+  assert.equal(route.speedAt(0,stage),Math.min(route.TRIAL.endSpeed,route.TRIAL.startSpeed*1.11**stage));
+ }
+ assert.equal(route.velocityPresentationRatio(route.TRIAL.startSpeed),1);
+ assert.ok(Math.abs(route.velocityPresentationRatio(route.TRIAL.endSpeed)-1.11**8)<1e-10);
+ if(hyper){
+  const st=route.newFlightState();
+  route.setZoneSpeedStage(st,8);
+  assert.equal(st.zoneSpeedStage,8);
+  assert.equal(route.speedAt(st.s,8),105);
+  const old=route.LEGACY_SPEED_PROFILE;
+  assert.equal(route.cruiseSpeedAtStage(0,old),44);
+  assert.equal(route.cruiseSpeedAtStage(8,old),old.endSpeed);
+ }
+ assert.equal(j.rampRise,${release!=="0.28.9.11"?7.5:3});
  assert.equal(megaJumpRise(j.start),j.rampRise);
  assert.equal(vaultMegaJumpEnabled('?track=vault&v=0.28.9.11'),false);
  assert.equal(vaultMegaJumpEnabled('?track=skyline&v=0.28.9.11&vaultJump=1'),false);
@@ -158,17 +177,20 @@ for(const release of ["0.28.9.11","0.29.1"])test("Vault jump chamber and real ba
   const ds=data.indices.slice(i,i+3).map(k=>coords[k*2]);
   assert.ok((Math.min(...ds)+Math.max(...ds))/2<j.start||(Math.min(...ds)+Math.max(...ds))/2>=j.end,'deck triangle inside gap');
  }
- for(const stage of [0,4,8]){
+ for(const stage of (hyper?[0,1,2,3,4,5,6,7,8]:[0,4,8])){
   const st=route.newFlightState(),s=j.start-24,p=route.positionAt(s);
   Object.assign(st,{s,worldX:p.x,worldZ:p.z,heading:route.headingAt(s),y:route.surfaceHeightAt(s)+route.TRIAL.hoverHeight,zoneSpeedStage:stage,zoneCruiseSpeed:route.speedAt(s,stage),currentSpeed:route.speedAt(s,stage),checkpoint:1020,checkpointsPassed:3});
+  let impact=null;
   for(let i=0;i<1200&&!st.cleanLeapLandings&&!st.falls;i++){
    const rolling=!st.grounded&&!st.trickReady;
-   route.stepFlight(st,1/120,{grip:rolling,steer:rolling?.65:0});
+   const result=route.stepFlight(st,1/120,{grip:rolling,steer:rolling?.65:0});
+   if(result.landed)impact=result.landImpact;
   }
   assert.equal(st.autoLaunches,1,'stage '+stage);
   assert.equal(st.falls,0,'stage '+stage);
   assert.equal(st.cleanLeapLandings,1,'stage '+stage);
   assert.equal(st.trickFullRotations,1,'stage '+stage);
+  assert.ok(Number.isFinite(impact)&&impact>=0&&impact<=18,'stage '+stage+' normal impact '+impact+' at '+st.s);
   assert.equal(st.landingBoostActivations,1,'stage '+stage+' '+st.lastTrickFailReason);
   assert.ok(st.s<j.chamberEnd,'landing after chamber');
  }
@@ -178,7 +200,7 @@ for(const release of ["0.28.9.11","0.29.1"])test("Vault jump chamber and real ba
  Object.assign(contact,{s:railS,lateral:edge-.01,worldX:rp.x,worldZ:rp.z,heading:route.headingAt(railS)+.25,y:route.surfaceHeightAt(railS,edge-.01)+route.TRIAL.hoverHeight});
  for(let i=0;i<100;i++)route.stepFlight(contact,1/120,{});
  assert.ok(contact.railContactStarts>0,'actual edge contact');
- if(${release==="0.29.1"}){assert.ok(contact.shield<=96&&contact.shield>=88,JSON.stringify({shield:contact.shield,seconds:contact.railSeconds}));assert.equal(contact.railShieldLost,100-contact.shield);}
+ if(${release!=="0.28.9.11"}){assert.ok(contact.shield<=96&&contact.shield>=88,JSON.stringify({shield:contact.shield,seconds:contact.railSeconds}));assert.equal(contact.railShieldLost,100-contact.shield);}
  else assert.equal(contact.shield,100);
  const clean=route.newFlightState();for(let i=0;i<120;i++)route.stepFlight(clean,1/120,{});
  assert.equal(clean.shield,100);

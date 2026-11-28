@@ -490,3 +490,68 @@ test('EF07 static render frame is byte-exact to original curved/graded/banked/co
  assert.deepEqual(sample(58,11,12),track.positionAt(58,11,12));
  assert.equal(sample.stats().calls,queries.length);
 });
+
+import {createRaceCountdown} from '../../core/race-countdown.mjs';
+test('0.29.8.1 countdown holds the authoritative race gate, never skips digits and pauses in hidden tabs',()=>{
+ const c=createRaceCountdown();c.start();assert.equal(c.label,'3');
+ for(let i=0;i<60;i++)c.advance(1/60,false);assert.equal(c.label,'3');
+ c.advance(20,true);assert.equal(c.label,'2','slow frame advances exactly one digit');
+ c.advance(2,true);assert.equal(c.label,'1','low FPS still makes real-time progress');
+ c.advance(1,true);
+ assert.deepEqual(c.history(),['3','2','1','GO!']);assert.equal(c.label,'GO!');
+ for(let i=0;i<60;i++)c.advance(1/60,true);assert.equal(c.label,'');
+ c.start();assert.deepEqual(c.history(),['3']);c.cancel();assert.equal(c.label,'');
+});
+test('0.29.8.1 countdown defers launch event and resets the clock exactly once on GO',()=>{
+ const node=()=>({classList:{add(){},remove(){},toggle(){}},textContent:''});
+ const UI=new Proxy({}, {get:()=>node()}),uiState={mode:'menu'},calls=[],clock={last:0,accum:9};
+ const ctx={sceneReady:true,world:{visible:false},currentChallenge:null,setChallenge(){},app:node,hideGhost(){}};
+ const life=createRaceLifecycle({UI,uiState,ctx,raceSession:{selectMode(){},ghostEnabled:true},timeTrialState:{mode:'time-trial'},resetFlight:()=>calls.push('reset'),refreshHud(){},hudBudget:{shouldUpdate(){}},clearInput:()=>calls.push('clear'),refreshTrialMenu(){},worldClock:clock,event:k=>calls.push(k),now:()=>99,clearTimeout(){}});
+ life.enterPlaying(null,{countdown:true});assert.equal(uiState.mode,'countdown');assert.deepEqual(calls,['reset']);
+ assert.equal(life.finishCountdown(),true);assert.equal(uiState.mode,'playing');assert.deepEqual(clock,{last:99,accum:0});
+ assert.deepEqual(calls,['reset','clear','time_trial_start']);assert.equal(life.finishCountdown(),false);
+});
+
+test('0.29.8.1 countdown uses visible wall time at 1 FPS and normal frame rates',()=>{
+ for(const fps of [1,2,10,30,60,120]){
+  const c=createRaceCountdown();c.start();
+  for(let i=0;i<fps*3;i++)c.advance(1/fps,true);
+  assert.equal(c.label,'GO!',String(fps));assert.deepEqual(c.history(),['3','2','1','GO!']);
+ }
+ const source=readFileSync(new URL('../../game-v0210.mjs',import.meta.url),'utf8');
+ assert.match(source,/if\(countdownFrameReady\)\{\s*tickRaceCountdown\(rawDt\);\s*if\(uiState.mode==="countdown"\)return;/);
+ assert.match(source,/if\(uiState.mode==="countdown"&&!countdownFrameReady\)\{\s*countdownFrameReady=true;/);
+});
+
+import {createRaceHaptics,readHapticMode,saveHapticMode,HAPTIC_PATTERNS} from '../../core/race-haptics.mjs';
+test('haptics maps authoritative physics results to distinct prioritized patterns, with bounded wall pulses',()=>{
+ let time=0;const calls=[];const h=createRaceHaptics({mode:'standard',now:()=>time,vibrate:p=>{calls.push(p);return true;}});
+ h.observe({railContactStarted:true,railContact:true});
+ assert.deepEqual(calls,[HAPTIC_PATTERNS.wall]);
+ for(let i=0;i<48;i++){time+=1000/120;h.observe({railContact:true});}
+ assert.equal(calls.length,1);
+ time=451;h.observe({railContact:true});assert.deepEqual(calls.at(-1),HAPTIC_PATTERNS.wall);
+ time=460;h.observe({boostActivated:'main'});assert.deepEqual(calls.at(-1),HAPTIC_PATTERNS.pad);
+ time=470;h.observe({railContact:true});assert.equal(calls.length,3);
+ time=500;h.observe({landed:true,landingBoostAwarded:true});assert.deepEqual(calls.at(-1),HAPTIC_PATTERNS.trick);
+ time=510;h.observe({crashed:true,landed:true,landingBoostAwarded:true,boostActivated:'main'});assert.deepEqual(calls.at(-1),HAPTIC_PATTERNS.fall);
+ time=520;h.observe({boostActivated:'main'});assert.equal(calls.length,5,'fall has priority');
+ time=1000;h.observe({landed:true});assert.deepEqual(calls.at(-1),HAPTIC_PATTERNS.landing);
+ h.stop();assert.equal(calls.at(-1),0);
+ const count=calls.length;h.observe({crashed:true},false);assert.equal(calls.length,count);
+ h.setMode('off');h.observe({crashed:true});assert.equal(calls.length,count);
+ assert.equal(h.stats().accepted.fall,1);
+});
+test('haptics settings persist, patterns scale duration not hardware amplitude, unsupported or blocked vibration is safe',()=>{
+ const map=new Map(),storage={getItem:k=>map.get(k),setItem:(k,v)=>map.set(k,v)};
+ assert.equal(readHapticMode(storage),'standard');assert.equal(saveHapticMode(storage,'subtle'),'subtle');assert.equal(readHapticMode(storage),'subtle');
+ assert.equal(saveHapticMode(storage,'invalid'),'standard');
+ for(const [mode,factor] of [['subtle',.6],['intense',1.4]]){
+  const calls=[];const h=createRaceHaptics({mode,now:()=>0,vibrate:p=>{calls.push(p);return true;}});
+  h.observe({crashed:true});assert.deepEqual(calls[0],HAPTIC_PATTERNS.fall.map((v,i)=>i%2?v:Math.round(v*factor)));
+ }
+ const unsupported=createRaceHaptics({now:()=>0});assert.equal(unsupported.supported,false);assert.equal(unsupported.observe({crashed:true}),false);
+ const blocked=createRaceHaptics({now:()=>0,vibrate:()=>{throw Error('blocked');}});assert.equal(blocked.observe({crashed:true}),false);blocked.stop();
+ const source=readFileSync(new URL('../../game-v0210.mjs',import.meta.url),'utf8');
+ assert.match(source,/const result=stepFlight\(flight,dt,input\);\s*haptics\?\.observe\(result,!document.hidden\)/);
+});

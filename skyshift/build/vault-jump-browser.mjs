@@ -20,12 +20,16 @@ try{
  for(const memory of live?[8]:[8,4]){
   const context=await browser.newContext(memory===4?{viewport:{width:780,height:360},hasTouch:true,isMobile:true,deviceScaleFactor:2}:{viewport:{width:1280,height:720}});
   try{
-   await context.addInitScript(m=>Object.defineProperty(navigator,'deviceMemory',{configurable:true,get:()=>m}),memory);
+   await context.addInitScript(m=>{
+    Object.defineProperty(navigator,'deviceMemory',{configurable:true,get:()=>m});
+    // Browser integration tests validate API wiring, not a physical motor.
+    Object.defineProperty(navigator,'vibrate',{configurable:true,value:()=>true});
+   },memory);
    const page=await context.newPage(),errors=[];
    page.on('pageerror',e=>errors.push(e.message));page.on('crash',()=>errors.push('renderer crash'));
    page.on('console',m=>{if(m.type()==='error'&&/THREE.WebGLProgram|shader error|INVALID_OPERATION|context lost|startup failed/i.test(m.text()))errors.push(m.text());});
    const url=new URL(live||'http://127.0.0.1:8926/skyshift/');
-   url.search=memory===8?'track=vault&v=0.29.8&vaultJump=1':'track=vault&v=0.29.8';
+   url.search=memory===8?'track=vault&v=0.29.8.1&vaultJump=1':'track=vault&v=0.29.8.1';
    url.searchParams.set('vaultJumpSmoke','1');url.searchParams.set('release','0290-public-proof-'+Date.now());
    await page.goto(url.href,{waitUntil:'domcontentloaded',timeout:80000});
    await page.waitForFunction(()=>window.__skyshiftBoot?.menuReadyMs!==undefined,null,{timeout:30000});
@@ -35,6 +39,8 @@ try{
    assert.equal(await page.evaluate(()=>performance.getEntriesByType('resource').some(x=>/\/(?:game-v0210|three-engine)-[^/]+\.js(?:\?|$)/.test(x.name))),false,'cold menu cannot fetch game or Three.js bundle');
    await page.locator('#menu-settings-btn').click();
    await page.locator('#frame-cap').selectOption('90');
+   assert.equal(await page.locator('#haptic-mode').inputValue(),'standard');
+   await page.locator('#haptic-mode').selectOption('subtle');
    await page.locator('#settings-back-btn').click();
    await page.locator('#hangar-btn').click();
    assert.equal(await page.locator('#fleet-preview-mode').textContent(),'SHIP SELECTION');
@@ -49,18 +55,39 @@ try{
    assert.deepEqual(boot.loadingStages.map(x=>x.step),[1,2,3,4,5,6]);
    assert.ok(boot.raceLoadMs>0);
    assert.ok(await page.evaluate(()=>window.__skyshiftStartupAudit().stamps.raceWarmFrame!==undefined));
+   await page.waitForFunction(()=>window.__skyshiftCountdownProbe?.().mode==='countdown',null,{timeout:10000});
+   const frozen=await page.evaluate(()=>window.__skyshiftCountdownProbe());
+   assert.equal(frozen.elapsed,0);assert.equal(frozen.distance,5,"unchanged authoritative spawn station");assert.equal(frozen.visible,true);
+   assert.equal(await page.locator('#race-loading').isVisible(),false);
+   assert.equal(await page.locator('#mobile-controls').isVisible(),false);
+   try{await page.waitForFunction(()=>window.__skyshiftCountdownProbe?.().mode==='playing',null,{timeout:30000});}
+   catch(error){
+    const diagnostics=await page.evaluate(()=>window.__skyshiftCountdownProbe?.());
+    throw Error('Countdown did not reach GO: '+JSON.stringify({diagnostics,errors}),{cause:error});
+   }
+   const launched=await page.evaluate(()=>window.__skyshiftCountdownProbe());
+   assert.deepEqual(launched.history,['3','2','1','GO!']);
+   assert.deepEqual(launched.frames.map(row=>row.label),['3','2','1','GO!']);
+   const spawn=launched.frames[0];
+   assert.ok(launched.frames.at(-1).atMs-spawn.atMs>=2950,'three full visible countdown seconds');
+   assert.equal(spawn.distance,5);
+   for(const row of launched.frames){
+    assert.equal(row.elapsed,0,'race clock must not advance before GO');
+    assert.equal(row.distance,spawn.distance,'race distance must stay at the original spawn until GO');
+    for(const axis of ['worldX','worldZ','y'])assert.equal(row[axis],spawn[axis],'frozen authoritative '+axis+' at '+row.label);
+   }
    await page.locator('#pause-btn').click();
    await page.locator('#pause-menu-btn').click();
    if(await page.evaluate(()=>!!document.fullscreenElement))await page.evaluate(()=>document.exitFullscreen());
    const probe=await page.evaluate(()=>window.__skyshiftVaultJumpProbe());
-   assert.equal(probe.active,true,JSON.stringify(probe));assert.equal(probe.version,'0.29.8');assert.equal(new URLSearchParams(probe.query).get('v'),'0.29.8');
+   assert.equal(probe.active,true,JSON.stringify(probe));assert.equal(probe.version,'0.29.8.1');assert.equal(new URLSearchParams(probe.query).get('v'),'0.29.8.1');
    assert.equal(probe.polish,true);assert.equal(probe.rampRise,7.5);
    assert.equal(probe.speedProfile.id,'hyper-0297');assert.equal(probe.speedProfile.startSpeed,60);assert.equal(probe.speedProfile.endSpeed,105);
    assert.deepEqual(probe.speedProfile.cruiseTargets,Array.from({length:9},(_,i)=>Math.min(105,60*1.11**i)));
    assert.equal(probe.speedProfile.launchPresentationRatio,1);
    assert.equal(probe.mounted,true);assert.equal(probe.pmrem,true);assert.equal(probe.gaps.length,1);assert.equal(probe.gaps[0].id,'vault-mega-jump');
    assert.equal(probe.inside,0);assert.ok(probe.before>0&&probe.after>0);assert.equal(probe.roadBefore,true);assert.equal(probe.roadGap,false);assert.equal(probe.roadAfter,true);
-   assert.match(await page.locator('#menu-track-name').textContent(),/MEGA JUMP.*0\.29\.8/);
+   assert.match(await page.locator('#menu-track-name').textContent(),/MEGA JUMP.*0\.29\.8\.1/);
    const verifyManta=async(label)=>{
     const p=await page.evaluate(()=>window.__skyshiftMantaVisualProbe());
     for(const k of ['before','after']){
@@ -91,6 +118,8 @@ try{
    assert.equal(mantaHangar.mode,'hangar');
    await page.locator('#hangar-back').click();
    await page.locator('#menu-settings-btn').click();
+   assert.equal(await page.locator('#haptic-mode').inputValue(),'subtle');
+   await page.locator('#haptic-mode').selectOption('standard');
    await page.locator('#frame-cap').selectOption('90');
    await page.locator('#graphics-quality').selectOption('fixed');
    await page.locator('#extended-diagnostics').check();
@@ -135,6 +164,7 @@ try{
      mantaRace=await verifyManta('race');assert.equal(mantaRace.mode,'playing');
      const proof=await page.evaluate(()=>window.__skyshiftColorWaveProof());
      const wave=proof.zones;
+     assert.equal(wave[0].palette.secondary,0x70c9ff);
      assert.equal(wave.length,9);assert.equal(new Set(wave.map(x=>x.png)).size,9,'real palette frames must differ');
      for(const row of wave){
       assert.ok(row.emitters.some(x=>x.role==='secondary'&&x.vertices>0));
@@ -216,7 +246,7 @@ try{
    assert.equal(endurance.temperatureC,null);assert.ok(endurance.samples.length>0);
    assert.ok(endurance.samples.at(-1).viewportCss.width>0);
    assert.deepEqual(errors,[],'real game errors');
-   reports.push({memory,boot,probe,frames,layout,endurance,comparisons,advanced,velocity,mantaHangar,mantaRace});
+   reports.push({memory,boot,countdown:{frozen,launched},probe,frames,layout,endurance,comparisons,advanced,velocity,mantaHangar,mantaRace});
   }finally{await context.close();}
  }
  writeFileSync(join(out,'vault-jump-report.json'),JSON.stringify(reports,null,2));

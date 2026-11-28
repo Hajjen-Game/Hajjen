@@ -144,6 +144,12 @@
           <label class="performance-check"><input id="extended-diagnostics" type="checkbox"> Extended GPU diagnostics (if supported)</label>
           <label class="performance-check"><input id="section-culling" type="checkbox" checked> Intelligent section rendering</label>
           <p class="settings-hint">Same graphics and 120 Hz physics. Settings are saved on this device.</p>
+          <div id="haptic-settings" class="hidden">
+            <div class="settings-subhead">HAPTIC FEEDBACK</div>
+            <label for="haptic-mode">VIBRATION</label>
+            <select id="haptic-mode"><option value="off">Off</option><option value="subtle">Subtle</option><option value="standard" selected>Standard</option><option value="intense">Intense</option></select>
+            <p id="haptic-hint" class="settings-hint">Wall contact, falls, boost pads, landings and trick rewards.</p>
+          </div>
           <div id="advanced-gpu-settings" class="hidden">
             <div class="settings-subhead">ADVANCED GPU</div>
             <label for="bloom-resolution">BLOOM RESOLUTION</label>
@@ -232,6 +238,7 @@
         <button id="audit-btn" class="secondary">EXPORT FLIGHT LOG ↓</button>
       </div>
     </section>
+    <div id="race-countdown" class="race-countdown hidden" role="status" aria-live="polite" aria-atomic="true"><div class="race-countdown-kicker">RACE START</div><strong id="race-countdown-label"></strong></div>
     <section id="race-loading" class="race-loading hidden" role="status" aria-live="polite" aria-label="Race loading">
       <div class="race-loading-panel"><div class="kicker">SKYSHIFT / RACE PREPARATION</div><h2>NEON VAULT</h2><p id="race-loading-message">LOADING 3D ENGINE</p><progress id="race-loading-progress" max="6" value="0" aria-label="Completed loading stages"></progress><p>3 LAPS · HYPER VELOCITY</p></div>
     </section>

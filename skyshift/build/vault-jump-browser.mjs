@@ -25,17 +25,17 @@ try{
    page.on('pageerror',e=>errors.push(e.message));page.on('crash',()=>errors.push('renderer crash'));
    page.on('console',m=>{if(m.type()==='error'&&/THREE.WebGLProgram|shader error|INVALID_OPERATION|context lost|startup failed/i.test(m.text()))errors.push(m.text());});
    const url=new URL(live||'http://127.0.0.1:8926/skyshift/');
-   url.search=memory===8?'track=vault&v=0.29.4&vaultJump=1':'track=vault&v=0.29.4';
+   url.search=memory===8?'track=vault&v=0.29.4.1&vaultJump=1':'track=vault&v=0.29.4.1';
    url.searchParams.set('vaultJumpSmoke','1');url.searchParams.set('release','0290-public-proof-'+Date.now());
    await page.goto(url.href,{waitUntil:'domcontentloaded',timeout:80000});
    await page.waitForFunction(()=>['ready','failed'].includes(window.__skyshiftBoot?.phase),null,{timeout:220000});
    assert.equal(await page.evaluate(()=>window.__skyshiftBoot.phase),'ready',JSON.stringify(await page.evaluate(()=>window.__skyshiftBoot)));
    const probe=await page.evaluate(()=>window.__skyshiftVaultJumpProbe());
-   assert.equal(probe.active,true,JSON.stringify(probe));assert.equal(probe.version,'0.29.4');assert.equal(new URLSearchParams(probe.query).get('v'),'0.29.4');
+   assert.equal(probe.active,true,JSON.stringify(probe));assert.equal(probe.version,'0.29.4.1');assert.equal(new URLSearchParams(probe.query).get('v'),'0.29.4.1');
    assert.equal(probe.polish,true);assert.equal(probe.rampRise,7.5);
    assert.equal(probe.mounted,true);assert.equal(probe.pmrem,true);assert.equal(probe.gaps.length,1);assert.equal(probe.gaps[0].id,'vault-mega-jump');
    assert.equal(probe.inside,0);assert.ok(probe.before>0&&probe.after>0);assert.equal(probe.roadBefore,true);assert.equal(probe.roadGap,false);assert.equal(probe.roadAfter,true);
-   assert.match(await page.locator('#menu-track-name').textContent(),/MEGA JUMP.*0\.29\.4/);
+   assert.match(await page.locator('#menu-track-name').textContent(),/MEGA JUMP.*0\.29\.4\.1/);
    await page.locator('#menu-settings-btn').click();
    await page.locator('#frame-cap').selectOption('90');
    await page.locator('#graphics-quality').selectOption('fixed');
@@ -44,6 +44,10 @@ try{
    await page.locator('#exterior-backdrop').uncheck();
    assert.equal(await page.locator('#motion-blur').inputValue(),'high');
    assert.equal(await page.locator('#adaptive-velocity-camera').isChecked(),true);
+   await page.locator('#motion-blur').selectOption('ultra');
+   assert.equal(await page.locator('#motion-blur').inputValue(),'ultra');
+   await page.locator('#motion-blur').selectOption('extreme');
+   assert.equal(await page.locator('#motion-blur').inputValue(),'extreme');
    await page.locator('#motion-blur').selectOption('off');
    await page.locator('#adaptive-velocity-camera').uncheck();
    await page.locator('#adaptive-velocity-camera').check();
@@ -89,7 +93,7 @@ try{
      // Isolated boost signal is visual-only; no simulation tick between images.
      await page.evaluate(()=>window.__skyshiftVaultJumpCapture('approach',7));
      velocity=await page.evaluate(()=>window.__skyshiftVelocityExperienceProbe());
-     for(const name of ['off','high','boost','bloom65']){
+     for(const name of ['off','high','boost','bloom65','ultra','extreme','extremeBoost','extremeBloom65']){
       const row=velocity[name];assert.ok(row.work.triangles>0);
       writeFileSync(join(out,'velocity-'+memory+'GB-'+name+'.png'),Buffer.from(row.png.split(',')[1],'base64'));delete row.png;
      }
@@ -102,6 +106,18 @@ try{
      assert.equal(velocity.bloom65.bloom.scale,.65);
      assert.equal(velocity.bloom65.blur.radiusFractionOfHeight,velocity.boost.blur.radiusFractionOfHeight);
      assert.ok(velocity.referenceFov.desktop>velocity.referenceFov.mobile);
+     assert.ok(velocity.ultra.blur.radiusFractionOfHeight>velocity.high.blur.radiusFractionOfHeight);
+     assert.ok(velocity.extreme.blur.radiusFractionOfHeight>velocity.ultra.blur.radiusFractionOfHeight);
+     assert.ok(velocity.extremeBoost.blur.radiusFractionOfHeight>velocity.extreme.blur.radiusFractionOfHeight);
+     for(const name of ['ultra','extreme','extremeBoost']){
+      const row=velocity[name];assert.equal(row.blur.renderPasses,1);assert.equal(row.blur.samples,5);
+      assert.equal(row.work.calls,velocity.high.work.calls);
+      assert.equal(row.work.triangles,velocity.high.work.triangles);
+      assert.ok(row.difference.fractionOver2>.0001,'stronger blur not visible');
+      assert.ok(row.difference.centerFractionOver2<=.001,'protected center changed '+name);
+     }
+     assert.equal(velocity.extremeBloom65.bloom.scale,.65);
+     assert.equal(velocity.extremeBloom65.blur.radiusFractionOfHeight,velocity.extremeBoost.blur.radiusFractionOfHeight);
     }
    }
    assert.equal(frames.air.grounded,false);assert.equal(frames.air.launches,1);assert.ok(frames.air.s>1136&&frames.air.s<1190.4);

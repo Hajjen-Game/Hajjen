@@ -80,6 +80,10 @@ for(const query of ['?track=vault&v=0.29.1','?track=vault&v=0.29.1&vaultJump=1']
  const canonical=new URL(productionRouteUrl('https://example.invalid/skyshift/'+query));
  assert.equal(canonical.searchParams.get('v'),'0.29.1');assert.equal(canonical.searchParams.get('vaultJump'),'1');
 }
+for(const query of ['?track=vault&v=0.29.4.1','?track=vault&v=0.29.4.1&vaultJump=1']){
+ const canonical=new URL(productionRouteUrl('https://example.invalid/skyshift/'+query));
+ assert.equal(canonical.searchParams.get('v'),'0.29.4.1');assert.equal(canonical.searchParams.get('vaultJump'),'1');
+}
 for(const query of ['?track=vault&v=0.29.4','?track=vault&v=0.29.4&vaultJump=1']){
  const canonical=new URL(productionRouteUrl('https://example.invalid/skyshift/'+query));
  assert.equal(canonical.searchParams.get('v'),'0.29.4');assert.equal(canonical.searchParams.get('vaultJump'),'1');

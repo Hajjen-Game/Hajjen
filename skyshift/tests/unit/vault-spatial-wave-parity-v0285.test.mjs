@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
+import {spawnSync} from "node:child_process";
 import {planTrueSharedTunnel0281,adaptSourcePosition0281}
  from "../../tunnel/true-shared-tunnel-renderer-v0281.mjs";
 import {ZONE_WAVE,newZoneWaveState,updateZoneWave}
@@ -150,5 +151,58 @@ test("0.28.9.9 visual wave retires before periodic wrap without altering the 120
   assert.equal(state.waves.length,8);
   assert.deepEqual(state.activatedStages,[1,2,3,4,5,6,7,8]);
   assert.equal(view(newZoneWaveState(),0).shaderBaseStage,0);
+ }
+});
+
+test("Color Wave 1.0 rail chevrons retain their destination behind the real front; classic shader stays intact",()=>{
+ const cases=[
+  ["?track=vault&v=0.29.6",true],
+  ["?track=vault&v=0.29.7",true],
+  ["?track=vault&v=0.29.7&colorWave=classic",false],
+  ["?track=vault&v=0.29.5.2",false],
+  ["?track=skyline&v=0.29.7",false]
+ ];
+ for(const [search,active] of cases){
+  const code=`
+   globalThis.location={search:${JSON.stringify(search)}};
+   const assert=(await import('node:assert/strict')).default;
+   const {RAIL_SPECTRAL_FRAGMENT:s,patchRailShaders}=await import('./skyshift/tracks/barriers/aero-barrier-v0165.mjs');
+   const {COLOR_WAVE_ACTIVE,roleWaveMix}=await import('./skyshift/core/zone-wave.mjs');
+   const {newZoneWaveState,updateZoneWave}=await import('./skyshift/core/zone-wave-v060.mjs');
+   const {createSinglePassWaveView02899}=await import('./skyshift/tunnel/vault-spatial-wave-parity-v0285.mjs');
+   assert.equal(COLOR_WAVE_ACTIVE,${active});
+   const shader=patchRailShaders('#include <common>\\n#include <begin_vertex>','#include <common>\\n#include <color_fragment>').fragmentShader;
+   assert.ok(shader.includes(s));
+   for(let k=1;k<=3;k++){
+    const persistent='float rail'+k+'Mix=rail'+k+'On*(1.0-smoothstep(-66.0,66.0,rail'+k+'D));';
+    assert.equal(s.includes(persistent),COLOR_WAVE_ACTIVE);
+    assert.ok(s.includes('railColor=mix(railColor,uRailNext'+k+',rail'+k+'Mix);'));
+    assert.ok(s.includes('spectralWhiteCore(rail'+k+'D)'));
+    if(!COLOR_WAVE_ACTIVE)assert.ok(s.includes('uZoneFeather*2.0,abs(rail'+k+'D)))'));
+   }
+   if(COLOR_WAVE_ACTIVE){
+    for(const front of [200,3400,6800,10200]){
+     const w={activeCount:1,fronts:[front]};
+     for(const [offset,mix] of [[-600,1],[-300,1],[-100,1],[0,.5],[100,0],[300,0]]){
+      const s=((front+offset)%3400+3400)%3400;
+      assert.equal(roleWaveMix(s,w),mix);
+     }
+    }
+    const state=newZoneWaveState(),view=createSinglePassWaveView02899();
+    let position=0,previousStage=0;
+    for(let i=0;i<120*120;i++){
+     position+=105/120;updateZoneWave(state,i/120,position);
+     const v=view(state,position);
+     const stage=state.waves.at(-1)?.index??0;
+     if(v.activeCount&&v.fronts[0]-position>66){
+      assert.equal(roleWaveMix(position,v),1);
+     }else if(!v.activeCount){assert.equal(v.shaderBaseStage,stage);}
+     assert.ok(stage>=previousStage);previousStage=stage;
+    }
+   }
+  `;
+  const result=spawnSync(process.execPath,["--input-type=module","-e",code],
+   {cwd:new URL("../../../",import.meta.url).pathname,encoding:"utf8",timeout:25000});
+  assert.equal(result.status,0,search+": "+result.stderr);
  }
 });

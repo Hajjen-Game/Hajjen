@@ -490,3 +490,23 @@ test('EF07 static render frame is byte-exact to original curved/graded/banked/co
  assert.deepEqual(sample(58,11,12),track.positionAt(58,11,12));
  assert.equal(sample.stats().calls,queries.length);
 });
+
+import {createRaceCountdown} from '../../core/race-countdown.mjs';
+test('0.29.8.1 countdown holds the authoritative race gate, never skips digits and pauses in hidden tabs',()=>{
+ const c=createRaceCountdown();c.start();assert.equal(c.label,'3');
+ for(let i=0;i<60;i++)c.advance(1/60,false);assert.equal(c.label,'3');
+ c.advance(20,true);assert.equal(c.label,'3','slow frame cannot skip digits');
+ for(let i=0;i<180;i++)c.advance(1/60,true);
+ assert.deepEqual(c.history(),['3','2','1','GO!']);assert.equal(c.label,'GO!');
+ for(let i=0;i<60;i++)c.advance(1/60,true);assert.equal(c.label,'');
+ c.start();assert.deepEqual(c.history(),['3']);c.cancel();assert.equal(c.label,'');
+});
+test('0.29.8.1 countdown defers launch event and resets the clock exactly once on GO',()=>{
+ const node=()=>({classList:{add(){},remove(){},toggle(){}},textContent:''});
+ const UI=new Proxy({}, {get:()=>node()}),uiState={mode:'menu'},calls=[],clock={last:0,accum:9};
+ const ctx={sceneReady:true,world:{visible:false},currentChallenge:null,setChallenge(){},app:node,hideGhost(){}};
+ const life=createRaceLifecycle({UI,uiState,ctx,raceSession:{selectMode(){},ghostEnabled:true},timeTrialState:{mode:'time-trial'},resetFlight:()=>calls.push('reset'),refreshHud(){},hudBudget:{shouldUpdate(){}},clearInput:()=>calls.push('clear'),refreshTrialMenu(){},worldClock:clock,event:k=>calls.push(k),now:()=>99,clearTimeout(){}});
+ life.enterPlaying(null,{countdown:true});assert.equal(uiState.mode,'countdown');assert.deepEqual(calls,['reset']);
+ assert.equal(life.finishCountdown(),true);assert.equal(uiState.mode,'playing');assert.deepEqual(clock,{last:99,accum:0});
+ assert.deepEqual(calls,['reset','clear','time_trial_start']);assert.equal(life.finishCountdown(),false);
+});

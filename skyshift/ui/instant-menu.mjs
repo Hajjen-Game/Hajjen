@@ -15,7 +15,7 @@ export function mountInstantMenu({document,window}){
  const visible=(id,yes)=>$(id).classList.toggle("hidden",!yes);
  let storage;try{storage=window.localStorage;}catch{}
  let fleet=readFleet(storage),preview=fleet.selected;
- const q=new URLSearchParams(window.location.search);
+ const q=new URLSearchParams(window.location.search),release=q.get("v");
  const performance=readPerformance(storage,window.matchMedia("(pointer:coarse)").matches,{enabled:q.get("perf")==="1"});
  const gpu=readAdvancedGpu(storage),velocity=readVelocityExperience(storage,true);
  let fidelity=readFidelityChoice({search:window.location.search,storage}).enabled;
@@ -23,11 +23,11 @@ export function mountInstantMenu({document,window}){
  const best=trial.loadPersonalGhost(storage);
  if(best){$("tt-menu-status").textContent="PERSONAL BEST · "+trial.formatTrialTime(best.duration)+" · "+best.ship.toUpperCase();visible("tt-menu-status",true);}
  $("track-picker").value="vault";
- $("menu-track-name").textContent="NEON VAULT · MEGA JUMP · 0.29.8";
- $("topbar-track-name").textContent="NEON VAULT · MEGA JUMP · 0.29.8";
+ $("menu-track-name").textContent="NEON VAULT · MEGA JUMP · "+release;
+ $("topbar-track-name").textContent="NEON VAULT · MEGA JUMP · "+release;
  $("track-tagline").textContent="EXPANSION CHAMBER · 54.4 M LEAP · AIR TRICKS";
  $("track-features").textContent="3 × 3,400 M · MEGA JUMP · GRIP + STEER IN AIR";
- document.title="SKYSHIFT · Instant Boot & Race Loading · 0.29.8";
+ document.title="SKYSHIFT · "+(release==="0.29.8.1"?"Zone 1 Palette Lift & Countdown Restore":"Instant Boot & Race Loading")+" · "+release;
  visible("challenges-btn",false);$("hangar-btn").disabled=false;
  function show(id){for(const screen of ["menu","settings-screen","hangar-screen"])visible(screen,screen===id);visible("menu-settings-btn",id==="menu");}
  function syncFidelity(){ $("fidelity-btn").textContent="FIDELITY "+(fidelity?"ON":"OFF");$("fidelity-btn").setAttribute("aria-pressed",String(fidelity));}

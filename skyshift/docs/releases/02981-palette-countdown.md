@@ -1,0 +1,7 @@
+# 0.29.8.1 — Zone 1 Palette Lift & Countdown Restore
+
+The user's actual mobile screenshot shows Arctic Cyan secondary strips too dark. On the explicit 0.29.8.1 route change only the first secondary role and its accent alias from #356BFF to #70C9FF (chosen ice blue). All other roles and eight subsequent palettes are identical in data. Shared role owners already feed road edge strips, ceiling seams, rail and local reflections. No emission multiplier or geometry change. 0.29.8 and earlier keep the old palette.
+
+After actual race loading and warm-up, enter countdown state on the real prepared track with 3, 2, 1, GO! Each digit holds one visible presentation second (slow frames extend rather than skip); GO stays .6s while driving. The existing RAF owns it. Physics, ghost playback, controls and race timing are gated until GO; clear input and reset clock at launch. Applies to start, retry and restart via the shared entry point. Hidden tabs pause progression. No additional GPU passes, renderer, or timer loops. Same Hyper speed, physics, records, Manta and Instant Boot architecture. Explicit historical routes unchanged.
+
+Tests check palette equality/transition, route and all existing speed/jump contracts, countdown unit/lifecycle behavior, and built browser proof for actual loading handoff, frozen position/time and all displayed stages. Human visual acceptance and CI pending. No new countdown sound is introduced.

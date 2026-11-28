@@ -1,20 +1,20 @@
 // Explicit release profiles; stable Vault and the original prototype remain available.
 export function vaultJumpPolishEnabled(search=typeof location==="undefined"?"":location.search){
- return vaultMegaJumpEnabled(search)&&["0.29.1","0.29.2","0.29.3","0.29.3.1","0.29.4","0.29.4.1","0.29.4.2","0.29.5","0.29.5.1","0.29.5.2","0.29.6","0.29.7","0.29.8"].includes(new URLSearchParams(search||"").get("v"));
+ return vaultMegaJumpEnabled(search)&&["0.29.1","0.29.2","0.29.3","0.29.3.1","0.29.4","0.29.4.1","0.29.4.2","0.29.5","0.29.5.1","0.29.5.2","0.29.6","0.29.7","0.29.8","0.29.8.1"].includes(new URLSearchParams(search||"").get("v"));
 }
 export const VAULT_JUMP_POLISH_ACTIVE=vaultJumpPolishEnabled();
 export function vaultHyperVelocityEnabled(search=typeof location==="undefined"?"":location.search){
- return vaultJumpPolishEnabled(search)&&["0.29.7","0.29.8"].includes(new URLSearchParams(search||"").get("v"));
+ return vaultJumpPolishEnabled(search)&&["0.29.7","0.29.8","0.29.8.1"].includes(new URLSearchParams(search||"").get("v"));
 }
 export const VAULT_HYPER_VELOCITY_ACTIVE=vaultHyperVelocityEnabled();
 const requestedRelease=new URLSearchParams(typeof location==="undefined"?"":location.search).get("v");
-export const VAULT_MANTA_REBIRTH_ACTIVE=VAULT_JUMP_POLISH_ACTIVE&&["0.29.5","0.29.5.1","0.29.5.2","0.29.6","0.29.7","0.29.8"].includes(requestedRelease);
-export const VAULT_TRUE_BLUR_ACTIVE=VAULT_JUMP_POLISH_ACTIVE&&["0.29.4","0.29.4.1","0.29.4.2","0.29.5","0.29.5.1","0.29.5.2","0.29.6","0.29.7","0.29.8"].includes(requestedRelease);
-export const VAULT_EXTREME_BLUR_ACTIVE=VAULT_JUMP_POLISH_ACTIVE&&["0.29.4.1","0.29.4.2","0.29.5","0.29.5.1","0.29.5.2","0.29.6","0.29.7","0.29.8"].includes(requestedRelease);
-export const VAULT_VELOCITY_ACTIVE=VAULT_JUMP_POLISH_ACTIVE&&["0.29.4","0.29.4.1","0.29.4.2","0.29.5","0.29.5.1","0.29.5.2","0.29.6","0.29.7","0.29.8"].includes(requestedRelease);
-export const VAULT_ADVANCED_GPU_ACTIVE=VAULT_JUMP_POLISH_ACTIVE&&["0.29.3.1","0.29.4","0.29.4.1","0.29.4.2","0.29.5","0.29.5.1","0.29.5.2","0.29.6","0.29.7","0.29.8"].includes(requestedRelease);
-export const VAULT_SMART_ACTIVE=VAULT_JUMP_POLISH_ACTIVE&&["0.29.3","0.29.3.1","0.29.4","0.29.4.1","0.29.4.2","0.29.5","0.29.5.1","0.29.5.2","0.29.6","0.29.7","0.29.8"].includes(requestedRelease);
-export const VAULT_COMPACT_ACTIVE=VAULT_JUMP_POLISH_ACTIVE&&["0.29.2","0.29.3","0.29.3.1","0.29.4","0.29.4.1","0.29.4.2","0.29.5","0.29.5.1","0.29.5.2","0.29.6","0.29.7","0.29.8"].includes(requestedRelease);
+export const VAULT_MANTA_REBIRTH_ACTIVE=VAULT_JUMP_POLISH_ACTIVE&&["0.29.5","0.29.5.1","0.29.5.2","0.29.6","0.29.7","0.29.8","0.29.8.1"].includes(requestedRelease);
+export const VAULT_TRUE_BLUR_ACTIVE=VAULT_JUMP_POLISH_ACTIVE&&["0.29.4","0.29.4.1","0.29.4.2","0.29.5","0.29.5.1","0.29.5.2","0.29.6","0.29.7","0.29.8","0.29.8.1"].includes(requestedRelease);
+export const VAULT_EXTREME_BLUR_ACTIVE=VAULT_JUMP_POLISH_ACTIVE&&["0.29.4.1","0.29.4.2","0.29.5","0.29.5.1","0.29.5.2","0.29.6","0.29.7","0.29.8","0.29.8.1"].includes(requestedRelease);
+export const VAULT_VELOCITY_ACTIVE=VAULT_JUMP_POLISH_ACTIVE&&["0.29.4","0.29.4.1","0.29.4.2","0.29.5","0.29.5.1","0.29.5.2","0.29.6","0.29.7","0.29.8","0.29.8.1"].includes(requestedRelease);
+export const VAULT_ADVANCED_GPU_ACTIVE=VAULT_JUMP_POLISH_ACTIVE&&["0.29.3.1","0.29.4","0.29.4.1","0.29.4.2","0.29.5","0.29.5.1","0.29.5.2","0.29.6","0.29.7","0.29.8","0.29.8.1"].includes(requestedRelease);
+export const VAULT_SMART_ACTIVE=VAULT_JUMP_POLISH_ACTIVE&&["0.29.3","0.29.3.1","0.29.4","0.29.4.1","0.29.4.2","0.29.5","0.29.5.1","0.29.5.2","0.29.6","0.29.7","0.29.8","0.29.8.1"].includes(requestedRelease);
+export const VAULT_COMPACT_ACTIVE=VAULT_JUMP_POLISH_ACTIVE&&["0.29.2","0.29.3","0.29.3.1","0.29.4","0.29.4.1","0.29.4.2","0.29.5","0.29.5.1","0.29.5.2","0.29.6","0.29.7","0.29.8","0.29.8.1"].includes(requestedRelease);
 export const VAULT_JUMP_VERSION=VAULT_MANTA_REBIRTH_ACTIVE?requestedRelease:requestedRelease==="0.29.4.2"&&VAULT_TRUE_BLUR_ACTIVE?"0.29.4.2":VAULT_EXTREME_BLUR_ACTIVE?"0.29.4.1":VAULT_VELOCITY_ACTIVE?"0.29.4":VAULT_ADVANCED_GPU_ACTIVE?"0.29.3.1":VAULT_SMART_ACTIVE?"0.29.3":VAULT_COMPACT_ACTIVE?"0.29.2":VAULT_JUMP_POLISH_ACTIVE?"0.29.1":"0.29.0";
 export const VAULT_RAIL_SHIELD_DAMAGE=Object.freeze({points:4,intervalSeconds:.5});
 export const VAULT_MEGA_JUMP=Object.freeze({
@@ -28,10 +28,10 @@ export const VAULT_MEGA_JUMP=Object.freeze({
 export function vaultMegaJumpEnabled(search=typeof location==="undefined"?"":location.search){
  const q=new URLSearchParams(search||"");
  return q.get("track")==="vault"&&q.get("vaultJump")!=="0"&&
- (q.get("vaultJump")==="1"||["0.29.0","0.29.1","0.29.2","0.29.3","0.29.3.1","0.29.4","0.29.4.1","0.29.4.2","0.29.5","0.29.5.1","0.29.5.2","0.29.6","0.29.7","0.29.8"].includes(q.get("v")))&&
+ (q.get("vaultJump")==="1"||["0.29.0","0.29.1","0.29.2","0.29.3","0.29.3.1","0.29.4","0.29.4.1","0.29.4.2","0.29.5","0.29.5.1","0.29.5.2","0.29.6","0.29.7","0.29.8","0.29.8.1"].includes(q.get("v")))&&
  !["classic","off"].includes(q.get("sharedTunnel"))&&
  !["classic","off"].includes(q.get("trueSharedRenderer"))&&
- ["0.28.9.11","0.29.0","0.29.1","0.29.2","0.29.3","0.29.3.1","0.29.4","0.29.4.1","0.29.4.2","0.29.5","0.29.5.1","0.29.5.2","0.29.6","0.29.7","0.29.8"].includes(q.get("v"));
+ ["0.28.9.11","0.29.0","0.29.1","0.29.2","0.29.3","0.29.3.1","0.29.4","0.29.4.1","0.29.4.2","0.29.5","0.29.5.1","0.29.5.2","0.29.6","0.29.7","0.29.8","0.29.8.1"].includes(q.get("v"));
 }
 export const VAULT_MEGA_JUMP_ACTIVE=vaultMegaJumpEnabled();
 const clamp=x=>Math.max(0,Math.min(1,x));

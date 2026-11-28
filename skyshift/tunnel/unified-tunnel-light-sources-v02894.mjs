@@ -1,3 +1,4 @@
+import {zoneRolePair,COLOR_WAVE_ACTIVE} from "../core/zone-wave.mjs";
 // SKYSHIFT 0.28.9.4 — unified physical source registry and road-layer cleanup.
 // Authored once from the REAL 0.21.1 portal, 0.28.9.2 panel seam,
 // 0.28.9.1 straight-only lip, and zone-wave-v060 light palette.
@@ -50,7 +51,8 @@ export function ceilingRoadEnabled02894(search=
  return unifiedSourcesEnabled02894(search)&&
   !["classic","off"].includes(p.get("ceilingRoad"));
 }
-export function sharedWaveColors02894(wave){
+export function sharedWaveColors02894(wave,role="primary"){
+ if(COLOR_WAVE_ACTIVE)return zoneRolePair(wave,role);
  const stage=clamp(wave?.shaderBaseStage??0,0,ZONE_PALETTES.length-1);
  return {
   from:ZONE_PALETTES[stage].light,
@@ -297,7 +299,7 @@ export function installUnifiedCeilingRoad02894(THREE,world,positionAt,{
  let disposed=false;
  return {active:true,
   updateWave(wave){
-   const p=sharedWaveColors02894(wave);
+   const p=sharedWaveColors02894(wave,"secondary");
    uniforms.uU94Old.value.setHex(p.from);
    uniforms.uU94Next.value.setHex(p.to);
    uniforms.uU94Front.value=p.front;

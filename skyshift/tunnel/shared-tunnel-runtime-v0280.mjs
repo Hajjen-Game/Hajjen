@@ -125,6 +125,8 @@ export function createSharedTunnelRuntime0280(THREE,world,{
  return Object.freeze({
   plan,installVault,installSkyline,installTrueShared,audit,
   updateWave(wave){trueShared?.updateWave?.(wave);},
+  // Read-only evidence through the existing shared owner; no extra scene traversal.
+  colorWaveStats(){return trueShared?.colorWaveStats?.()??[];},
   refs:()=>vault??{foundation:stopped,material:stopped,
    architecture:stopped,lighting:stopped},
   dispose(){

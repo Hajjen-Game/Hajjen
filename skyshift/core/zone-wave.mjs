@@ -1,7 +1,7 @@
 // Curated contrast pairs from Chroma Rush's spectral palette language.
 // Dark satin road base + vivid accents; guides stay near-neutral for safety.
 // These are SKYSHIFT-specific material tones, not raw 2D neon fills.
-export const ZONE_PALETTES=Object.freeze([
+export const LEGACY_ZONE_PALETTES=Object.freeze([
  Object.freeze({id:"midnight",name:"MIDNIGHT",
   base:0x0a3858,band:0x225e79,guide:0xd3f6f7,
   accent:0x3feeff,boost:0xffbc67,
@@ -39,6 +39,44 @@ export const ZONE_PALETTES=Object.freeze([
   accent:0x65f4bc,boost:0xffc274,
   sky:0x051c28,fog:0x0a2d34,light:0x7effcf})
 ]);
+
+export function colorWaveEnabled(search=typeof location==="undefined"?"":location.search){
+ const q=new URLSearchParams(search||"");
+ return q.get("track")==="vault"&&q.get("v")==="0.29.6"&&q.get("vaultJump")!=="0"&&q.get("colorWave")!=="classic";
+}
+export const COLOR_WAVE_ACTIVE=colorWaveEnabled();
+export const COLOR_WAVE_PALETTES=Object.freeze([
+ ["Arctic Cyan",0x00e5ff,0x356bff,0xffb55a,0x09212d],
+ ["Electric Violet",0x8a4dff,0xff4fd8,0x3eebff,0x1c1035],
+ ["Solar Flare",0xffb347,0xff642e,0x427bff,0x301710],
+ ["Volt Lime",0xb7ff3c,0x12cfa0,0xa86bff,0x10251b],
+ ["Plasma Rose",0xff39a8,0x762dff,0xffd24a,0x2c1027],
+ ["Hyper Blue",0x2979ff,0x45f0ff,0xff865d,0x101b38],
+ ["Inferno",0xff583d,0xffbd35,0x27e9db,0x301510],
+ ["Prism Shift",0xb94dff,0x2be8d0,0xff5a94,0x241337],
+ ["Aurora Overdrive",0x69ffd0,0x4566ff,0xff45d3,0x102c30],
+].map(([name,primary,secondary,highlight,base],i)=>Object.freeze({
+ ...LEGACY_ZONE_PALETTES[i],name:name.toUpperCase(),primary,secondary,highlight,
+ base,band:base,guide:0xeaf5ff,accent:secondary,boost:highlight,light:primary,
+ sky:base,fog:base
+})));
+export const ZONE_PALETTES=COLOR_WAVE_ACTIVE?COLOR_WAVE_PALETTES:LEGACY_ZONE_PALETTES;
+export function zoneRoleColor(index,role="primary",active=COLOR_WAVE_ACTIVE){
+ const p=(active?COLOR_WAVE_PALETTES:LEGACY_ZONE_PALETTES)[Math.max(0,Math.min(8,index|0))];
+ return active?(p[role]??p.primary):p.light;
+}
+export function zoneRolePair(wave,role="primary",active=COLOR_WAVE_ACTIVE){
+ const stage=Math.max(0,Math.min(8,wave?.shaderBaseStage??0));
+ return {from:zoneRoleColor(stage,role,active),to:zoneRoleColor(Math.min(8,stage+1),role,active),
+ front:wave?.fronts?.[0]??-10000,active:wave?.activeCount>0?1:0};
+}
+export function roleWaveMix(arc,wave,lap=3400){
+ if(!wave?.activeCount)return 0;
+ const d=((arc-wave.fronts[0]+lap*.5)%lap+lap)%lap-lap*.5;
+ const x=Math.max(0,Math.min(1,(d+66)/132));
+ return 1-x*x*(3-2*x);
+}
+
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const smooth=t=>{const x=clamp(t,0,1);return x*x*(3-2*x);};
 // In road/rail shader the same lateral shimmer advances the SAME physical

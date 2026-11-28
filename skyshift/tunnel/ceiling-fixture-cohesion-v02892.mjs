@@ -1,3 +1,4 @@
+import {COLOR_WAVE_ACTIVE,zoneRolePair} from "../core/zone-wave.mjs";
 // SKYSHIFT 0.28.9.2 — Ceiling Fixture Placement & Glow Cohesion.
 // Replace (do not overlay) the 0.26.0 cyan cove / amber wall markers that
 // protruded across the raised panels. The little cyan T caps are removed.
@@ -136,6 +137,7 @@ export function patchCeilingFixtureShader02892(vertex,fragment){
  const f=fragment.replace(COMMON,COMMON+"\n"+[
   "uniform vec3 uF92Old;",
   "uniform vec3 uF92Next;",
+  ...(COLOR_WAVE_ACTIVE?["uniform vec3 uF92AccentOld,uF92AccentNext;"]:[]),
   "uniform float uF92Front;",
   "uniform float uF92Active;",
   "uniform float uF92Start;",
@@ -153,6 +155,7 @@ export function patchCeilingFixtureShader02892(vertex,fragment){
    ZONE_WAVE.atmosphereTransitionMeters.toFixed(1)+",f92Signed));",
   "vec3 f92Tint=mix(uF92Old,uF92Next,clamp(f92Mix,0.0,1.0));",
   "// A minor amber component retains the original warm fixture identity.",
+  COLOR_WAVE_ACTIVE?"f92Tint=mix(f92Tint,mix(uF92AccentOld,uF92AccentNext,f92Mix),vF92Warm);":
   "f92Tint=mix(f92Tint,vec3(1.0,.57,.25),vF92Warm*.16);",
   "float f92Core=smoothstep(.36,.90,vF92Alpha);",
   "diffuseColor.rgb=f92Tint*(1.10+.34*f92Core);",
@@ -184,6 +187,8 @@ export function installCeilingFixtureCohesion02892(THREE,section,positionAt,modu
  const uniform={
   uF92Old:{value:new THREE.Color(ZONE_PALETTES[0].light)},
   uF92Next:{value:new THREE.Color(ZONE_PALETTES[0].light)},
+  uF92AccentOld:{value:new THREE.Color(zoneRolePair(null,"highlight").from)},
+  uF92AccentNext:{value:new THREE.Color(zoneRolePair(null,"highlight").to)},
   uF92Front:{value:-10000},uF92Active:{value:0},
   uF92Start:{value:module.start},uF92Scale:{value:module.scale},
   uF92Lap:{value:trackLength}
@@ -216,7 +221,8 @@ export function installCeilingFixtureCohesion02892(THREE,section,positionAt,modu
  return {
   active:true,
   updateWave(wave){
-   const stage=sharedWaveColors02894(wave);
+   const stage=sharedWaveColors02894(wave,"secondary"),a=zoneRolePair(wave,"highlight");
+   uniform.uF92AccentOld.value.setHex(a.from);uniform.uF92AccentNext.value.setHex(a.to);
    uniform.uF92Old.value.setHex(stage.from);
    uniform.uF92Next.value.setHex(stage.to);
    uniform.uF92Front.value=stage.front;

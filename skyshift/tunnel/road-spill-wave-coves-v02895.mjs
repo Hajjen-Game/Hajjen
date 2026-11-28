@@ -1,3 +1,4 @@
+import {COLOR_WAVE_ACTIVE,zoneRolePair} from "../core/zone-wave.mjs";
 // SKYSHIFT 0.28.9.5 — Road Light Spill Continuity & Wave-Coupled Cove Lighting.
 // Shared authoring, actual Skyline 0.26.3.2 6.5m/24m edge fixtures and
 // original banked 0.26.0 physical/painted metal. Vault is first live rollout;
@@ -99,6 +100,7 @@ export function patchRoadSpill02895(vertex,fragment,{
  const header=[
   "uniform vec3 uS95Old,uS95Next;",
   "uniform float uS95Front,uS95Active,uS95Lap,uS95Strength;",
+  ...(COLOR_WAVE_ACTIVE?["uniform vec3 uS95AccentOld,uS95AccentNext;","vec3 cwRoadTint(float s,vec3 a,vec3 b){float d=mod(s-uS95Front+.5*uS95Lap,uS95Lap)-.5*uS95Lap;return mix(a,b,uS95Active*(1.0-smoothstep(-66.0,66.0,d)));}"]:[]),
   ...(localExpression?["float roadSourceLocalEF05(float s){"+localExpression+"}"]:[])
  ].join("\n");
  const prefix=[
@@ -137,7 +139,7 @@ export function patchRoadSpill02895(vertex,fragment,{
   "float s95Mix=uS95Active*(1.0-smoothstep(-"+
    ZONE_WAVE.atmosphereTransitionMeters.toFixed(1)+","+
    ZONE_WAVE.atmosphereTransitionMeters.toFixed(1)+",s95Signed));",
-  edgeOnly?"vec3 s95Tint=vec3(0.06,0.71,0.90);":
+  edgeOnly&&!COLOR_WAVE_ACTIVE?"vec3 s95Tint=vec3(0.06,0.71,0.90);":
    "vec3 s95Tint=mix(uS95Old,uS95Next,clamp(s95Mix,0.0,1.0));",
   "float s95GuideSafe=(1.0-.91*clamp(guided,0.0,1.0))*",
   " (1.0-.95*clamp(whiteCore,0.0,1.0))*",
@@ -150,6 +152,13 @@ export function patchRoadSpill02895(vertex,fragment,{
     (lowMemory?"0.013":"0.019")+";"
  ].join("\n");
  f=f.replace(marker,marker+"\n"+spill);
+ if(COLOR_WAVE_ACTIVE){
+  const cool="cwRoadTint(vTrackCoord.x,uS95Old,uS95Next)",warm="cwRoadTint(vTrackCoord.x,uS95AccentOld,uS95AccentNext)";
+  f=f.replaceAll("vec3(0.045,0.55,0.93)",`(${cool}*.93)`)
+   .replaceAll("vec3(1.0,0.36,0.095)",warm)
+   .replaceAll("vec3(0.045,0.54,0.90)",`(${cool}*.90)`)
+   .replaceAll("vec3(1.0,0.33,0.075)",warm);
+ }
  return {vertexShader:vertex,fragmentShader:f};
 }
 const BASIC="vec3 d26Ice=vec3(0.050,0.69,0.88)*d26ColdPower;";
@@ -165,6 +174,7 @@ export function patchWallCoveWave02895(vertex,fragment,{
   throw Error("0.28.9.5 missing real 0.26.x cyan metal response "+kind);
  const declare=[
   "uniform vec3 uW95Old,uW95Next;",
+  ...(COLOR_WAVE_ACTIVE?["uniform vec3 uW95AccentOld,uW95AccentNext;"]:[]),
   "uniform float uW95Front,uW95Active,uW95Start,uW95Scale,uW95Lap,uW95Power;",
   "vec3 w95Color(float sourceS){",
   "float s=uW95Start+sourceS*uW95Scale;",
@@ -173,7 +183,8 @@ export function patchWallCoveWave02895(vertex,fragment,{
    ZONE_WAVE.atmosphereTransitionMeters.toFixed(1)+","+
    ZONE_WAVE.atmosphereTransitionMeters.toFixed(1)+",d));",
   "return mix(uW95Old,uW95Next,clamp(t,0.0,1.0));",
-  "}"
+  "}",
+  ...(COLOR_WAVE_ACTIVE?["vec3 w95Accent(float sourceS){float s=uW95Start+sourceS*uW95Scale;float d=mod(s-uW95Front+.5*uW95Lap,uW95Lap)-.5*uW95Lap;float t=uW95Active*(1.0-smoothstep(-66.0,66.0,d));return mix(uW95AccentOld,uW95AccentNext,t);}"]:[])
  ].join("\n");
  let f=fragment.replace(GLSL_COMMON,GLSL_COMMON+"\n"+declare);
  if(kind==="substrate"){
@@ -191,6 +202,14 @@ export function patchWallCoveWave02895(vertex,fragment,{
   f=f.replaceAll(COOL,
    "l261Cool.color=mix(vec3(0.07,0.64,0.97),"+
    "w95Color(vPbrTrack0260)*vec3(.91,.78,.95),uW95Power)");
+ }
+ if(COLOR_WAVE_ACTIVE){
+  if(kind==="physical"){
+   f=f.replace(/l261Warm\.color=vec3\([^)]+\)/g,"l261Warm.color=w95Accent(vPbrTrack0260)");
+   // The cold assignment was already replaced above; the remaining native fixture is warm.
+   f=f.replace(PBR,"pbrFixture0260.color=w95Accent(vPbrTrack0260)*.94");
+  }
+  else f=f.replace(/vec3\(0\.205,0\.077,0\.018\)(?=\*)/g,"(w95Accent(vRebirthTrack)*.205)");
  }
  return {vertexShader:vertex,fragmentShader:f};
 }
@@ -216,6 +235,8 @@ export function installWaveCoupledCove02895(THREE,section,module,{
  const uniforms={
   uW95Old:{value:new THREE.Color(ZONE_PALETTES[0].light)},
   uW95Next:{value:new THREE.Color(ZONE_PALETTES[0].light)},
+  uW95AccentOld:{value:new THREE.Color(zoneRolePair(null,"highlight").from)},
+  uW95AccentNext:{value:new THREE.Color(zoneRolePair(null,"highlight").to)},
   uW95Front:{value:-10000},uW95Active:{value:0},
   uW95Start:{value:module.start},uW95Scale:{value:module.scale},
   uW95Lap:{value:trackLength},uW95Power:{value:1}
@@ -245,6 +266,7 @@ export function installWaveCoupledCove02895(THREE,section,module,{
  return {active:true,
   updateWave(wave){
    const w=sharedWaveColors02894(wave);
+   const a=zoneRolePair(wave,"highlight");uniforms.uW95AccentOld.value.setHex(a.from);uniforms.uW95AccentNext.value.setHex(a.to);
    uniforms.uW95Old.value.setHex(w.from);
    uniforms.uW95Next.value.setHex(w.to);
    uniforms.uW95Front.value=w.front;uniforms.uW95Active.value=w.active;
@@ -275,6 +297,8 @@ export function installRoadSpill02895(THREE,road,{
  const uniforms={
   uS95Old:{value:new THREE.Color(ZONE_PALETTES[0].light)},
   uS95Next:{value:new THREE.Color(ZONE_PALETTES[0].light)},
+  uS95AccentOld:{value:new THREE.Color(zoneRolePair(null,"highlight").from)},
+  uS95AccentNext:{value:new THREE.Color(zoneRolePair(null,"highlight").to)},
   uS95Front:{value:-10000},uS95Active:{value:0},
   uS95Lap:{value:trackLength},uS95Strength:{value:1}
  };
@@ -293,7 +317,8 @@ export function installRoadSpill02895(THREE,road,{
  let disposed=false;
  return {active:true,
   updateWave(wave){
-   const w=sharedWaveColors02894(wave);
+   const w=sharedWaveColors02894(wave,"secondary"),a=zoneRolePair(wave,"highlight");
+   uniforms.uS95AccentOld.value.setHex(a.from);uniforms.uS95AccentNext.value.setHex(a.to);
    uniforms.uS95Old.value.setHex(w.from);
    uniforms.uS95Next.value.setHex(w.to);
    uniforms.uS95Front.value=w.front;uniforms.uS95Active.value=w.active;
@@ -303,6 +328,7 @@ export function installRoadSpill02895(THREE,road,{
    reference:"Skyline 0.26.3.3 local strip response",
    moduleMeters,sourceMeters,litLength:6.5,pitch:24,
    waveColors:[uniforms.uS95Old.value.getHex(),uniforms.uS95Next.value.getHex()],
+   accentWaveColors:[uniforms.uS95AccentOld.value.getHex(),uniforms.uS95AccentNext.value.getHex()],
    strength:uniforms.uS95Strength.value,
    straightOnly:true,segmentFalloffSmooth:true,
    addedDrawCalls:0,addedMesh:0,extraRoadAttributes:0,
